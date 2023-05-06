@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AudioPlugSharp" Version="0.5.0" />
+    <PackageReference Include="AudioPlugSharpWPF" Version="0.5.0" />
+    <PackageReference Include="EigenCore" Version="1.0.0-alpha" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NamModel\NamModel.csproj" />
+  </ItemGroup>
+
+</Project>

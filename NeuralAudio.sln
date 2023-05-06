@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33213.308
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NeuralAudioVst", "NeuralAudioVst\NeuralAudioVst.csproj", "{1E594381-3329-4802-90ED-764FDC27D899}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestApp", "TestApp\TestApp.csproj", "{644E3548-6B73-47F4-A233-0AF0D175199F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NamModel", "NamModel\NamModel.csproj", "{4EA1D36C-0E1D-4087-8091-410032BD9C09}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "NeuralNet", "NeuralNet\NeuralNet.shproj", "{36A8E7D2-F5B4-4E1C-BF43-C6B65E42F5C5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1E594381-3329-4802-90ED-764FDC27D899}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1E594381-3329-4802-90ED-764FDC27D899}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1E594381-3329-4802-90ED-764FDC27D899}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1E594381-3329-4802-90ED-764FDC27D899}.Release|Any CPU.Build.0 = Release|Any CPU
+		{644E3548-6B73-47F4-A233-0AF0D175199F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{644E3548-6B73-47F4-A233-0AF0D175199F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{644E3548-6B73-47F4-A233-0AF0D175199F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{644E3548-6B73-47F4-A233-0AF0D175199F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4EA1D36C-0E1D-4087-8091-410032BD9C09}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4EA1D36C-0E1D-4087-8091-410032BD9C09}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4EA1D36C-0E1D-4087-8091-410032BD9C09}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4EA1D36C-0E1D-4087-8091-410032BD9C09}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C20659D1-7C62-4541-92B8-F8E0827A308A}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		NeuralNet\NeuralNet.projitems*{36a8e7d2-f5b4-4e1c-bf43-c6b65e42f5c5}*SharedItemsImports = 13
+		NeuralNet\NeuralNet.projitems*{4ea1d36c-0e1d-4087-8091-410032bd9c09}*SharedItemsImports = 5
+	EndGlobalSection
+EndGlobal
