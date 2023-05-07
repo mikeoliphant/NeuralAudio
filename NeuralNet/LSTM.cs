@@ -70,19 +70,19 @@ namespace NeuralNet
             hiddenWeights.MultAcc(hiddenState, ifgo);
             VecOp.Add(ifgo, bias);
 
-            int i_offset = 0;
-            int f_offset = HiddenSize;
-            int g_offset = 2 * HiddenSize;
-            int o_offset = 3 * HiddenSize;
+            int iOffset = 0;
+            int fOffset = HiddenSize;
+            int gOffset = 2 * HiddenSize;
+            int oOffset = 3 * HiddenSize;
 
             for (int i = 0; i < HiddenSize; i++)
             {
-                cellState[i] = Activation.FastSigmoid(ifgo[i + f_offset]) * cellState[i] + Activation.FastSigmoid(ifgo[i + i_offset]) * Activation.FastTanh(ifgo[i + g_offset]);
+                cellState[i] = Activation.FastSigmoid(ifgo[i + fOffset]) * cellState[i] + Activation.FastSigmoid(ifgo[i + iOffset]) * Activation.FastTanh(ifgo[i + gOffset]);
             }
 
             for (int i = 0; i < HiddenSize; i++)
             {
-                hiddenState[i] = Activation.FastSigmoid(ifgo[i + o_offset]) * Activation.FastTanh(cellState[i]);
+                hiddenState[i] = Activation.FastSigmoid(ifgo[i + oOffset]) * Activation.FastTanh(cellState[i]);
             }
         }
     }

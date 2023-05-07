@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0-windows</TargetFramework>
@@ -7,9 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AudioPlugSharp" Version="0.5.0" />
-    <PackageReference Include="AudioPlugSharpWPF" Version="0.5.0" />
-    <PackageReference Include="EigenCore" Version="1.0.0-alpha" />
+    <PackageReference Include="AudioPlugSharp" Version="0.5.1" />
+    <PackageReference Include="AudioPlugSharpWPF" Version="0.5.1" />
   </ItemGroup>
 
   <ItemGroup>

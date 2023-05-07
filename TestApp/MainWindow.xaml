@@ -3,10 +3,11 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:NAM="clr-namespace:NAM.Plugin;assembly=NamVst"
+        xmlns:NAM="clr-namespace:NeuralAudioVst;assembly=NeuralAudioVst"
         xmlns:local="clr-namespace:NamApp"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
+        <NAM:EditorView x:Name="EditorView" />
     </Grid>
 </Window>

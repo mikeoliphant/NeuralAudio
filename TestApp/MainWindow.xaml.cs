@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading;
 using System.Windows;
-using AudioPlugSharp;
-using NAM.Plugin;
+using AudioPlugSharpWPF;
+using NeuralAudioVst;
 
 namespace NamApp
 {
@@ -11,16 +11,18 @@ namespace NamApp
     /// </summary>
     public partial class MainWindow : Window
     {
-        NAMPlugin plugin;
+        NeuralAudioPlugin plugin;
 
         public MainWindow()
         {
             InitializeComponent();
 
-            plugin = new NAMPlugin();
+            plugin = new NeuralAudioPlugin();
 
             plugin.Host = new DummyHost();
             plugin.Initialize();
+
+            EditorView.DataContext = plugin;
 
             new Thread(new ThreadStart(RunAudio)).Start();
         }

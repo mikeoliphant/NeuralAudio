@@ -1,25 +1,24 @@
 using System;
-using System.IO;
-using System.Text.Json;
+using System.Windows.Controls;
 using AudioPlugSharp;
 using AudioPlugSharpWPF;
 using NAM;
 
-namespace NAM.Plugin
+namespace NeuralAudioVst
 {
-    public class NAMPlugin : AudioPluginWPF
+    public class NeuralAudioPlugin : AudioPluginWPF
     {
         AudioIOPort monoInput = null;
         AudioIOPort monoOutput = null;
 
         public Model Model { get; private set; } = null;
 
-        public NAMPlugin()
+        public NeuralAudioPlugin()
         {
             Company = "Mike Oliphant";
             Website = "nostatic.org";
             Contact = "contact@my.email";
-            PluginName = "NAM Plugin";
+            PluginName = "Neural Audio";
             PluginCategory = "Fx";
             PluginVersion = "1.0.0";
 
@@ -61,6 +60,11 @@ namespace NAM.Plugin
             });
 
             LoadModel(@"C:\Users\oliph\Downloads\model-1-12.nam");
+        }
+
+        public override UserControl GetEditorView()
+        {
+            return new EditorView();
         }
 
         void LoadModel(string path)
