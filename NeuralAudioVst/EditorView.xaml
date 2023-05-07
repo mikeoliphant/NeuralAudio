@@ -8,7 +8,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="200" d:DesignWidth="300">
     <DockPanel Width="300" Height="150">
-        <Button DockPanel.Dock="Bottom" Content="Load Model" Click="LoadButton_Click" />
+        <Button x:Name="LoadButton" DockPanel.Dock="Bottom" Content="Load Model" Click="LoadButton_Click" />
         <AudioPlugSharpWPF:ParameterDisplay HorizontalAlignment="Center" VerticalAlignment="Center"/>
     </DockPanel>
 </UserControl>

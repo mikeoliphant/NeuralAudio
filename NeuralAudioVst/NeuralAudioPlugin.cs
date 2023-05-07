@@ -7,12 +7,20 @@ using NAM;
 
 namespace NeuralAudioVst
 {
+    public class NeuralAudioPluginSaveState : AudioPluginWPFSaveState
+    {
+        public string ModelPath { get; set; }
+    }
+
     public class NeuralAudioPlugin : AudioPluginWPF
     {
         AudioIOPort monoInput = null;
         AudioIOPort monoOutput = null;
 
         public Model Model { get; private set; } = null;
+        public string ModelPath { get; private set; } = null;
+
+        public NeuralAudioPluginSaveState NeuralAudioPluginSaveState { get { return (SaveStateData as NeuralAudioPluginSaveState) ?? new NeuralAudioPluginSaveState(); } }
 
         public NeuralAudioPlugin()
         {
@@ -29,6 +37,8 @@ namespace NeuralAudioVst
             HasUserInterface = true;
             EditorWidth = 200;
             EditorHeight = 100;
+
+            SaveStateData = new NeuralAudioPluginSaveState();
         }
 
         public override void Initialize()
@@ -66,9 +76,37 @@ namespace NeuralAudioVst
             return new EditorView();
         }
 
+        public override byte[] SaveState()
+        {
+            NeuralAudioPluginSaveState.ModelPath = ModelPath;
+
+            return base.SaveState();
+        }
+
+        public override void RestoreState(byte[] stateData)
+        {
+            base.RestoreState(stateData);
+
+            if (!string.IsNullOrEmpty(NeuralAudioPluginSaveState.ModelPath))
+            {
+                try
+                {
+                    LoadModel(NeuralAudioPluginSaveState.ModelPath);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log("Failed to restore model: " + ex.ToString());
+                }
+            }
+        }
+
         public void LoadModel(string path)
         {
+            Logger.Log("Load Model: " + path);
+
             Model = Model.FromFile(path);
+
+            ModelPath = path;
         }
 
         public override void Process()
@@ -103,4 +141,5 @@ namespace NeuralAudioVst
             monoOutput.WriteData();
         }
     }
+
 }

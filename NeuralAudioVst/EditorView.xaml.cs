@@ -1,19 +1,8 @@
-﻿using NAM;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
 
 namespace NeuralAudioVst
 {
@@ -25,6 +14,16 @@ namespace NeuralAudioVst
         public EditorView()
         {
             InitializeComponent();
+
+            DataContextChanged += EditorView_DataContextChanged;
+        }
+
+        private void EditorView_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (!String.IsNullOrEmpty((DataContext as NeuralAudioPlugin).ModelPath))
+            {
+                LoadButton.Content = Path.GetFileName((DataContext as NeuralAudioPlugin).ModelPath);
+            }
         }
 
         private void LoadButton_Click(object sender, RoutedEventArgs e)
@@ -39,6 +38,8 @@ namespace NeuralAudioVst
                 try
                 {
                     (DataContext as NeuralAudioPlugin).LoadModel(dialog.FileName);
+
+                    LoadButton.Content = Path.GetFileName(dialog.FileName);
                 }
                 catch (Exception ex)
                 {
