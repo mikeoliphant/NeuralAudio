@@ -1,4 +1,5 @@
 using System;
+using System.Windows;
 using System.Windows.Controls;
 using AudioPlugSharp;
 using AudioPlugSharpWPF;
@@ -40,7 +41,7 @@ namespace NeuralAudioVst
             AddParameter(new AudioPluginParameter
             {
                 ID = "gain",
-                Name = "Input Gain",
+                Name = "Gain",
                 Type = EAudioPluginParameterType.Float,
                 MinValue = -20,
                 MaxValue = 20,
@@ -51,15 +52,13 @@ namespace NeuralAudioVst
             AddParameter(new AudioPluginParameter
             {
                 ID = "volume",
-                Name = "Output Volume",
+                Name = "Level",
                 Type = EAudioPluginParameterType.Float,
                 MinValue = -20,
                 MaxValue = 20,
                 DefaultValue = 0,
                 ValueFormat = "{0:0.0}dB"
             });
-
-            LoadModel(@"C:\Users\oliph\Downloads\model-1-12.nam");
         }
 
         public override UserControl GetEditorView()
@@ -67,7 +66,7 @@ namespace NeuralAudioVst
             return new EditorView();
         }
 
-        void LoadModel(string path)
+        public void LoadModel(string path)
         {
             Model = Model.FromFile(path);
         }
@@ -89,9 +88,16 @@ namespace NeuralAudioVst
             double[] inSamples = monoInput.GetAudioBuffers()[0];
             double[] outSamples = monoOutput.GetAudioBuffers()[0];
 
-            for (int i = 0; i < inSamples.Length; i++)
+            if (Model == null)
             {
-                outSamples[i] = (double)Model.ProcessSample((float)(inSamples[i] * linearGain)) * linearVolume;
+                monoInput.PassThroughTo(monoOutput);
+            }
+            else
+            {
+                for (int i = 0; i < inSamples.Length; i++)
+                {
+                    outSamples[i] = (double)Model.ProcessSample((float)(inSamples[i] * linearGain)) * linearVolume;
+                }
             }
 
             monoOutput.WriteData();

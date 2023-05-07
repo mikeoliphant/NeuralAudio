@@ -6,8 +6,9 @@
              xmlns:AudioPlugSharpWPF="clr-namespace:AudioPlugSharpWPF;assembly=AudioPlugSharpWPF"
              xmlns:local="clr-namespace:NeuralAudioVst"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-        <AudioPlugSharpWPF:ParameterDisplay HorizontalAlignment="Center" VerticalAlignment="Center"/>            
-    </Grid>
+             d:DesignHeight="200" d:DesignWidth="300">
+    <DockPanel Width="300" Height="150">
+        <Button DockPanel.Dock="Bottom" Content="Load Model" Click="LoadButton_Click" />
+        <AudioPlugSharpWPF:ParameterDisplay HorizontalAlignment="Center" VerticalAlignment="Center"/>
+    </DockPanel>
 </UserControl>

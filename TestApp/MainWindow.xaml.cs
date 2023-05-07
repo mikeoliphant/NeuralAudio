@@ -31,7 +31,8 @@ namespace NamApp
         {
             while (true)
             {
-                plugin.Model.ProcessSample(0);
+                if (plugin.Model != null)
+                    plugin.Model.ProcessSample(0);
             }
         }
     }
