@@ -68,6 +68,7 @@ namespace NAM
                             var bias = weightSpan.Slice(offset, size).ToArray();
                             offset += size;
 
+                            // NAM provides initial hidden/cell state, but it doesn't really do anything so ignore it
                             size = model.Config.HiddenSize;
                             var hiddenState = weightSpan.Slice(offset, size).ToArray();
                             offset += size;
@@ -76,7 +77,7 @@ namespace NAM
                             var cellState = weightSpan.Slice(offset, size).ToArray();
                             offset += size;
 
-                            layers.Add(new LSTMLayer(inputSize, model.Config.HiddenSize, inputWeights, hiddenWeights, bias, hiddenState, cellState));
+                            layers.Add(new LSTMLayer(inputSize, model.Config.HiddenSize, inputWeights, hiddenWeights, bias));
                         }
 
                         size = model.Config.HiddenSize;

@@ -22,6 +22,8 @@ namespace NamApp
             plugin.Host = new DummyHost();
             plugin.Initialize();
 
+            plugin.LoadModel(@"C:\Users\oliph\Downloads\Boss2x12-200.nam");
+
             EditorView.DataContext = plugin;
 
             new Thread(new ThreadStart(RunAudio)).Start();

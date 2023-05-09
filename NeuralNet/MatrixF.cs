@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -8,11 +9,26 @@ namespace NeuralNet
 {
     public static class VecOp
     {
-        public static float Dot(float[] vecA, float[] vecB)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float Dot(ReadOnlySpan<float> vecA, ReadOnlySpan<float> vecB)
         {
+            int offset = 0;
             float val = 0;
 
-            for (int pos = 0; pos < vecA.Length; pos++)
+            if (vecA.Length >= Vector<float>.Count)
+            {
+                ReadOnlySpan<Vector<float>> aVecArray = MemoryMarshal.Cast<float, Vector<float>>(vecA);
+                ReadOnlySpan<Vector<float>> bVecArray = MemoryMarshal.Cast<float, Vector<float>>(vecB);
+
+                for (int i = 0; i < aVecArray.Length; i++)
+                {
+                    val += Vector.Dot(aVecArray[i], bVecArray[i]);
+                }
+
+                offset = aVecArray.Length * Vector<float>.Count;
+            }
+
+            for (int pos = offset; pos < vecA.Length; pos++)
             {
                 val += vecA[pos] * vecB[pos];
             }
@@ -20,9 +36,25 @@ namespace NeuralNet
             return val;
         }
 
-        public static void Add(float[] src, float[] toAdd)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Add(Span<float> src, ReadOnlySpan<float> toAdd)
         {
-            for (int pos = 0; pos < src.Length; pos++)
+            int offset = 0;
+
+            if (src.Length >= Vector<float>.Count)
+            {
+                Span<Vector<float>> srcVecArray = MemoryMarshal.Cast<float, Vector<float>>(src);
+                ReadOnlySpan<Vector<float>> toAddVecArray = MemoryMarshal.Cast<float, Vector<float>>(toAdd);
+
+                for (int i = 0; i < srcVecArray.Length; i++)
+                {
+                    srcVecArray[i] += toAddVecArray[i];
+                }
+
+                offset = srcVecArray.Length * Vector<float>.Count;
+            }
+
+            for (int pos = offset; pos < toAdd.Length; pos++)
             {
                 src[pos] += toAdd[pos];
             }
@@ -83,24 +115,7 @@ namespace NeuralNet
                 }
             }
         }
-
-        public void Mult(float[] vecB, float[] vecOut)
-        {
-            int dataOffset = 0;
-
-            for (int outRow = 0; outRow < vecOut.Length; outRow++)
-            {
-                float val = 0;
-
-                for (int pos = 0; pos < vecB.Length; pos++)
-                {
-                    val += data[dataOffset++] * vecB[pos];
-                }
-
-                vecOut[outRow] = val;
-            }
-        }
-
+=
         public void MultAcc(ref MatrixF matB, ref MatrixF matOut)
         {
             for (int outRow = 0; outRow < matOut.NumRows; outRow++)
@@ -119,20 +134,25 @@ namespace NeuralNet
             }
         }
 
-        public void MultAcc(float[] vecB, float[] vecOut)
+        public void Mult(float[] vecB, float[] vecOut)
         {
-            int dataOffset = 0;
+            ReadOnlySpan<float> dataSpan = data;
+            ReadOnlySpan<float> vecBSpan = vecB;
 
             for (int outRow = 0; outRow < vecOut.Length; outRow++)
             {
-                float val = 0;
+                vecOut[outRow] = VecOp.Dot(dataSpan.Slice(outRow * vecBSpan.Length, vecBSpan.Length), vecBSpan);
+            }
+        }
 
-                for (int pos = 0; pos < vecB.Length; pos++)
-                {
-                    val += data[dataOffset++] * vecB[pos];
-                }
+        public void MultAcc(float[] vecB, float[] vecOut)
+        {
+            ReadOnlySpan<float> dataSpan = data;
+            ReadOnlySpan<float> vecBSpan = vecB;
 
-                vecOut[outRow] += val;
+            for (int outRow = 0; outRow < vecOut.Length; outRow++)
+            {
+                vecOut[outRow] += VecOp.Dot(dataSpan.Slice(outRow * vecBSpan.Length, vecBSpan.Length), vecBSpan);
             }
         }
 

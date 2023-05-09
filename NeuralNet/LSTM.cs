@@ -50,7 +50,7 @@ namespace NeuralNet
         float[] ifgo;
         float[] cellState;
 
-        public LSTMLayer(int inputSize, int hiddenSize, float[] inputWeights, float[] hiddenWeights, float[] bias, float[] hiddenState, float[] cellState)
+        public LSTMLayer(int inputSize, int hiddenSize, float[] inputWeights, float[] hiddenWeights, float[] bias)
         {
             this.InputSize = inputSize;
             this.HiddenSize = hiddenSize;
@@ -58,8 +58,8 @@ namespace NeuralNet
             this.inputWeights = MatrixF.FromRowNormalData(inputWeights, 4 * HiddenSize, inputSize);
             this.hiddenWeights = MatrixF.FromRowNormalData(hiddenWeights, 4 * HiddenSize, HiddenSize);
             this.bias = bias;
-            this.hiddenState = hiddenState;
-            this.cellState = cellState;
+            this.hiddenState = new float[HiddenSize];
+            this.cellState = new float[HiddenSize];
 
             this.ifgo = new float[4 * HiddenSize];
         }

@@ -132,9 +132,11 @@ namespace NeuralAudioVst
             }
             else
             {
+                Model copy = Model;
+
                 for (int i = 0; i < inSamples.Length; i++)
                 {
-                    outSamples[i] = (double)Model.ProcessSample((float)(inSamples[i] * linearGain)) * linearVolume;
+                    outSamples[i] = (double)copy.ProcessSample((float)(inSamples[i] * linearGain)) * linearVolume;
                 }
             }
 
