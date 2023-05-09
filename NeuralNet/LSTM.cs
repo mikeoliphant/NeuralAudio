@@ -66,6 +66,7 @@ namespace NeuralNet
 
         public void Process(float[] input)
         {
+            // Input and Hidden weights could be multiplied together in one pass, which is faster - but this is clearer
             inputWeights.Mult(input, ifgo);
             hiddenWeights.MultAcc(hiddenState, ifgo);
             VecOp.Add(ifgo, bias);

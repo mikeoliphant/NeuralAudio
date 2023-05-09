@@ -115,7 +115,7 @@ namespace NeuralNet
                 }
             }
         }
-=
+
         public void MultAcc(ref MatrixF matB, ref MatrixF matOut)
         {
             for (int outRow = 0; outRow < matOut.NumRows; outRow++)
@@ -134,25 +134,23 @@ namespace NeuralNet
             }
         }
 
-        public void Mult(float[] vecB, float[] vecOut)
+        public void Mult(ReadOnlySpan<float> vecB, Span<float> vecOut)
         {
             ReadOnlySpan<float> dataSpan = data;
-            ReadOnlySpan<float> vecBSpan = vecB;
 
             for (int outRow = 0; outRow < vecOut.Length; outRow++)
             {
-                vecOut[outRow] = VecOp.Dot(dataSpan.Slice(outRow * vecBSpan.Length, vecBSpan.Length), vecBSpan);
+                vecOut[outRow] = VecOp.Dot(dataSpan.Slice(outRow * vecB.Length, vecB.Length), vecB);
             }
         }
 
-        public void MultAcc(float[] vecB, float[] vecOut)
+        public void MultAcc(ReadOnlySpan<float> vecB, Span<float> vecOut)
         {
             ReadOnlySpan<float> dataSpan = data;
-            ReadOnlySpan<float> vecBSpan = vecB;
 
             for (int outRow = 0; outRow < vecOut.Length; outRow++)
             {
-                vecOut[outRow] += VecOp.Dot(dataSpan.Slice(outRow * vecBSpan.Length, vecBSpan.Length), vecBSpan);
+                vecOut[outRow] += VecOp.Dot(dataSpan.Slice(outRow * vecB.Length, vecB.Length), vecB);
             }
         }
 
