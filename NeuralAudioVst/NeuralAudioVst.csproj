@@ -7,8 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AudioPlugSharp" Version="0.5.1" />
-    <PackageReference Include="AudioPlugSharpWPF" Version="0.5.1" />
+    <PackageReference Include="AudioPlugSharp" Version="0.5.2" />
+    <PackageReference Include="AudioPlugSharpWPF" Version="0.5.2" />
   </ItemGroup>
 
   <ItemGroup>

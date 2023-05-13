@@ -11,6 +11,7 @@ namespace NeuralNet
 
         float[] headWeights;
         float headBias;
+        float[] layerInput = new float[1];
 
         public List<LSTMLayer> Layers { get; set; } = new List<LSTMLayer>();
 
@@ -21,16 +22,18 @@ namespace NeuralNet
             this.headWeights = headWeights;
         }
 
-        public void Process(float[] input, float[] output)
+        public float Process(float input)
         {
-            Layers[0].Process(input);
+            layerInput[0] = input;
+
+            Layers[0].Process(layerInput);
 
             for (int layer = 1; layer < Layers.Count; layer++)
             {
                 Layers[layer].Process(Layers[layer - 1].HiddenState);
             }
             
-            output[0] = VecOp.Dot(headWeights, Layers[Layers.Count - 1].HiddenState) + headBias;
+            return VecOp.Dot(headWeights, Layers[Layers.Count - 1].HiddenState) + headBias;
         }
     }
 
@@ -64,7 +67,7 @@ namespace NeuralNet
             this.ifgo = new float[4 * HiddenSize];
         }
 
-        public void Process(float[] input)
+        public void Process(ReadOnlySpan<float> input)
         {
             // Input and Hidden weights could be multiplied together in one pass, which is faster - but this is clearer
             inputWeights.Mult(input, ifgo);

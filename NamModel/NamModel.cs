@@ -1,7 +1,4 @@
-﻿using System.ComponentModel;
-using System.IO;
-using System.Runtime.InteropServices;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 using NeuralNet;
 
@@ -101,15 +98,9 @@ namespace NAM
             return model;
         }
 
-        float[] samples = new float[1];
-
         public float ProcessSample(float sample)
         {
-            samples[0] = sample;
-
-            NNModel.Process(samples, samples);
-
-            return samples[0];
+            return NNModel.Process(sample);
         }
     }
 

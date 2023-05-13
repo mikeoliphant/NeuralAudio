@@ -121,10 +121,8 @@ namespace NeuralAudioVst
             double vol = GetParameter("volume").ProcessValue;
             double linearVolume = Math.Pow(10.0, 0.05 * vol);
 
-            monoInput.ReadData();
-
-            double[] inSamples = monoInput.GetAudioBuffers()[0];
-            double[] outSamples = monoOutput.GetAudioBuffers()[0];
+            ReadOnlySpan<double> inSamples = monoInput.GetAudioBuffer(0);
+            Span<double> outSamples = monoOutput.GetAudioBuffer(0);
 
             if (Model == null)
             {
@@ -132,15 +130,11 @@ namespace NeuralAudioVst
             }
             else
             {
-                Model copy = Model;
-
                 for (int i = 0; i < inSamples.Length; i++)
                 {
-                    outSamples[i] = (double)copy.ProcessSample((float)(inSamples[i] * linearGain)) * linearVolume;
+                    outSamples[i] = (double)Model.ProcessSample((float)(inSamples[i] * linearGain)) * linearVolume;
                 }
             }
-
-            monoOutput.WriteData();
         }
     }
 
