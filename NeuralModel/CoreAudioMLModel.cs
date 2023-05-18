@@ -1,104 +1,94 @@
 ﻿using System.Text.Json;
-using System.Text.Json.Serialization;
 using NeuralNet;
 
 namespace NeuralModel
 {
-    public class CoreAudioMLModelConfig : NeuralModelConfig
+    public class CoreAudioMLConfig : NeuralModelConfig
     {
-        public static MatrixF MatrixFromJson(JsonElement element)
+        public new static CoreAudioMLConfig FromJson(JsonDocument doc)
         {
-            MatrixF matrix = new MatrixF(element.GetArrayLength(), element[0].GetArrayLength());
+            CoreAudioMLConfig model = new CoreAudioMLConfig();
 
-            for (int row = 0; row < matrix.NumRows; row++)
+            var modelData = doc.RootElement.GetProperty("model_data");
+
+            if (!modelData.GetProperty("model").GetString().Equals("SimpleRNN", StringComparison.InvariantCultureIgnoreCase))
             {
-                for (int col = 0; col < matrix.NumCols; col++)
-                {
-                    matrix[row, col] = element[row][col].GetSingle();
-                }
+                throw new InvalidDataException("Only SimpleRNN models are supported");
             }
 
-            return matrix;
-        }
-
-        public new static CoreAudioMLModelConfig FromFile(string filePath)
-        {
-            CoreAudioMLModelConfig modelConfig = null;
-
-            using (FileStream stream = File.OpenRead(filePath))
+            if (!modelData.GetProperty("unit_type").GetString().Equals("LSTM", StringComparison.InvariantCultureIgnoreCase))
             {
-                JsonDocument doc = JsonDocument.Parse(stream);
+                throw new InvalidDataException("Only SimpleRNN models are supported");
+            }
 
-                modelConfig = new CoreAudioMLModelConfig();
+            int numLayers = modelData.GetProperty("num_layers").GetInt32();
+            int hiddenSize = modelData.GetProperty("hidden_size").GetInt32();
 
-                var layerConfigs = doc.RootElement.GetProperty("layers");
+            var stateDict = doc.RootElement.GetProperty("state_dict");
 
-                int numLayers = layerConfigs.GetArrayLength();
+            List<LSTMLayer> layers = new List<LSTMLayer>();
 
-                if (numLayers < 2)
+            int lastLayerSize = 1;
+
+            for (int i = 0; i < numLayers; i++)
+            {
+                var inputWeights = stateDict.GetProperty("rec.weight_ih_l" + i);
+
+                MatrixF inputMatrix = new MatrixF(4 * hiddenSize, lastLayerSize);
+
+                for (int row = 0; row < (4 * hiddenSize); row++)
                 {
-                    throw new InvalidDataException("LSTM network must have at least one LSTM and one Dense layer");
-                }
-
-                List<LSTMLayer> layers = new List<LSTMLayer>();
-
-                int lastLayerSize = 1;
-
-                for (int i = 0; i < (numLayers - 1); i++)
-                {
-                    var layerConfig = layerConfigs[i];
-
-                    if (!layerConfig.GetProperty("type").GetString().Equals("lstm", StringComparison.InvariantCultureIgnoreCase))
+                    for (int col = 0; col < lastLayerSize; col++)
                     {
-                        throw new InvalidDataException("Layer " + i + " is not an LSTM layer");
+                        inputMatrix[row, col] = inputWeights[row][col].GetSingle();
                     }
-
-                    int layerSize = layerConfig.GetProperty("shape")[2].GetInt32();
-
-                    var weights = layerConfig.GetProperty("weights");
-
-                    var inputWeights = MatrixFromJson(weights[0]);
-                    var hiddenWeights = MatrixFromJson(weights[1]);
-                    var bias = weights[2].Deserialize<float[]>();
-
-                    layers.Add(new LSTMLayer(lastLayerSize, layerSize, inputWeights, hiddenWeights, bias));
-
-                    lastLayerSize = layerSize;
                 }
 
-                var denseLayerConfig = layerConfigs[numLayers - 1];
+                var hiddenWeights = stateDict.GetProperty("rec.weight_hh_l" + i);
 
-                if (!denseLayerConfig.GetProperty("type").GetString().Equals("dense", StringComparison.InvariantCultureIgnoreCase))
+                MatrixF hiddenMatrix = new MatrixF(4 * hiddenSize, hiddenSize);
+
+                for (int row = 0; row < (4 * hiddenSize); row++)
                 {
-                    throw new InvalidDataException("Last layer is not a Dense layer");
+                    for (int col = 0; col < hiddenSize; col++)
+                    {
+                        hiddenMatrix[row, col] = hiddenWeights[row][col].GetSingle();
+                    }
                 }
 
-                float[] headWeights = new float[lastLayerSize];
+                var inputBias = stateDict.GetProperty("rec.bias_ih_l" + i);
+                var hiddenBias = stateDict.GetProperty("rec.bias_hh_l" + i);
 
-                var denseWeights = denseLayerConfig.GetProperty("weights");
+                float[] bias = new float[4 * hiddenSize];
 
-                for (int i = 0; i < headWeights.Length; i++)
+                for (int pos = 0; pos < bias.Length; pos++)
                 {
-                    headWeights[i] = denseWeights[0][i][0].GetSingle();    // dense weights are stored as matrix of Nx1
+                    bias[pos] = inputBias[pos].GetSingle() + hiddenBias[pos].GetSingle();
                 }
 
-                bool doSkip = false;
+                layers.Add(new LSTMLayer(lastLayerSize, hiddenSize, inputMatrix, hiddenMatrix, bias));
 
-                JsonElement skipElement;
-
-                if (doc.RootElement.TryGetProperty("in_skip", out skipElement))
-                {
-                    doSkip = (skipElement.GetInt32() == 1);
-                }
-
-                LSTMNetwork lstmNet = new LSTMNetwork(headWeights, denseWeights[1][0].GetSingle(), doSkip);
-
-                lstmNet.Layers = layers;
-
-                modelConfig.Network = lstmNet;
+                lastLayerSize = hiddenSize;
             }
 
-            return modelConfig;
+            var denseWeights = stateDict.GetProperty("lin.weight")[0];
+
+            bool doSkip = false;
+
+            JsonElement skipElement;
+
+            if (modelData.TryGetProperty("skip", out skipElement))
+            {
+                doSkip = (skipElement.GetInt32() == 1);
+            }
+
+            LSTMNetwork lstmNetwork = new LSTMNetwork(denseWeights.Deserialize<float[]>(), stateDict.GetProperty("lin.bias")[0].GetSingle(), doSkip);
+
+            lstmNetwork.Layers = layers;
+
+            model.Network = lstmNetwork;
+
+            return model;
         }
     }
 }

@@ -30,6 +30,14 @@ namespace NeuralAudioVst
 
         private void LoadButton_Click(object sender, RoutedEventArgs e)
         {
+            if (lastFilterIndex == 0)
+            {
+                string path = (DataContext as NeuralAudioPlugin).ModelPath;
+
+                if (!string.IsNullOrEmpty(path) && path.EndsWith("json", StringComparison.InvariantCultureIgnoreCase))
+                    lastFilterIndex = 2;
+            }
+
             var dialog = new System.Windows.Forms.OpenFileDialog();
             dialog.FilterIndex = lastFilterIndex;
             dialog.Filter = "NAM Models|*.nam|CoreaAudioML Models|*.json";
