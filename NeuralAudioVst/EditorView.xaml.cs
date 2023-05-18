@@ -30,7 +30,7 @@ namespace NeuralAudioVst
         {
             var dialog = new System.Windows.Forms.OpenFileDialog();
             dialog.DefaultExt = ".nam";
-            dialog.Filter = "NAM Models|*.nam";
+            dialog.Filter = "NAM Models|*.nam|CoreaAudioML Models|*.json";
             dialog.ValidateNames = true;
 
             if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)

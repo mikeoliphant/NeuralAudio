@@ -22,7 +22,7 @@ namespace NamApp
             plugin.Host = new DummyHost();
             plugin.Initialize();
 
-            plugin.LoadModel(@"C:\Users\oliph\Downloads\Boss1x16-200.nam");
+            plugin.LoadModel(@"C:\Users\oliph\Downloads\Marshall Park 75 Bright.json");
 
             EditorView.DataContext = plugin;
 

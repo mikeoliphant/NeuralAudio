@@ -5,24 +5,20 @@ using System.Text;
 
 namespace NeuralNet
 {
-    public class LSTMModel
+    public class LSTMNetwork : Network
     {
-        public int HiddenSize { get; private set; }
-
         float[] headWeights;
         float headBias;
         float[] layerInput = new float[1];
 
         public List<LSTMLayer> Layers { get; set; } = new List<LSTMLayer>();
 
-        public LSTMModel(int hiddenSize, float[] headWeights, float headBias)
+        public LSTMNetwork(float[] headWeights, float headBias)
         {
-            this.HiddenSize = hiddenSize;
-
             this.headWeights = headWeights;
         }
 
-        public float Process(float input)
+        public override float Process(float input)
         {
             layerInput[0] = input;
 
@@ -53,13 +49,13 @@ namespace NeuralNet
         float[] ifgo;
         float[] cellState;
 
-        public LSTMLayer(int inputSize, int hiddenSize, float[] inputWeights, float[] hiddenWeights, float[] bias)
+        public LSTMLayer(int inputSize, int hiddenSize, MatrixF inputWeights, MatrixF hiddenWeights, float[] bias)
         {
             this.InputSize = inputSize;
             this.HiddenSize = hiddenSize;
 
-            this.inputWeights = MatrixF.FromRowNormalData(inputWeights, 4 * HiddenSize, inputSize);
-            this.hiddenWeights = MatrixF.FromRowNormalData(hiddenWeights, 4 * HiddenSize, HiddenSize);
+            this.inputWeights = inputWeights;
+            this.hiddenWeights = hiddenWeights;
             this.bias = bias;
             this.hiddenState = new float[HiddenSize];
             this.cellState = new float[HiddenSize];

@@ -11,17 +11,19 @@ namespace NeuralModel
 {
     public class NeuralModelConfig
     {
+        public Network Network { get; set; }
+
         public static NeuralModelConfig FromFile(string filePath)
         {
             string extention = Path.GetExtension(filePath);
 
-            if (extention.Equals("nam", StringComparison.InvariantCultureIgnoreCase))
+            if (extention.Equals(".nam", StringComparison.InvariantCultureIgnoreCase))
             {
                 return NamModelConfig.FromFile(filePath);
             }
-            else if (extention.Equals("json", StringComparison.InvariantCultureIgnoreCase))
+            else if (extention.Equals(".json", StringComparison.InvariantCultureIgnoreCase))
             {
-                return null;
+                return CoreAudioMLModelConfig.FromFile(filePath);
             }
 
             throw new InvalidOperationException("Unknown model file extenstion: " + extention);
@@ -29,7 +31,7 @@ namespace NeuralModel
 
         public virtual float ProcessSample(float sample)
         {
-            return sample;
+            return Network.Process(sample);
         }
     }
 }

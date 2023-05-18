@@ -12,5 +12,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Activation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LSTM.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MatrixF.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Network.cs" />
   </ItemGroup>
 </Project>

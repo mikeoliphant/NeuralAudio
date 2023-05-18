@@ -1,6 +1,5 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
-using NeuralModel;
 using NeuralNet;
 
 namespace NeuralModel
@@ -16,9 +15,7 @@ namespace NeuralModel
         [JsonPropertyName("weights")]
         public float[] Weights { get; set; }
 
-        public LSTMModel NNModel { get; private set; }
-
-        public static NamModelConfig FromFile(string filePath)
+        public new static NamModelConfig FromFile(string filePath)
         {
             NamModelConfig model = null;
 
@@ -75,15 +72,18 @@ namespace NeuralModel
                             var cellState = weightSpan.Slice(offset, size).ToArray();
                             offset += size;
 
-                            layers.Add(new LSTMLayer(inputSize, model.Config.HiddenSize, inputWeights, hiddenWeights, bias));
+                            layers.Add(new LSTMLayer(inputSize, model.Config.HiddenSize, MatrixF.FromRowNormalData(inputWeights, 4 * model.Config.HiddenSize, inputSize),
+                                MatrixF.FromRowNormalData(hiddenWeights, 4 * model.Config.HiddenSize, model.Config.HiddenSize), bias));
                         }
 
                         size = model.Config.HiddenSize;
                         var headWeights = weightSpan.Slice(offset, size).ToArray();
                         offset += size;
 
-                        model.NNModel = new LSTMModel(model.Config.HiddenSize, headWeights, weightSpan[offset]);
-                        model.NNModel.Layers = layers;
+                        LSTMNetwork lstmNet = new LSTMNetwork(headWeights, weightSpan[offset]);
+                        lstmNet.Layers = layers;
+
+                        model.Network = lstmNet;
                     }
                     catch (Exception ex)
                     {
@@ -97,11 +97,6 @@ namespace NeuralModel
             }
 
             return model;
-        }
-
-        public override float ProcessSample(float sample)
-        {
-            return NNModel.Process(sample);
         }
     }
 

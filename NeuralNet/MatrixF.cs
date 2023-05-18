@@ -83,6 +83,11 @@ namespace NeuralNet
             return newMatrix;
         }
 
+        public override string ToString()
+        {
+            return "[" + NumRows + " x " + NumCols + "]";
+        }
+
         public float this[int row, int col]
         {
             get
