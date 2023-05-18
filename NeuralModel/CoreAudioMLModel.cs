@@ -82,7 +82,16 @@ namespace NeuralModel
                     headWeights[i] = denseWeights[0][i][0].GetSingle();    // dense weights are stored as matrix of Nx1
                 }
 
-                LSTMNetwork lstmNet = new LSTMNetwork(headWeights, denseWeights[1][0].GetSingle());
+                bool doSkip = false;
+
+                JsonElement skipElement;
+
+                if (doc.RootElement.TryGetProperty("in_skip", out skipElement))
+                {
+                    doSkip = (skipElement.GetInt32() == 1);
+                }
+
+                LSTMNetwork lstmNet = new LSTMNetwork(headWeights, denseWeights[1][0].GetSingle(), doSkip);
 
                 lstmNet.Layers = layers;
 

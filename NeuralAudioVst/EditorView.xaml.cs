@@ -26,10 +26,12 @@ namespace NeuralAudioVst
             }
         }
 
+        int lastFilterIndex = 0;
+
         private void LoadButton_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new System.Windows.Forms.OpenFileDialog();
-            dialog.DefaultExt = ".nam";
+            dialog.FilterIndex = lastFilterIndex;
             dialog.Filter = "NAM Models|*.nam|CoreaAudioML Models|*.json";
             dialog.ValidateNames = true;
 
@@ -37,6 +39,8 @@ namespace NeuralAudioVst
             {
                 try
                 {
+                    lastFilterIndex = dialog.FilterIndex;
+
                     (DataContext as NeuralAudioPlugin).LoadModel(dialog.FileName);
 
                     LoadButton.Content = Path.GetFileName(dialog.FileName);

@@ -10,12 +10,15 @@ namespace NeuralNet
         float[] headWeights;
         float headBias;
         float[] layerInput = new float[1];
+        bool doSkip = false;
 
         public List<LSTMLayer> Layers { get; set; } = new List<LSTMLayer>();
 
-        public LSTMNetwork(float[] headWeights, float headBias)
+        public LSTMNetwork(float[] headWeights, float headBias, bool doSkip = false)
         {
             this.headWeights = headWeights;
+            this.headBias = headBias;
+            this.doSkip = doSkip;
         }
 
         public override float Process(float input)
@@ -28,8 +31,10 @@ namespace NeuralNet
             {
                 Layers[layer].Process(Layers[layer - 1].HiddenState);
             }
-            
-            return VecOp.Dot(headWeights, Layers[Layers.Count - 1].HiddenState) + headBias;
+
+            float output = VecOp.Dot(headWeights, Layers[Layers.Count - 1].HiddenState) + headBias;
+
+            return doSkip ? (input + output) : output;
         }
     }
 
