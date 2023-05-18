@@ -1,29 +1,30 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
+using NeuralModel;
 using NeuralNet;
 
-namespace NAM
+namespace NeuralModel
 {
-    public class Model
+    public class NamModelConfig : NeuralModelConfig
     {
         [JsonPropertyName("version")]
         public string Version { get; set; }
         [JsonPropertyName("architecture")]
         public string Architecture { get; set; }
         [JsonPropertyName("config")]
-        public LSTMModelConfig Config { get; set; }
+        public NamLSTMConfig Config { get; set; }
         [JsonPropertyName("weights")]
         public float[] Weights { get; set; }
 
         public LSTMModel NNModel { get; private set; }
 
-        public static Model FromFile(string filePath)
+        public static NamModelConfig FromFile(string filePath)
         {
-            Model model = null;
+            NamModelConfig model = null;
 
             using (FileStream stream = File.OpenRead(filePath))
             {
-                model = JsonSerializer.Deserialize<Model>(stream);
+                model = JsonSerializer.Deserialize<NamModelConfig>(stream);
             }
 
             switch (model.Architecture)
@@ -98,13 +99,13 @@ namespace NAM
             return model;
         }
 
-        public float ProcessSample(float sample)
+        public override float ProcessSample(float sample)
         {
             return NNModel.Process(sample);
         }
     }
 
-    public class LSTMModelConfig
+    public class NamLSTMConfig
     {
         [JsonPropertyName("input_size")]
         public int InputSize { get; set; }
@@ -114,15 +115,15 @@ namespace NAM
         public int NumLayers { get; set; }
     }
 
-    public class WaveNetModelConfig
+    public class NAMWaveNetConfig
     {
         [JsonPropertyName("layers")]
-        public List<WaveNetModelLayer> Layers { get; set; }
+        public List<NAMWaveNetLayerConfig> Layers { get; set; }
         [JsonPropertyName("head_scale")]
         public float HeadScale { get; set; }       
     }
 
-    public class WaveNetModelLayer
+    public class NAMWaveNetLayerConfig
     {
         [JsonPropertyName("input_size")]
         public int InputSize { get; set; }

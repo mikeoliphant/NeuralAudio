@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NamModel\NamModel.csproj" />
+    <ProjectReference Include="..\NeuralModel\NeuralModel.csproj" />
   </ItemGroup>
 
 </Project>

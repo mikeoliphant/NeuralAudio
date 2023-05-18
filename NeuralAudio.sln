@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NeuralAudioVst", "NeuralAud
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestApp", "TestApp\TestApp.csproj", "{644E3548-6B73-47F4-A233-0AF0D175199F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NamModel", "NamModel\NamModel.csproj", "{4EA1D36C-0E1D-4087-8091-410032BD9C09}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NeuralModel", "NeuralModel\NeuralModel.csproj", "{4EA1D36C-0E1D-4087-8091-410032BD9C09}"
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "NeuralNet", "NeuralNet\NeuralNet.shproj", "{36A8E7D2-F5B4-4E1C-BF43-C6B65E42F5C5}"
 EndProject

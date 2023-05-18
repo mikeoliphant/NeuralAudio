@@ -3,7 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using AudioPlugSharp;
 using AudioPlugSharpWPF;
-using NAM;
+using NeuralModel;
 
 namespace NeuralAudioVst
 {
@@ -17,7 +17,7 @@ namespace NeuralAudioVst
         AudioIOPort monoInput = null;
         AudioIOPort monoOutput = null;
 
-        public Model Model { get; private set; } = null;
+        public NeuralModelConfig Model { get; private set; } = null;
         public string ModelPath { get; private set; } = null;
 
         public NeuralAudioPluginSaveState NeuralAudioPluginSaveState { get { return (SaveStateData as NeuralAudioPluginSaveState) ?? new NeuralAudioPluginSaveState(); } }
@@ -104,7 +104,7 @@ namespace NeuralAudioVst
         {
             Logger.Log("Load Model: " + path);
 
-            Model = Model.FromFile(path);
+            Model = NeuralModelConfig.FromFile(path);
 
             ModelPath = path;
         }
