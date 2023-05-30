@@ -22,7 +22,7 @@ namespace NamApp
             plugin.Host = new DummyHost();
             plugin.Initialize();
 
-            plugin.LoadModel(@"C:\Users\oliph\Downloads\ProcoRatPedal_HighGain.json");
+            plugin.LoadModel(@"C:\Users\oliph\Downloads\JCM2000Crunch.nam");
 
             EditorView.DataContext = plugin;
 

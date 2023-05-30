@@ -10,8 +10,6 @@ namespace NeuralModel
         public string Version { get; set; }
         [JsonPropertyName("architecture")]
         public string Architecture { get; set; }
-        [JsonPropertyName("config")]
-        public NamLSTMConfig Config { get; set; }
         [JsonPropertyName("weights")]
         public float[] Weights { get; set; }
 
@@ -19,82 +17,106 @@ namespace NeuralModel
         {
             NamModelConfig model = null;
 
-            using (FileStream stream = File.OpenRead(filePath))
+            try
             {
-                model = JsonSerializer.Deserialize<NamModelConfig>(stream);
-            }
-
-            switch (model.Architecture)
-            {
-                case "LSTM":
-                    try
+                using (FileStream stream = File.OpenRead(filePath))
+                {
+                    JsonDocument doc = JsonDocument.Parse(stream);
                     {
-                        Span<float> weightSpan = new Span<float>(model.Weights);
+                        JsonElement elem;
 
-                        int offset = 0;
-                        int size;
-
-                        int gateSize = 4 * model.Config.HiddenSize;
-
-                        List<LSTMLayer> layers = new List<LSTMLayer>();
-
-                        for (int layer = 0; layer < model.Config.NumLayers; layer++)
+                        if (doc.RootElement.TryGetProperty("architecture", out elem))
                         {
-                            int inputSize = (layer == 0) ? model.Config.InputSize : model.Config.HiddenSize;
+                            string architecture = elem.GetString();
 
-                            // NAM LSTM has input/hidden weights glommed together column-wise
-                            size = (4 * model.Config.HiddenSize) * (inputSize + model.Config.HiddenSize);
-                            var weights = weightSpan.Slice(offset, size).ToArray();
-                            offset += size;
-
-                            var inputWeights = new float[gateSize * inputSize];
-                            var hiddenWeights = new float[gateSize * model.Config.HiddenSize];
-
-                            // Separate the input/hidden weights
-                            for (int row = 0; row < gateSize; row++)
+                            switch (architecture)
                             {
-                                int rowPos = row * (inputSize + model.Config.HiddenSize);
+                                case "LSTM":
+                                    return NAMLSTMModelConfig.FromJson(doc);
 
-                                Array.Copy(weights, rowPos, inputWeights, row * inputSize, inputSize);
-                                Array.Copy(weights, rowPos + inputSize, hiddenWeights, row * model.Config.HiddenSize, model.Config.HiddenSize);
+                                case "WaveNet":
+                                    return NAMWaveNetModelConfig.FromJson(doc);
+
+                                default:
+                                    throw new InvalidDataException("Unknown model architecture [" + architecture + "]");
                             }
-
-                            size = gateSize;
-                            var bias = weightSpan.Slice(offset, size).ToArray();
-                            offset += size;
-
-                            // NAM provides initial hidden/cell state, but it doesn't really do anything so ignore it
-                            size = model.Config.HiddenSize;
-                            var hiddenState = weightSpan.Slice(offset, size).ToArray();
-                            offset += size;
-
-                            size = model.Config.HiddenSize;
-                            var cellState = weightSpan.Slice(offset, size).ToArray();
-                            offset += size;
-
-                            layers.Add(new LSTMLayer(inputSize, model.Config.HiddenSize, MatrixF.FromRowNormalData(inputWeights, 4 * model.Config.HiddenSize, inputSize),
-                                MatrixF.FromRowNormalData(hiddenWeights, 4 * model.Config.HiddenSize, model.Config.HiddenSize), bias));
                         }
-
-                        size = model.Config.HiddenSize;
-                        var headWeights = weightSpan.Slice(offset, size).ToArray();
-                        offset += size;
-
-                        LSTMNetwork lstmNet = new LSTMNetwork(headWeights, weightSpan[offset]);
-                        lstmNet.Layers = layers;
-
-                        model.Network = lstmNet;
                     }
-                    catch (Exception ex)
-                    {
-                        throw new InvalidDataException("Error parsing model config");
-                    }
-
-                    break;
-
-                default:
-                    throw new InvalidDataException("Unknown model architecture [" + model.Architecture + "]");
+                }
             }
+            catch (Exception ex)
+            {
+                throw new InvalidDataException("Error parsing model config: " + ex.Message);
+            }
+
+            throw new InvalidDataException("Error parsing model config");
+        }
+    }
+
+    public class NAMLSTMModelConfig : NamModelConfig
+    {
+        [JsonPropertyName("config")]
+        public NamLSTMConfig Config { get; set; }
+
+        public static NAMLSTMModelConfig FromJson(JsonDocument doc)
+        {
+            NAMLSTMModelConfig model = doc.Deserialize<NAMLSTMModelConfig>();
+
+            Span<float> weightSpan = new Span<float>(model.Weights);
+
+            int offset = 0;
+            int size;
+
+            int gateSize = 4 * model.Config.HiddenSize;
+
+            List<LSTMLayer> layers = new List<LSTMLayer>();
+
+            for (int layer = 0; layer < model.Config.NumLayers; layer++)
+            {
+                int inputSize = (layer == 0) ? model.Config.InputSize : model.Config.HiddenSize;
+
+                // NAM LSTM has input/hidden weights glommed together column-wise
+                size = (4 * model.Config.HiddenSize) * (inputSize + model.Config.HiddenSize);
+                var weights = weightSpan.Slice(offset, size).ToArray();
+                offset += size;
+
+                var inputWeights = new float[gateSize * inputSize];
+                var hiddenWeights = new float[gateSize * model.Config.HiddenSize];
+
+                // Separate the input/hidden weights
+                for (int row = 0; row < gateSize; row++)
+                {
+                    int rowPos = row * (inputSize + model.Config.HiddenSize);
+
+                    Array.Copy(weights, rowPos, inputWeights, row * inputSize, inputSize);
+                    Array.Copy(weights, rowPos + inputSize, hiddenWeights, row * model.Config.HiddenSize, model.Config.HiddenSize);
+                }
+
+                size = gateSize;
+                var bias = weightSpan.Slice(offset, size).ToArray();
+                offset += size;
+
+                // NAM provides initial hidden/cell state, but it doesn't really do anything so ignore it
+                size = model.Config.HiddenSize;
+                var hiddenState = weightSpan.Slice(offset, size).ToArray();
+                offset += size;
+
+                size = model.Config.HiddenSize;
+                var cellState = weightSpan.Slice(offset, size).ToArray();
+                offset += size;
+
+                layers.Add(new LSTMLayer(inputSize, model.Config.HiddenSize, MatrixF.FromRowNormalData(inputWeights, 4 * model.Config.HiddenSize, inputSize),
+                    MatrixF.FromRowNormalData(hiddenWeights, 4 * model.Config.HiddenSize, model.Config.HiddenSize), bias));
+            }
+
+            size = model.Config.HiddenSize;
+            var headWeights = weightSpan.Slice(offset, size).ToArray();
+            offset += size;
+
+            LSTMNetwork lstmNet = new LSTMNetwork(headWeights, weightSpan[offset]);
+            lstmNet.Layers = layers;
+
+            model.Network = lstmNet;
 
             return model;
         }
@@ -108,6 +130,19 @@ namespace NeuralModel
         public int HiddenSize { get; set; }
         [JsonPropertyName("num_layers")]
         public int NumLayers { get; set; }
+    }
+
+    public class NAMWaveNetModelConfig : NamModelConfig
+    {
+        [JsonPropertyName("config")]
+        public NAMWaveNetConfig Config { get; set; }
+
+        public static NAMWaveNetModelConfig FromJson(JsonDocument doc)
+        {
+            NAMWaveNetModelConfig model = doc.Deserialize<NAMWaveNetModelConfig>();
+
+            return model;
+        }
     }
 
     public class NAMWaveNetConfig
