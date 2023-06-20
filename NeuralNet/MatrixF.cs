@@ -74,11 +74,11 @@ namespace NeuralNet
             data = new float[NumRows * NumCols];
         }
 
-        public static MatrixF FromRowNormalData(float[] data, int numRows, int numCols)
+        public static MatrixF FromRowNormalData(ReadOnlySpan<float> data, int numRows, int numCols)
         {
             MatrixF newMatrix = new MatrixF(numRows, numCols);
 
-            Array.Copy(data, newMatrix.data, data.Length);
+            data.CopyTo(newMatrix.data);
 
             return newMatrix;
         }

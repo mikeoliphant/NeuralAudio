@@ -13,5 +13,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)LSTM.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MatrixF.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Network.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)WaveNet.cs" />
   </ItemGroup>
 </Project>

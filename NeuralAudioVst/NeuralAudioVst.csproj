@@ -1,18 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net7.0-windows</TargetFramework>
+		<Nullable>enable</Nullable>
+		<UseWPF>true</UseWPF>
+	</PropertyGroup>
 
-  <PropertyGroup>
-    <TargetFramework>net6.0-windows</TargetFramework>
-    <Nullable>enable</Nullable>
-    <UseWPF>true</UseWPF>
-  </PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="AudioPlugSharp" Version="0.5.6" />
+		<PackageReference Include="AudioPlugSharpWPF" Version="0.5.6" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="AudioPlugSharp" Version="0.5.2" />
-    <PackageReference Include="AudioPlugSharpWPF" Version="0.5.2" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\NeuralModel\NeuralModel.csproj" />
-  </ItemGroup>
-
+	<ItemGroup>
+		<ProjectReference Include="..\NeuralModel\NeuralModel.csproj" />
+	</ItemGroup>
 </Project>

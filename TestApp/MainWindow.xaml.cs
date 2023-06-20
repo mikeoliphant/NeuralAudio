@@ -22,7 +22,9 @@ namespace NamApp
             plugin.Host = new DummyHost();
             plugin.Initialize();
 
-            plugin.LoadModel(@"C:\Users\oliph\Downloads\JCM2000Crunch.nam");
+            plugin.LoadModel(@"C:\Users\oliph\Downloads\Peavey Bandit Clean AMP_LSTM-16.json");
+            //plugin.LoadModel(@"C:\Users\oliph\Downloads\Boss2x12-200.nam");
+            //plugin.LoadModel(@"C:\Users\oliph\Downloads\JCM2000Crunch.nam");
 
             EditorView.DataContext = plugin;
 
