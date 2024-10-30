@@ -1,0 +1,6 @@
+[submodule "deps/NeuralAmpModelerCore"]
+	path = deps/NeuralAmpModelerCore
+	url = https://github.com/mikeoliphant/NeuralAmpModelerCore
+[submodule "deps/RTNeural"]
+	path = deps/RTNeural
+	url = https://github.com/mikeoliphant/RTNeural
