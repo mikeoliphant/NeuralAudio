@@ -1,6 +1,7 @@
 #pragma once
 
 #include <filesystem>
+#include <NAM/activations.h>
 #include <NAM/dsp.h>
 
 namespace NeuralAudio
@@ -10,6 +11,8 @@ namespace NeuralAudio
 	public:
 		static NeuralModel* CreateFromFile(std::filesystem::path modelPath)
 		{
+			nam::activations::Activation::enable_fast_tanh();
+
 			NeuralModel model = NeuralModel();
 			model.namModel = nam::get_dsp(modelPath);
 		}
