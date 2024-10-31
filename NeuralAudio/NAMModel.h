@@ -14,6 +14,12 @@ namespace NeuralAudio
 			nam::activations::Activation::enable_fast_tanh();
 		}
 
+		~NAMModel()
+		{
+			if (namModel)
+				namModel.reset();
+		}
+
 		bool LoadFromFile(std::filesystem::path modelPath)
 		{
 			namModel = nam::get_dsp(modelPath);
@@ -39,6 +45,6 @@ namespace NeuralAudio
 		}
 
 	private:
-		std::unique_ptr<nam::DSP> namModel;
+		std::unique_ptr<nam::DSP> namModel = nullptr;
 	};
 }
