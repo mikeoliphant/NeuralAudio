@@ -16,7 +16,7 @@ namespace NeuralAudio
 			return 1.0f;
 		}
 
-		virtual void Process(std::vector<float> input, std::vector<float> output)
+		virtual void Process(float* input, float* output, int numSamples)
 		{
 		}
 

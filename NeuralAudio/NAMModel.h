@@ -39,9 +39,9 @@ namespace NeuralAudio
 			}
 		}
 
-		void Process(std::vector<float> input, std::vector<float> output)
+		void Process(float* input, float* output, int numSamples)
 		{
-			namModel->process(input.data(), output.data(), input.size());
+			namModel->process(input, output, numSamples);
 		}
 
 	private:
