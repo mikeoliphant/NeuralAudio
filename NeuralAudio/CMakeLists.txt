@@ -29,5 +29,7 @@ set(NAM_SOURCES	../deps/NeuralAmpModelerCore/NAM/activations.h
 
 add_library(NeuralAudio STATIC ${SOURCES} ${NAM_SOURCES})
 
+set_property(TARGET NeuralAudio PROPERTY POSITION_INDEPENDENT_CODE ON)
+
 source_group(NeuralAudio ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES})
 source_group(NAM ${CMAKE_CURRENT_SOURCE_DIR} FILES ${NAM_SOURCES})
