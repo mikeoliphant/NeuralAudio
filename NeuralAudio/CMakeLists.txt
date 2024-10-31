@@ -1,5 +1,11 @@
+set(CMAKE_CXX_STANDARD 17)
+
+add_definitions(-DNAM_SAMPLE_FLOAT)
+add_definitions(-DDSP_SAMPLE_FLOAT)
+
+include_directories(SYSTEM ../deps/NeuralAmpModelerCore)
 include_directories(SYSTEM ../deps/RTNeural/modules/Eigen)
-include_directories(SYSTEM ../deps/json)
+include_directories(SYSTEM ../deps/RTNeural/modules/json)
 
 set(SOURCES
 	NeuralModel.h)
