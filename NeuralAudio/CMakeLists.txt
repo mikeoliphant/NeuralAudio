@@ -8,7 +8,9 @@ include_directories(SYSTEM ../deps/RTNeural/modules/Eigen)
 include_directories(SYSTEM ../deps/RTNeural/modules/json)
 
 set(SOURCES
-	NeuralModel.h)
+	NeuralModel.h
+	NeuralModel.cpp
+	NAMModel.h)
 
 set(NAM_SOURCES	../deps/NeuralAmpModelerCore/NAM/activations.h
 	../deps/NeuralAmpModelerCore/NAM/activations.cpp
