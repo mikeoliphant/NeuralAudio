@@ -21,6 +21,5 @@ namespace NeuralAudio
 		}
 
 	private:
-		NAMModel* namModel;
 	};
 }
