@@ -31,7 +31,7 @@ namespace NeuralAudio
 		{
 			if (namModel->HasLoudness())
 			{
-				return namModel->GetLoudness();
+				return -18 - namModel->GetLoudness();
 			}
 			else
 			{
