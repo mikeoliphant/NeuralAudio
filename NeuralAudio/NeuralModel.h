@@ -13,9 +13,19 @@ namespace NeuralAudio
 			preferNAM = val;
 		}
 
+		virtual float GetRecommendedInputDBAdjustment()
+		{
+			return 0;
+		}
+
 		virtual float GetRecommendedOutputDBAdjustment()
 		{
 			return 0;
+		}
+
+		virtual float GetSampleRate()
+		{
+			return 48000;
 		}
 
 		virtual void Process(float* input, float* output, int numSamples)

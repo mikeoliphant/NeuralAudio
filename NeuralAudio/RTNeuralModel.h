@@ -31,6 +31,21 @@ namespace NeuralAudio
 	class RTNeuralModel : public NeuralModel
 	{
 	public:
+		virtual float GetRecommendedInputDBAdjustment()
+		{
+			return inputGain;
+		}
+
+		virtual float GetRecommendedOutputDBAdjustment()
+		{
+			return outputGain;
+		}
+
+		float GetSampleRate()
+		{
+			return sampleRate;
+		}
+
 		virtual bool LoadFromKerasJson(nlohmann::json& modelJson)
 		{
 			return false;
@@ -40,6 +55,11 @@ namespace NeuralAudio
 		{
 			return false;
 		}
+
+	protected:
+		float sampleRate = 48000;
+		float inputGain = 0;
+		float outputGain = 0;
 	};
 
 	template <int numLayers, int hiddenSize>
@@ -68,6 +88,21 @@ namespace NeuralAudio
 				model = nullptr;
 			}
 
+			if (modelJson.contains("samplerate"))
+			{
+				sampleRate = modelJson["samplerate"];
+			}
+
+			if (modelJson.contains("in_gain"))
+			{
+				inputGain = modelJson["in_gain"];
+			}
+
+			if (modelJson.contains("out_gain"))
+			{
+				outputGain = modelJson["out_gain"];
+			}
+
 			model = new RTNeural::ModelT<float, 1, 1, RTNeural::LSTMLayerT<float, numLayers, hiddenSize>, RTNeural::DenseT<float, hiddenSize, 1>>();
 
 			model->parseJson(modelJson, true);
@@ -87,6 +122,21 @@ namespace NeuralAudio
 			model = new RTNeural::ModelT<float, 1, 1, RTNeural::LSTMLayerT<float, numLayers, hiddenSize>, RTNeural::DenseT<float, hiddenSize, 1>>();
 
 			nlohmann::json config = modelJson["config"];
+
+			if (modelJson.contains("samplerate"))
+			{
+				sampleRate = modelJson["samplerate"];
+			}
+
+			if (modelJson.contains("in_gain"))
+			{
+				inputGain = modelJson["in_gain"];
+			}
+
+			if (modelJson.contains("out_gain"))
+			{
+				outputGain = modelJson["out_gain"];
+			}
 
 			std::vector<float> weights = modelJson["weights"];
 
@@ -147,7 +197,7 @@ namespace NeuralAudio
 
 				iter += gateSize;
 
-				// hidden state values follow here in NAM, but aren't supported by RTNeural
+				// initial internal state values follow here in NAM, but aren't supported by RTNeural
 				iter += hiddenSize * 2;	// (hidden state and cell state)
 			}
 

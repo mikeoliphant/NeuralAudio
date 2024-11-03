@@ -39,11 +39,9 @@ namespace NeuralAudio
 				}
 			}
 
-			double modelSampleRate = 48000;
-
 			if (modelJson.contains("sample_rate"))
 			{
-				modelSampleRate = modelJson["sample_rate"];
+				sampleRate = modelJson["sample_rate"];
 			}
 
 			nlohmann::json config = modelJson["config"];
@@ -67,7 +65,7 @@ namespace NeuralAudio
 				const bool with_head = !config["head"].is_null();
 				const float head_scale = config["head_scale"];
 
-				namModel = std::make_unique<nam::wavenet::WaveNet>(layer_array_params, head_scale, with_head, weights, modelSampleRate);
+				namModel = std::make_unique<nam::wavenet::WaveNet>(layer_array_params, head_scale, with_head, weights, sampleRate);
 				namModel->prewarm();
 			}
 			else if (arch == "LSTM")
@@ -76,7 +74,7 @@ namespace NeuralAudio
 				const int input_size = config["input_size"];
 				const int hidden_size = config["hidden_size"];
 
-				namModel = std::make_unique<nam::lstm::LSTM>(num_layers, input_size, hidden_size, weights, modelSampleRate);
+				namModel = std::make_unique<nam::lstm::LSTM>(num_layers, input_size, hidden_size, weights, sampleRate);
 				namModel->prewarm();
 			}
 
@@ -88,6 +86,11 @@ namespace NeuralAudio
 			return modelOutputDBAdjustment;
 		}
 
+		virtual float GetSampleRate()
+		{
+			return sampleRate;
+		}
+
 		void Process(float* input, float* output, int numSamples)
 		{
 			namModel->process(input, output, numSamples);
@@ -95,6 +98,7 @@ namespace NeuralAudio
 
 	private:
 		std::unique_ptr<nam::DSP> namModel = nullptr;
+		float sampleRate = 48000;
 		float modelOutputDBAdjustment = 0;
 	};
 }
