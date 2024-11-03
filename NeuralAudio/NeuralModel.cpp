@@ -77,11 +77,29 @@ namespace NeuralAudio
 		}
 		else if (modelPath.extension() == ".json")
 		{
-			RTNeuralModel* model = modelDefs.front()->CreateModel();
+			const auto layers = modelJson.at("layers");
+			const int numLayers = layers.size() - 1;
+			const std::string modelType = layers.at(0).at("type");
+			const int hidden_size = layers.at(0).at("shape").back();
 
-			model->LoadFromKerasJson(modelJson);
+			if (modelType == "lstm")
+			{
+				auto modelDef = FindModelDefinition(numLayers, hidden_size);
 
-			return model;
+				if (modelDef != nullptr)
+				{
+					RTNeuralModel* model = modelDef->CreateModel();
+
+					model->LoadFromKerasJson(modelJson);
+
+					return model;
+				}
+				
+				RTNeuralModelDyn* model = new RTNeuralModelDyn;
+				model->LoadFromKerasJson(modelJson);
+
+				return model;
+			}
 		}
 
 		return nullptr;

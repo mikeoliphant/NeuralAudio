@@ -149,6 +149,8 @@ namespace NeuralAudio
 				model = nullptr;
 			}
 
+			model = new ModelType;
+
 			model->parseJson(modelJson, true);
 			model->reset();
 
