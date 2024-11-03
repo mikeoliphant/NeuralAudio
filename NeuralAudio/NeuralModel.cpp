@@ -11,10 +11,33 @@ namespace NeuralAudio
 	{
 		if (!modelDefsAreLoaded)
 		{
+			modelDefs.push_back(new RTNeuralModelDefinitionT<1, 8>);
+			modelDefs.push_back(new RTNeuralModelDefinitionT<1, 12>);
 			modelDefs.push_back(new RTNeuralModelDefinitionT<1, 16>);
+			modelDefs.push_back(new RTNeuralModelDefinitionT<1, 20>);
+			modelDefs.push_back(new RTNeuralModelDefinitionT<1, 24>);
+			//modelDefs.push_back(new RTNeuralModelDefinitionT<2, 8>);
+			//modelDefs.push_back(new RTNeuralModelDefinitionT<2, 12>);
+			//modelDefs.push_back(new RTNeuralModelDefinitionT<2, 16>);
+			//modelDefs.push_back(new RTNeuralModelDefinitionT<2, 20>);
+			//modelDefs.push_back(new RTNeuralModelDefinitionT<2, 24>);
+			//modelDefs.push_back(new RTNeuralModelDefinitionT<2, 32>);
+			//modelDefs.push_back(new RTNeuralModelDefinitionT<2, 48>);
+			//modelDefs.push_back(new RTNeuralModelDefinitionT<2, 64>);
 
 			modelDefsAreLoaded = true;
 		}
+	}
+
+	static RTNeuralModelDefinitionBase* FindModelDefinition(int numLayers, int hiddenSize)
+	{
+		for (auto const& model : modelDefs)
+		{
+			if ((numLayers == model->GetNumLayers()) && (hiddenSize == model->GetHiddenSize()))
+				return model;
+		}
+
+		return nullptr;
 	}
 
 	NeuralModel* NeuralModel::CreateFromFile(std::filesystem::path modelPath)
@@ -40,7 +63,19 @@ namespace NeuralAudio
 			}
 			else if (arch == "LSTM")
 			{
-				RTNeuralModel *model = modelDefs.front()->CreateModel();
+				nlohmann::json config = modelJson["config"];
+
+				auto modelDef = FindModelDefinition(config["num_layers"], config["hidden_size"]);
+
+				if (modelDef != nullptr)
+				{
+					RTNeuralModel* model = modelDef->CreateModel();
+					model->LoadFromNAMJson(modelJson);
+
+					return model;
+				}
+
+				RTNeuralModelDyn* model = new RTNeuralModelDyn;
 				model->LoadFromNAMJson(modelJson);
 
 				return model;

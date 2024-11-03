@@ -46,12 +46,54 @@ namespace NeuralAudio
 			return sampleRate;
 		}
 
-		virtual bool LoadFromKerasJson(nlohmann::json& modelJson)
+		bool LoadFromKerasJson(nlohmann::json& modelJson)
+		{
+			if (modelJson.contains("samplerate"))
+			{
+				sampleRate = modelJson["samplerate"];
+			}
+
+			if (modelJson.contains("in_gain"))
+			{
+				inputGain = modelJson["in_gain"];
+			}
+
+			if (modelJson.contains("out_gain"))
+			{
+				outputGain = modelJson["out_gain"];
+			}
+
+			return CreateModelFromKerasJson(modelJson);
+
+			return true;
+		}
+
+		virtual bool CreateModelFromKerasJson(nlohmann::json& modelJson)
 		{
 			return false;
 		}
 
 		virtual bool LoadFromNAMJson(nlohmann::json& modelJson)
+		{
+			if (modelJson.contains("samplerate"))
+			{
+				sampleRate = modelJson["samplerate"];
+			}
+
+			if (modelJson.contains("in_gain"))
+			{
+				inputGain = modelJson["in_gain"];
+			}
+
+			if (modelJson.contains("out_gain"))
+			{
+				outputGain = modelJson["out_gain"];
+			}
+
+			return CreateModelFromNAMJson(modelJson);
+		}
+
+		virtual bool CreateModelFromNAMJson(nlohmann::json& modelJson)
 		{
 			return false;
 		}
@@ -80,27 +122,12 @@ namespace NeuralAudio
 			}
 		}
 
-		bool LoadFromKerasJson(nlohmann::json& modelJson)
+		bool CreateModelFromKerasJson(nlohmann::json& modelJson)
 		{
 			if (model != nullptr)
 			{
 				delete model;
 				model = nullptr;
-			}
-
-			if (modelJson.contains("samplerate"))
-			{
-				sampleRate = modelJson["samplerate"];
-			}
-
-			if (modelJson.contains("in_gain"))
-			{
-				inputGain = modelJson["in_gain"];
-			}
-
-			if (modelJson.contains("out_gain"))
-			{
-				outputGain = modelJson["out_gain"];
 			}
 
 			model = new RTNeural::ModelT<float, 1, 1, RTNeural::LSTMLayerT<float, numLayers, hiddenSize>, RTNeural::DenseT<float, hiddenSize, 1>>();
@@ -111,7 +138,7 @@ namespace NeuralAudio
 			return true;
 		}
 
-		bool LoadFromNAMJson(nlohmann::json& modelJson)
+		bool CreateModelFromNAMJson(nlohmann::json& modelJson)
 		{
 			if (model != nullptr)
 			{
@@ -122,21 +149,6 @@ namespace NeuralAudio
 			model = new RTNeural::ModelT<float, 1, 1, RTNeural::LSTMLayerT<float, numLayers, hiddenSize>, RTNeural::DenseT<float, hiddenSize, 1>>();
 
 			nlohmann::json config = modelJson["config"];
-
-			if (modelJson.contains("samplerate"))
-			{
-				sampleRate = modelJson["samplerate"];
-			}
-
-			if (modelJson.contains("in_gain"))
-			{
-				inputGain = modelJson["in_gain"];
-			}
-
-			if (modelJson.contains("out_gain"))
-			{
-				outputGain = modelJson["out_gain"];
-			}
 
 			std::vector<float> weights = modelJson["weights"];
 
@@ -238,11 +250,10 @@ namespace NeuralAudio
 		RTNeural::ModelT<float, 1, 1, RTNeural::LSTMLayerT<float, numLayers, hiddenSize>, RTNeural::DenseT<float, hiddenSize, 1>>* model = nullptr;
 	};
 
-	class RTNeuralModelDyn : public NeuralModel
+	class RTNeuralModelDyn : public RTNeuralModel
 	{
 	public:
 		RTNeuralModelDyn()
-			: model(nullptr)
 		{
 		}
 
@@ -252,7 +263,7 @@ namespace NeuralAudio
 				model.reset();
 		}
 
-		bool LoadFromKerasJson(nlohmann::json& modelJson)
+		bool CreateModelFromKerasJson(nlohmann::json& modelJson)
 		{
 			model = RTNeural::json_parser::parseJson<float>(modelJson, true);
 			model->reset();
@@ -260,9 +271,102 @@ namespace NeuralAudio
 			return true;
 		}
 
-		float GetRecommendedOutputDBAdjustment()
+		bool CreateModelFromNAMJson(nlohmann::json& modelJson)
 		{
-			return 0;
+			model = std::make_unique<RTNeural::Model<float>>(1);
+
+			nlohmann::json config = modelJson["config"];
+
+			const int numLayers = config["num_layers"];
+			const int inputSize = config["input_size"];
+			const int hiddenSize = config["hidden_size"];
+
+			std::vector<float> weights = modelJson["weights"];
+
+			const int networkInputSize = 1;
+			const int networkOutputSize = 1;
+			const int gateSize = 4 * hiddenSize;
+
+			auto iter = weights.begin();
+
+			for (int layer = 0; layer < numLayers; layer++)
+			{
+				const int layerInputSize = (layer == 0) ? networkInputSize : hiddenSize;
+
+				Eigen::MatrixXf inputPlusHidden = Eigen::Map<Eigen::MatrixXf>(&(*iter), layerInputSize + hiddenSize, gateSize);
+
+				auto lstmLayer = new RTNeural::LSTMLayer<float>(layerInputSize, hiddenSize);
+
+				model->addLayer(lstmLayer);
+
+				// Input weights
+				std::vector<std::vector<float>> inputWeights;
+
+				inputWeights.resize(layerInputSize);
+
+				for (size_t col = 0; col < layerInputSize; col++)
+				{
+					inputWeights[col].resize(gateSize);
+
+					for (size_t row = 0; row < gateSize; row++)
+					{
+						inputWeights[col][row] = inputPlusHidden(col, row);
+					}
+				}
+
+				lstmLayer->setWVals(inputWeights);
+
+				// Recurrent weights
+				std::vector<std::vector<float>> hiddenWeights;
+
+				hiddenWeights.resize(hiddenSize);
+
+				for (size_t col = 0; col < hiddenSize; col++)
+				{
+					hiddenWeights[col].resize(gateSize);
+
+					for (size_t row = 0; row < gateSize; row++)
+					{
+						hiddenWeights[col][row] = inputPlusHidden(col + layerInputSize, row);
+					}
+				}
+
+				lstmLayer->setUVals(hiddenWeights);
+
+				iter += (gateSize * (layerInputSize + hiddenSize));
+
+				// Bias weights
+				std::vector<float> biasWeights = std::vector<float>(iter, iter + gateSize);
+
+				lstmLayer->setBVals(biasWeights);
+
+				iter += gateSize;
+
+				// initial internal state values follow here in NAM, but aren't supported by RTNeural
+				iter += hiddenSize * 2;	// (hidden state and cell state)
+			}
+
+			// Dense layer weights
+			auto denseLayer = new RTNeural::Dense<float>(hiddenSize, networkOutputSize);
+			model->addLayer(denseLayer);
+
+			std::vector<std::vector<float>> denseWeights;
+			denseWeights.resize(1);
+			denseWeights[0] = std::vector<float>(iter, iter + hiddenSize);
+
+			denseLayer->setWeights(denseWeights);
+
+			iter += hiddenSize;
+
+			// Dense layer bias
+			auto denseBias = std::vector<float>(iter, iter + networkOutputSize);
+			denseLayer->setBias(&(*iter));
+
+			iter += networkOutputSize;
+
+			model->reset();
+
+			return true;
 		}
 
 		void Process(float* input, float* output, int numSamples)
@@ -272,7 +376,7 @@ namespace NeuralAudio
 		}
 
 	private:
-		std::unique_ptr<RTNeural::Model<float>> model = nullptr;
+		std::unique_ptr<RTNeural::Model<float>> model;
 	};
 
 	class RTNeuralModelDefinitionBase
@@ -281,6 +385,16 @@ namespace NeuralAudio
 		virtual RTNeuralModel* CreateModel()
 		{
 			return nullptr;
+		}
+
+		virtual int GetNumLayers()
+		{
+			return 0;
+		}
+
+		virtual int GetHiddenSize()
+		{
+			return 0;
 		}
 	};
 
@@ -291,6 +405,16 @@ namespace NeuralAudio
 		RTNeuralModel* CreateModel()
 		{
 			return new RTNeuralModelT<numLayers, hiddenSize>;
+		}
+
+		int GetNumLayers()
+		{
+			return numLayers;
+		}
+
+		int GetHiddenSize()
+		{
+			return hiddenSize;
 		}
 	};
 }
