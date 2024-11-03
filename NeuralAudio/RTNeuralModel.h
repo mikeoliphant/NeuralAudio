@@ -183,7 +183,7 @@ namespace NeuralAudio
 
 					Eigen::MatrixXf inputPlusHidden = Eigen::Map<Eigen::MatrixXf>(&(*iter), layerInputSize + hiddenSize, gateSize);
 
-					auto& lstmLayer = model->get<layer>();
+					auto& lstmLayer = model->template get<layer>();
 
 					// Input weights
 					std::vector<std::vector<float>> inputWeights;
@@ -233,7 +233,7 @@ namespace NeuralAudio
 				});
 
 			// Dense layer weights
-			auto& denseLayer = model->get<numLayers>();
+			auto& denseLayer = model->template get<numLayers>();
 
 			std::vector<std::vector<float>> denseWeights;
 			denseWeights.resize(1);
