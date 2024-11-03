@@ -24,7 +24,7 @@ namespace NeuralAudio
 		}
 	}
 
-	static RTNeuralModelDefinitionBase* FindModelDefinition(int numLayers, int hiddenSize)
+	static RTNeuralModelDefinitionBase* FindModelDefinition(size_t numLayers, size_t hiddenSize)
 	{
 		for (auto const& model : modelDefs)
 		{
@@ -79,7 +79,7 @@ namespace NeuralAudio
 		else if (modelPath.extension() == ".json")
 		{
 			const auto layers = modelJson.at("layers");
-			const int numLayers = layers.size() - 1;
+			const size_t numLayers = layers.size() - 1;
 			const std::string modelType = layers.at(0).at("type");
 			const int hidden_size = layers.at(0).at("shape").back();
 

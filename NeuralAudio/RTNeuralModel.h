@@ -40,7 +40,7 @@ namespace NeuralAudio
 		{
 			return outputGain;
 		}
-
+		
 		float GetSampleRate()
 		{
 			return sampleRate;
@@ -80,14 +80,19 @@ namespace NeuralAudio
 				sampleRate = modelJson["samplerate"];
 			}
 
-			if (modelJson.contains("in_gain"))
+			if (modelJson.contains("sample_rate"))
 			{
-				inputGain = modelJson["in_gain"];
+				sampleRate = modelJson["sample_rate"];
 			}
 
-			if (modelJson.contains("out_gain"))
+			if (modelJson.contains("metadata"))
 			{
-				outputGain = modelJson["out_gain"];
+				nlohmann::json metaData = modelJson["metadata"];
+
+				if (metaData.contains("loudness"))
+				{
+					outputGain = -18 - (float)metaData["loudness"];
+				}
 			}
 
 			return CreateModelFromNAMJson(modelJson);
@@ -252,11 +257,6 @@ namespace NeuralAudio
 			model->reset();
 
 			return true;
-		}
-
-		float GetRecommendedOutputDBAdjustment()
-		{
-			return 0;
 		}
 
 		void Process(float* input, float* output, int numSamples)

@@ -3,7 +3,7 @@
 
 int main()
 {
-	 auto model = NeuralAudio::NeuralModel::CreateFromFile("C:\\Users\\oliph\\Downloads\\MODOrange\\AMP Orange Nasty.json");
+	auto model = NeuralAudio::NeuralModel::CreateFromFile("C:\\Users\\oliph\\Downloads\\MODOrange\\AMP Orange Nasty.json");
 
 	NeuralAudio::NeuralModel::SetPreferNAM(true);
 
@@ -12,6 +12,8 @@ int main()
 	NeuralAudio::NeuralModel::SetPreferNAM(false);
 
 	auto rtNeuralModel = NeuralAudio::NeuralModel::CreateFromFile("C:\\Users\\oliph\\Downloads\\BossLSTM-1x16.nam");
+
+	float db = rtNeuralModel->GetRecommendedOutputDBAdjustment();
 
 	const int dataSize = 2048;
 
