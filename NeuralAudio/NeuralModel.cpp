@@ -1,3 +1,4 @@
+#include <list>
 #include "NeuralModel.h"
 #include "NAMModel.h"
 #include "RTNeuralModel.h"

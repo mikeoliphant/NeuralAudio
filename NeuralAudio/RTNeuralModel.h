@@ -302,8 +302,8 @@ namespace NeuralAudio
 
 			std::vector<float> weights = modelJson["weights"];
 
-			const int networkInputSize = 1;
-			const int networkOutputSize = 1;
+			const int networkInputSize = inputSize;
+			const int networkOutputSize = inputSize;
 			const int gateSize = 4 * hiddenSize;
 
 			auto iter = weights.begin();
