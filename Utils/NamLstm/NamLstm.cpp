@@ -7,6 +7,8 @@ int main()
 
 	NeuralAudio::NeuralModel::SetPreferNAM(true);
 
+	auto blah = RTNeural::LSTMLayerT<float, 2, 8>();
+
 	auto namModel = NeuralAudio::NeuralModel::CreateFromFile("C:\\Users\\oliph\\Downloads\\BossLSTM-1x16.nam");
 
 	NeuralAudio::NeuralModel::SetPreferNAM(false);

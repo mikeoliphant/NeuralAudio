@@ -14,16 +14,10 @@ namespace NeuralAudio
 			modelDefs.push_back(new RTNeuralModelDefinitionT<1, 8>);
 			modelDefs.push_back(new RTNeuralModelDefinitionT<1, 12>);
 			modelDefs.push_back(new RTNeuralModelDefinitionT<1, 16>);
-			modelDefs.push_back(new RTNeuralModelDefinitionT<1, 20>);
 			modelDefs.push_back(new RTNeuralModelDefinitionT<1, 24>);
-			//modelDefs.push_back(new RTNeuralModelDefinitionT<2, 8>);
-			//modelDefs.push_back(new RTNeuralModelDefinitionT<2, 12>);
-			//modelDefs.push_back(new RTNeuralModelDefinitionT<2, 16>);
-			//modelDefs.push_back(new RTNeuralModelDefinitionT<2, 20>);
-			//modelDefs.push_back(new RTNeuralModelDefinitionT<2, 24>);
-			//modelDefs.push_back(new RTNeuralModelDefinitionT<2, 32>);
-			//modelDefs.push_back(new RTNeuralModelDefinitionT<2, 48>);
-			//modelDefs.push_back(new RTNeuralModelDefinitionT<2, 64>);
+			modelDefs.push_back(new RTNeuralModelDefinitionT<2, 8>);
+			modelDefs.push_back(new RTNeuralModelDefinitionT<2, 12>);
+			modelDefs.push_back(new RTNeuralModelDefinitionT<2, 16>);
 
 			modelDefsAreLoaded = true;
 		}

@@ -35,7 +35,7 @@ namespace NeuralAudio
 
 				if (metaData.contains("loudness"))
 				{
-					modelOutputDBAdjustment = -18 - metaData["loudness"];
+					modelOutputDBAdjustment = -18 - (float)metaData["loudness"];
 				}
 			}
 

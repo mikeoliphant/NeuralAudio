@@ -104,9 +104,28 @@ namespace NeuralAudio
 		float outputGain = 0;
 	};
 
+	template <std::size_t ... Is, typename F>
+	void ForEachIndex(std::index_sequence<Is...>, F&& f)
+	{
+		int dummy[] = { 0, /* Handles empty Is. following cast handle evil operator comma */
+					   (static_cast<void>(f(std::integral_constant<std::size_t, Is>())), 0)... };
+		static_cast<void>(dummy); // avoid warning for unused variable
+	}
+
+	template <std::size_t N, typename F>
+	void ForEachIndex(F&& f)
+	{
+		ForEachIndex(std::make_index_sequence<N>(), std::forward<F>(f));
+	}
+
 	template <int numLayers, int hiddenSize>
 	class RTNeuralModelT : public RTNeuralModel
 	{
+		using ModelType = typename std::conditional<numLayers == 1,
+			RTNeural::ModelT<float, 1, 1, RTNeural::LSTMLayerT<float, 1, hiddenSize>, RTNeural::DenseT<float, hiddenSize, 1>>,
+			RTNeural::ModelT<float, 1, 1, RTNeural::LSTMLayerT<float, 1, hiddenSize>, RTNeural::LSTMLayerT<float, hiddenSize, hiddenSize>, RTNeural::DenseT<float, hiddenSize, 1>>
+		>::type;
+
 	public:
 		RTNeuralModelT()
 			: model(nullptr)
@@ -130,8 +149,6 @@ namespace NeuralAudio
 				model = nullptr;
 			}
 
-			model = new RTNeural::ModelT<float, 1, 1, RTNeural::LSTMLayerT<float, numLayers, hiddenSize>, RTNeural::DenseT<float, hiddenSize, 1>>();
-
 			model->parseJson(modelJson, true);
 			model->reset();
 
@@ -146,7 +163,7 @@ namespace NeuralAudio
 				model = nullptr;
 			}
 
-			model = new RTNeural::ModelT<float, 1, 1, RTNeural::LSTMLayerT<float, numLayers, hiddenSize>, RTNeural::DenseT<float, hiddenSize, 1>>();
+			model = new ModelType;
 
 			nlohmann::json config = modelJson["config"];
 
@@ -158,63 +175,63 @@ namespace NeuralAudio
 
 			auto iter = weights.begin();
 
-			for (int layer = 0; layer < numLayers; layer++)
-			{
-				const int layerInputSize = (layer == 0) ? networkInputSize : hiddenSize;
-
-				Eigen::MatrixXf inputPlusHidden = Eigen::Map<Eigen::MatrixXf>(&(*iter), layerInputSize + hiddenSize, gateSize);
-
-				auto& lstmLayer = model->get<0>();
-
-				// Input weights
-				std::vector<std::vector<float>> inputWeights;
-
-				inputWeights.resize(layerInputSize);
-
-				for (size_t col = 0; col < layerInputSize; col++)
+			ForEachIndex<numLayers>([&](auto layer)
 				{
-					inputWeights[col].resize(gateSize);
+					const int layerInputSize = (layer == 0) ? networkInputSize : hiddenSize;
 
-					for (size_t row = 0; row < gateSize; row++)
+					Eigen::MatrixXf inputPlusHidden = Eigen::Map<Eigen::MatrixXf>(&(*iter), layerInputSize + hiddenSize, gateSize);
+
+					auto& lstmLayer = model->get<layer>();
+
+					// Input weights
+					std::vector<std::vector<float>> inputWeights;
+
+					inputWeights.resize(layerInputSize);
+
+					for (size_t col = 0; col < layerInputSize; col++)
 					{
-						inputWeights[col][row] = inputPlusHidden(col, row);
+						inputWeights[col].resize(gateSize);
+
+						for (size_t row = 0; row < gateSize; row++)
+						{
+							inputWeights[col][row] = inputPlusHidden(col, row);
+						}
 					}
-				}
 
-				lstmLayer.setWVals(inputWeights);
+					lstmLayer.setWVals(inputWeights);
 
-				// Recurrent weights
-				std::vector<std::vector<float>> hiddenWeights;
+					// Recurrent weights
+					std::vector<std::vector<float>> hiddenWeights;
 
-				hiddenWeights.resize(hiddenSize);
+					hiddenWeights.resize(hiddenSize);
 
-				for (size_t col = 0; col < hiddenSize; col++)
-				{
-					hiddenWeights[col].resize(gateSize);
-
-					for (size_t row = 0; row < gateSize; row++)
+					for (size_t col = 0; col < hiddenSize; col++)
 					{
-						hiddenWeights[col][row] = inputPlusHidden(col + layerInputSize, row);
+						hiddenWeights[col].resize(gateSize);
+
+						for (size_t row = 0; row < gateSize; row++)
+						{
+							hiddenWeights[col][row] = inputPlusHidden(col + layerInputSize, row);
+						}
 					}
-				}
 
-				lstmLayer.setUVals(hiddenWeights);
+					lstmLayer.setUVals(hiddenWeights);
 
-				iter += (gateSize * (layerInputSize + hiddenSize));
+					iter += (gateSize * (layerInputSize + hiddenSize));
 
-				// Bias weights
-				std::vector<float> biasWeights = std::vector<float>(iter, iter + gateSize);
+					// Bias weights
+					std::vector<float> biasWeights = std::vector<float>(iter, iter + gateSize);
 
-				lstmLayer.setBVals(biasWeights);
+					lstmLayer.setBVals(biasWeights);
 
-				iter += gateSize;
+					iter += gateSize;
 
-				// initial internal state values follow here in NAM, but aren't supported by RTNeural
-				iter += hiddenSize * 2;	// (hidden state and cell state)
-			}
+					// initial internal state values follow here in NAM, but aren't supported by RTNeural
+					iter += hiddenSize * 2;	// (hidden state and cell state)
+				});
 
 			// Dense layer weights
-			auto& denseLayer = model->get<1>();
+			auto& denseLayer = model->get<numLayers>();
 
 			std::vector<std::vector<float>> denseWeights;
 			denseWeights.resize(1);
@@ -247,7 +264,7 @@ namespace NeuralAudio
 		}
 
 	private:
-		RTNeural::ModelT<float, 1, 1, RTNeural::LSTMLayerT<float, numLayers, hiddenSize>, RTNeural::DenseT<float, hiddenSize, 1>>* model = nullptr;
+		ModelType* model = nullptr;
 	};
 
 	class RTNeuralModelDyn : public RTNeuralModel
