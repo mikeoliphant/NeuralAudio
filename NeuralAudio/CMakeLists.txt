@@ -4,13 +4,15 @@ add_definitions(-DNAM_SAMPLE_FLOAT)
 add_definitions(-DDSP_SAMPLE_FLOAT)
 
 include_directories(SYSTEM ../deps/NeuralAmpModelerCore)
+include_directories(SYSTEM ../deps/RTNeural)
 include_directories(SYSTEM ../deps/RTNeural/modules/Eigen)
 include_directories(SYSTEM ../deps/RTNeural/modules/json)
 
 set(SOURCES
 	NeuralModel.h
 	NeuralModel.cpp
-	NAMModel.h)
+	NAMModel.h
+	RTNeuralModel.h)
 
 set(NAM_SOURCES	../deps/NeuralAmpModelerCore/NAM/activations.h
 	../deps/NeuralAmpModelerCore/NAM/activations.cpp
@@ -30,6 +32,9 @@ set(NAM_SOURCES	../deps/NeuralAmpModelerCore/NAM/activations.h
 add_library(NeuralAudio STATIC ${SOURCES} ${NAM_SOURCES})
 
 set_property(TARGET NeuralAudio PROPERTY POSITION_INDEPENDENT_CODE ON)
+
+add_subdirectory(../deps/RTNeural RTNeural)
+target_link_libraries(NeuralAudio LINK_PUBLIC RTNeural)
 
 source_group(NeuralAudio ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES})
 source_group(NAM ${CMAKE_CURRENT_SOURCE_DIR} FILES ${NAM_SOURCES})

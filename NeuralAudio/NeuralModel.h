@@ -4,16 +4,18 @@
 
 namespace NeuralAudio
 {
-	class NAMModel;
-
 	class NeuralModel
 	{
 	public:
 		static NeuralModel* CreateFromFile(std::filesystem::path modelPath);
+		static void SetPreferNAM(bool val)
+		{
+			preferNAM = val;
+		}
 
 		virtual float GetRecommendedOutputDBAdjustment()
 		{
-			return 1.0f;
+			return 0;
 		}
 
 		virtual void Process(float* input, float* output, int numSamples)
@@ -21,5 +23,6 @@ namespace NeuralAudio
 		}
 
 	private:
+		inline static bool preferNAM = false;
 	};
 }
