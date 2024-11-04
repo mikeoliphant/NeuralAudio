@@ -95,12 +95,13 @@ namespace NeuralAudio
 
 					return model;
 				}
-				
-				RTNeuralModelDyn* model = new RTNeuralModelDyn;
-				model->LoadFromKerasJson(modelJson);
-
-				return model;
 			}
+	
+			// Use a dynamic model for other model types
+			RTNeuralModelDyn* model = new RTNeuralModelDyn;
+			model->LoadFromKerasJson(modelJson);
+
+			return model;
 		}
 
 		return nullptr;
