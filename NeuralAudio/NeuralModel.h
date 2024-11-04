@@ -32,6 +32,10 @@ namespace NeuralAudio
 		{
 		}
 
+		virtual void Prewarm()
+		{
+		}
+
 	private:
 		inline static bool preferNAM = false;
 	};

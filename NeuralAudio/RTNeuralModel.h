@@ -265,6 +265,14 @@ namespace NeuralAudio
 				output[i] = model->forward(input + i);
 		}
 
+		void Prewarm()
+		{
+			float sample = 0;
+
+			for (int i = 0; i < 2048; i++)
+				model->forward(&sample);
+		}
+
 	private:
 		ModelType* model = nullptr;
 	};
@@ -392,6 +400,14 @@ namespace NeuralAudio
 		{
 			for (int i = 0; i < numSamples; i++)
 				output[i] = model->forward(input + i);
+		}
+
+		void Prewarm()
+		{
+			float sample = 0;
+
+			for (int i = 0; i < 2048; i++)
+				model->forward(&sample);
 		}
 
 	private:

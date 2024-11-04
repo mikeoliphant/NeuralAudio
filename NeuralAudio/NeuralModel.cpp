@@ -44,6 +44,8 @@ namespace NeuralAudio
 		nlohmann::json modelJson;
 		jsonStream >> modelJson;
 
+		NeuralModel* newModel = nullptr;
+
 		if (modelPath.extension() == ".nam")
 		{
 			std::string arch = modelJson["architecture"];
@@ -54,7 +56,7 @@ namespace NeuralAudio
 
 				model->LoadFromJson(modelJson);
 
-				return model;
+				newModel = model;
 			}
 			else if (arch == "LSTM")
 			{
@@ -67,13 +69,15 @@ namespace NeuralAudio
 					RTNeuralModel* model = modelDef->CreateModel();
 					model->LoadFromNAMJson(modelJson);
 
-					return model;
+					newModel = model;
 				}
+				else
+				{
+					RTNeuralModelDyn* model = new RTNeuralModelDyn;
+					model->LoadFromNAMJson(modelJson);
 
-				RTNeuralModelDyn* model = new RTNeuralModelDyn;
-				model->LoadFromNAMJson(modelJson);
-
-				return model;
+					newModel = model;
+				}
 			}
 		}
 		else if (modelPath.extension() == ".json")
@@ -93,17 +97,25 @@ namespace NeuralAudio
 
 					model->LoadFromKerasJson(modelJson);
 
-					return model;
+					newModel = model;
 				}
 			}
 	
-			// Use a dynamic model for other model types
-			RTNeuralModelDyn* model = new RTNeuralModelDyn;
-			model->LoadFromKerasJson(modelJson);
+			if (newModel == nullptr)
+			{
+				// Use a dynamic model for other model types
+				RTNeuralModelDyn* model = new RTNeuralModelDyn;
+				model->LoadFromKerasJson(modelJson);
 
-			return model;
+				newModel = model;
+			}
 		}
 
-		return nullptr;
+		if (newModel != nullptr)
+		{
+			newModel->Prewarm();
+		}
+
+		return newModel;
 	}
 }

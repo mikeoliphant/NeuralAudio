@@ -75,7 +75,6 @@ namespace NeuralAudio
 				const int hidden_size = config["hidden_size"];
 
 				namModel = std::make_unique<nam::lstm::LSTM>(num_layers, input_size, hidden_size, weights, sampleRate);
-				namModel->prewarm();
 			}
 
 			return true;
@@ -94,6 +93,11 @@ namespace NeuralAudio
 		void Process(float* input, float* output, int numSamples)
 		{
 			namModel->process(input, output, numSamples);
+		}
+
+		void Prewarm()
+		{
+			namModel->prewarm();
 		}
 
 	private:
