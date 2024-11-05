@@ -21,7 +21,7 @@ int main()
 	audioInput.resize(dataSize);
 
 	for (size_t n = 0; n < audioInput.size(); ++n)
-		audioInput[n] = std::sin(3.14 * n * 0.01);
+		audioInput[n] = (float)std::sin(3.14 * n * 0.01);
 
 	std::vector<float> namOutput;
 	std::vector<float> rtNeuralOutput;

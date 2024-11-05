@@ -5,7 +5,7 @@
 
 namespace NeuralAudio
 {
-	struct DefaultMathsProvider
+	struct FastMathsProvider
 	{
 		template <typename Matrix>
 		static auto tanh(const Matrix& x)
@@ -127,8 +127,9 @@ namespace NeuralAudio
 	class RTNeuralModelT : public RTNeuralModel
 	{
 		using ModelType = typename std::conditional<numLayers == 1,
-			RTNeural::ModelT<float, 1, 1, RTNeural::LSTMLayerT<float, 1, hiddenSize>, RTNeural::DenseT<float, hiddenSize, 1>>,
-			RTNeural::ModelT<float, 1, 1, RTNeural::LSTMLayerT<float, 1, hiddenSize>, RTNeural::LSTMLayerT<float, hiddenSize, hiddenSize>, RTNeural::DenseT<float, hiddenSize, 1>>
+			RTNeural::ModelT<float, 1, 1, RTNeural::LSTMLayerT<float, 1, hiddenSize, RTNeural::SampleRateCorrectionMode::None, FastMathsProvider>, RTNeural::DenseT<float, hiddenSize, 1>>,
+			RTNeural::ModelT<float, 1, 1, RTNeural::LSTMLayerT<float, 1, hiddenSize, RTNeural::SampleRateCorrectionMode::None, FastMathsProvider>,
+				RTNeural::LSTMLayerT<float, hiddenSize, hiddenSize, RTNeural::SampleRateCorrectionMode::None, FastMathsProvider>, RTNeural::DenseT<float, hiddenSize, 1>>
 		>::type;
 
 	public:
@@ -292,7 +293,7 @@ namespace NeuralAudio
 
 		bool CreateModelFromKerasJson(nlohmann::json& modelJson)
 		{
-			model = RTNeural::json_parser::parseJson<float>(modelJson, true);
+			model = RTNeural::json_parser::parseJson<float, FastMathsProvider>(modelJson, true);
 			model->reset();
 
 			return true;
