@@ -1,6 +1,6 @@
 # NeuralAudio
 
-NeuralAudio is a C++ library designed to make it easy to use neural network machine learning models in real-time audio applications.
+NeuralAudio is a C++ library designed to make it easy to use neural network machine learning models (ie: guitar amplifier captures/profiles) in real-time audio applications.
 
 # Supported Models
 
