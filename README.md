@@ -41,3 +41,10 @@ model->Process(pointerToFloatInputData, pointerToFloatOutputData, int numSamples
 ```
 
 Use **model->GetRecommendedInputDBAdjustment()** and **model->GetRecommendedOutputDBAdjustment()** to obtain the ideal input and output volume level adjustments in dB.
+
+# Software Using NeuralAudio
+
+The following applications are using the NeuralAudio library for model processing:
+
+- [neural-amp-modeler-lv2](https://github.com/mikeoliphant/neural-amp-modeler-lv2): LV2 plugin for using neural network machine learning amp models.
+- [stompbox](https://github.com/mikeoliphant/stompbox): Guitar amplification and effects pedalboard simulation.
