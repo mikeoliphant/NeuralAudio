@@ -5,8 +5,13 @@ add_definitions(-DDSP_SAMPLE_FLOAT)
 
 include_directories(SYSTEM ../deps/NeuralAmpModelerCore)
 include_directories(SYSTEM ../deps/RTNeural)
+include_directories(SYSTEM ../deps/RTNeural-NAM/wavenet)
 include_directories(SYSTEM ../deps/RTNeural/modules/Eigen)
 include_directories(SYSTEM ../deps/RTNeural/modules/json)
+
+if (MSVC)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
+endif()
 
 set(SOURCES
 	NeuralModel.h
@@ -29,7 +34,11 @@ set(NAM_SOURCES	../deps/NeuralAmpModelerCore/NAM/activations.h
 	../deps/NeuralAmpModelerCore/NAM/convnet.cpp
 	../deps/NeuralAmpModelerCore/NAM/convnet.h)
 
-add_library(NeuralAudio STATIC ${SOURCES} ${NAM_SOURCES})
+set(RTNEURAL_WN_SOURCES ../deps/RTNeural-NAM/wavenet/wavenet_layer.hpp
+	../deps/RTNeural-NAM/wavenet/wavenet_layer_array.hpp
+	../deps/RTNeural-NAM/wavenet/wavenet_model.hpp)
+
+add_library(NeuralAudio STATIC ${SOURCES} ${NAM_SOURCES} ${RTNEURAL_WN_SOURCES})
 
 set_property(TARGET NeuralAudio PROPERTY POSITION_INDEPENDENT_CODE ON)
 
@@ -38,3 +47,4 @@ target_link_libraries(NeuralAudio LINK_PUBLIC RTNeural)
 
 source_group(NeuralAudio ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES})
 source_group(NAM ${CMAKE_CURRENT_SOURCE_DIR} FILES ${NAM_SOURCES})
+source_group(RTNeural-NAM ${CMAKE_CURRENT_SOURCE_DIR} FILES ${RTNEURAL_WN_SOURCES})

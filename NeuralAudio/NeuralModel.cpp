@@ -12,13 +12,13 @@ namespace NeuralAudio
 	{
 		if (!modelDefsAreLoaded)
 		{
-			modelDefs.push_back(new RTNeuralModelDefinitionT<1, 8>);
-			modelDefs.push_back(new RTNeuralModelDefinitionT<1, 12>);
-			modelDefs.push_back(new RTNeuralModelDefinitionT<1, 16>);
-			modelDefs.push_back(new RTNeuralModelDefinitionT<1, 24>);
-			modelDefs.push_back(new RTNeuralModelDefinitionT<2, 8>);
-			modelDefs.push_back(new RTNeuralModelDefinitionT<2, 12>);
-			modelDefs.push_back(new RTNeuralModelDefinitionT<2, 16>);
+			modelDefs.push_back(new RTNeuralLSTMDefinitionT<1, 8>);
+			modelDefs.push_back(new RTNeuralLSTMDefinitionT<1, 12>);
+			modelDefs.push_back(new RTNeuralLSTMDefinitionT<1, 16>);
+			modelDefs.push_back(new RTNeuralLSTMDefinitionT<1, 24>);
+			modelDefs.push_back(new RTNeuralLSTMDefinitionT<2, 8>);
+			modelDefs.push_back(new RTNeuralLSTMDefinitionT<2, 12>);
+			modelDefs.push_back(new RTNeuralLSTMDefinitionT<2, 16>);
 
 			modelDefsAreLoaded = true;
 		}
@@ -50,7 +50,7 @@ namespace NeuralAudio
 		{
 			std::string arch = modelJson["architecture"];
 
-			if ((arch == "WaveNet") || preferNAM)
+			if (preferNAM)
 			{
 				NAMModel* model = new NAMModel;
 
@@ -58,25 +58,37 @@ namespace NeuralAudio
 
 				newModel = model;
 			}
-			else if (arch == "LSTM")
+
+			if (newModel == nullptr)
 			{
-				nlohmann::json config = modelJson["config"];
-
-				auto modelDef = FindModelDefinition(config["num_layers"], config["hidden_size"]);
-
-				if (modelDef != nullptr)
+				if (arch == "WaveNet")
 				{
-					RTNeuralModel* model = modelDef->CreateModel();
+					RTNeuralModel* model = new RTNeuralWaveNetModelT<16, 8>;
+
 					model->LoadFromNAMJson(modelJson);
 
 					newModel = model;
 				}
-				else
+				else if (arch == "LSTM")
 				{
-					RTNeuralModelDyn* model = new RTNeuralModelDyn;
-					model->LoadFromNAMJson(modelJson);
+					nlohmann::json config = modelJson["config"];
 
-					newModel = model;
+					auto modelDef = FindModelDefinition(config["num_layers"], config["hidden_size"]);
+
+					if (modelDef != nullptr)
+					{
+						RTNeuralModel* model = modelDef->CreateModel();
+						model->LoadFromNAMJson(modelJson);
+
+						newModel = model;
+					}
+					else
+					{
+						RTNeuralModelDyn* model = new RTNeuralModelDyn;
+						model->LoadFromNAMJson(modelJson);
+
+						newModel = model;
+					}
 				}
 			}
 		}

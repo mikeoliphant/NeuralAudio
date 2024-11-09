@@ -3,6 +3,8 @@
 
 int main()
 {
+	auto wnModel = NeuralAudio::NeuralModel::CreateFromFile("C:\\Users\\oliph\\AppData\\Roaming\\stompbox\\NAM\\JCM2000Crunch.nam");
+
 	auto model = NeuralAudio::NeuralModel::CreateFromFile("C:\\Users\\oliph\\Downloads\\MODOrange\\AMP Orange Nasty.json");
 
 	NeuralAudio::NeuralModel::SetPreferNAM(true);

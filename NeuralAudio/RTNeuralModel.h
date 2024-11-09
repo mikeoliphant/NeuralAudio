@@ -2,6 +2,7 @@
 
 #include "NeuralModel.h"
 #include <RTNeural/RTNeural.h>
+#include "wavenet_model.hpp"
 
 namespace NeuralAudio
 {
@@ -124,7 +125,7 @@ namespace NeuralAudio
 	}
 
 	template <int numLayers, int hiddenSize>
-	class RTNeuralModelT : public RTNeuralModel
+	class RTNeuralLSTMModelT : public RTNeuralModel
 	{
 		using ModelType = typename std::conditional<numLayers == 1,
 			RTNeural::ModelT<float, 1, 1, RTNeural::LSTMLayerT<float, 1, hiddenSize, RTNeural::SampleRateCorrectionMode::None, FastMathsProvider>, RTNeural::DenseT<float, hiddenSize, 1>>,
@@ -133,12 +134,12 @@ namespace NeuralAudio
 		>::type;
 
 	public:
-		RTNeuralModelT()
+		RTNeuralLSTMModelT()
 			: model(nullptr)
 		{
 		}
 
-		~RTNeuralModelT()
+		~RTNeuralLSTMModelT()
 		{
 			if (model != nullptr)
 			{
@@ -277,6 +278,85 @@ namespace NeuralAudio
 	private:
 		ModelType* model = nullptr;
 	};
+
+	template <int numChannels, int headSize>
+	class RTNeuralWaveNetModelT : public RTNeuralModel
+	{
+		using ModelType = typename wavenet::Wavenet_Model<float,
+			1,
+			wavenet::Layer_Array<float, 1, 1, headSize, numChannels, 3, false, FastMathsProvider, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512>,
+			wavenet::Layer_Array<float, numChannels, 1, 1, headSize, 3, true, FastMathsProvider, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512>>;
+
+	public:
+		RTNeuralWaveNetModelT()
+			: model(nullptr)
+		{
+		}
+
+		~RTNeuralWaveNetModelT()
+		{
+			if (model != nullptr)
+			{
+				delete model;
+				model == nullptr;
+			}
+		}
+
+		//bool CreateModelFromKerasJson(nlohmann::json& modelJson)
+		//{
+		//	if (model != nullptr)
+		//	{
+		//		delete model;
+		//		model = nullptr;
+		//	}
+
+		//	model = new ModelType;
+
+		//	model->parseJson(modelJson, true);
+		//	model->reset();
+
+		//	return true;
+		//}
+
+		bool CreateModelFromNAMJson(nlohmann::json& modelJson)
+		{
+			if (model != nullptr)
+			{
+				delete model;
+				model = nullptr;
+			}
+
+			model = new ModelType;
+
+			nlohmann::json config = modelJson["config"];
+
+			std::vector<float> weights = modelJson["weights"];
+
+			model->load_weights(modelJson, weights);
+
+			model->reset();
+
+			return true;
+		}
+
+		void Process(float* input, float* output, int numSamples)
+		{
+			for (int i = 0; i < numSamples; i++)
+				output[i] = model->forward(input[i]);
+		}
+
+		void Prewarm()
+		{
+			float sample = 0;
+
+			for (int i = 0; i < 2048; i++)
+				model->forward(sample);
+		}
+
+	private:
+		ModelType* model = nullptr;
+	};
+
 
 	class RTNeuralModelDyn : public RTNeuralModel
 	{
@@ -435,12 +515,12 @@ namespace NeuralAudio
 	};
 
 	template <int numLayers, int hiddenSize>
-	class RTNeuralModelDefinitionT : public RTNeuralModelDefinitionBase
+	class RTNeuralLSTMDefinitionT : public RTNeuralModelDefinitionBase
 	{
 	public:
 		RTNeuralModel* CreateModel()
 		{
-			return new RTNeuralModelT<numLayers, hiddenSize>;
+			return new RTNeuralLSTMModelT<numLayers, hiddenSize>;
 		}
 
 		int GetNumLayers()
