@@ -236,6 +236,7 @@ namespace NeuralAudio
 					iter += gateSize;
 
 					// initial internal state values follow here in NAM, but aren't supported by RTNeural
+
 					iter += hiddenSize * 2;	// (hidden state and cell state)
 				});
 
@@ -282,10 +283,14 @@ namespace NeuralAudio
 	template <int numChannels, int headSize>
 	class RTNeuralWaveNetModelT : public RTNeuralModel
 	{
-		using ModelType = typename wavenet::Wavenet_Model<float,
-			1,
-			wavenet::Layer_Array<float, 1, 1, headSize, numChannels, 3, false, FastMathsProvider, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512>,
-			wavenet::Layer_Array<float, numChannels, 1, 1, headSize, 3, true, FastMathsProvider, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512>>;
+		using ModelType = typename std::conditional<numChannels == 16,
+			wavenet::Wavenet_Model<float, 1, numChannels,
+				wavenet::Layer_Array<float, 1, 1, headSize, numChannels, 3, false, FastMathsProvider, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512>,
+				wavenet::Layer_Array<float, numChannels, 1, 1, headSize, 3, true, FastMathsProvider, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512>>,
+			wavenet::Wavenet_Model<float, 1, numChannels,
+				wavenet::Layer_Array<float, 1, 1, headSize, numChannels, 3, false, FastMathsProvider, 1, 2, 4, 8, 16, 32, 64>,
+				wavenet::Layer_Array<float, numChannels, 1, 1, headSize, 3, true, FastMathsProvider, 128, 256, 512, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512>>
+			>::type;
 
 	public:
 		RTNeuralWaveNetModelT()
@@ -451,7 +456,20 @@ namespace NeuralAudio
 				iter += gateSize;
 
 				// initial internal state values follow here in NAM, but aren't supported by RTNeural
+
 				iter += hiddenSize * 2;	// (hidden state and cell state)
+
+				//// LSTM hidden state
+				//auto hiddenState = std::vector<float>(iter, iter + hiddenSize);
+
+				//iter += hiddenSize;
+
+				//// LSTM cell state
+				//auto cellState = std::vector<float>(iter, iter + hiddenSize);
+
+				//lstmLayer->setHCVals(hiddenState, cellState);
+
+				//iter += hiddenSize;
 			}
 
 			// Dense layer weights
@@ -502,6 +520,16 @@ namespace NeuralAudio
 		{
 			return nullptr;
 		}
+	};
+
+
+	class RTNeuralLSTMDefinitionBase : public RTNeuralModelDefinitionBase
+	{
+	public:
+		virtual RTNeuralModel* CreateModel()
+		{
+			return nullptr;
+		}
 
 		virtual int GetNumLayers()
 		{
@@ -515,7 +543,7 @@ namespace NeuralAudio
 	};
 
 	template <int numLayers, int hiddenSize>
-	class RTNeuralLSTMDefinitionT : public RTNeuralModelDefinitionBase
+	class RTNeuralLSTMDefinitionT : public RTNeuralLSTMDefinitionBase
 	{
 	public:
 		RTNeuralModel* CreateModel()
@@ -531,6 +559,45 @@ namespace NeuralAudio
 		int GetHiddenSize()
 		{
 			return hiddenSize;
+		}
+	};
+
+	class RTNeuralWaveNetDefinitionBase : public RTNeuralModelDefinitionBase
+	{
+	public:
+		virtual RTNeuralModel* CreateModel()
+		{
+			return nullptr;
+		}
+
+		virtual int GetNumChannels()
+		{
+			return 0;
+		}
+
+		virtual int GetHeadSize()
+		{
+			return 0;
+		}
+	};
+
+	template <int numChannels, int headSize>
+	class RTNeuralWaveNetDefinitionT : public RTNeuralWaveNetDefinitionBase
+	{
+	public:
+		RTNeuralModel* CreateModel()
+		{
+			return new RTNeuralWaveNetModelT<numChannels, headSize>;
+		}
+
+		virtual int GetNumChannels()
+		{
+			return numChannels;
+		}
+
+		virtual int GetHeadSize()
+		{
+			return headSize;
 		}
 	};
 }

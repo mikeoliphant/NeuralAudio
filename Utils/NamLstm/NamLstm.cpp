@@ -3,7 +3,9 @@
 
 int main()
 {
-	auto wnModel = NeuralAudio::NeuralModel::CreateFromFile("C:\\Users\\oliph\\AppData\\Roaming\\stompbox\\NAM\\JCM2000Crunch.nam");
+	auto wnStandardModel = NeuralAudio::NeuralModel::CreateFromFile("C:\\Users\\oliph\\AppData\\Roaming\\stompbox\\NAM\\JCM2000Crunch.nam");
+
+	auto wnFeatherModel = NeuralAudio::NeuralModel::CreateFromFile("C:\\Users\\oliph\\Downloads\\BossWN-feather.nam");
 
 	auto model = NeuralAudio::NeuralModel::CreateFromFile("C:\\Users\\oliph\\Downloads\\MODOrange\\AMP Orange Nasty.json");
 
