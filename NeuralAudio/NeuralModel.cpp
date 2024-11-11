@@ -53,6 +53,22 @@ namespace NeuralAudio
 		return nullptr;
 	}
 
+	static std::vector<int> stdDilations = { 1, 2, 4, 8, 16, 32, 64, 128, 256, 512 };
+	static std::vector<int> liteDilations = { 1, 2, 4, 8, 16, 32, 64 };
+	static std::vector<int> liteDilations2 = { 128, 256, 512, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512 };
+
+	static bool CheckDilations(nlohmann::json dilationJson, std::vector<int>& checkDilations)
+	{
+		if (dilationJson.size() != checkDilations.size())
+			return false;
+
+		for (int i = 0; i < dilationJson.size(); i++)
+		{
+			if (dilationJson[i] != checkDilations[i])
+				return false;
+		}
+	}
+
 	NeuralModel* NeuralModel::CreateFromFile(std::filesystem::path modelPath)
 	{
 		EnsureModelDefsAreLoaded();
@@ -74,17 +90,44 @@ namespace NeuralAudio
 				{
 					nlohmann::json config = modelJson["config"];
 
-					nlohmann::json layer_config = config["layers"][0];
-
-					auto modelDef = FindWaveNetDefinition(layer_config["channels"], layer_config["head_size"]);
-
-					if (modelDef != nullptr)
+					if (config["layers"].size() == 2)
 					{
-						auto model = modelDef->CreateModel();
+						nlohmann::json firstLayerConfig = config["layers"][0];
+						nlohmann::json secondLayerConfig = config["layers"][1];
 
-						model->LoadFromNAMJson(modelJson);
+						if (!firstLayerConfig["gated"] && !secondLayerConfig["gated"] && !firstLayerConfig["head_bias"] && secondLayerConfig["head_bias"])
+						{
+							bool isOfficialArchitecture = false;
 
-						newModel = model;
+							if (firstLayerConfig["channels"] == 16)
+							{
+								if (CheckDilations(firstLayerConfig["dilations"], stdDilations) && CheckDilations(secondLayerConfig["dilations"], stdDilations))
+								{
+									isOfficialArchitecture = true;
+								}
+							}
+							else
+							{
+								if (CheckDilations(firstLayerConfig["dilations"], liteDilations) && CheckDilations(secondLayerConfig["dilations"], liteDilations2))
+								{
+									isOfficialArchitecture = true;
+								}
+							}
+
+							if (isOfficialArchitecture)
+							{
+								auto modelDef = FindWaveNetDefinition(firstLayerConfig["channels"], firstLayerConfig["head_size"]);
+
+								if (modelDef != nullptr)
+								{
+									auto model = modelDef->CreateModel();
+
+									model->LoadFromNAMJson(modelJson);
+
+									newModel = model;
+								}
+							}
+						}
 					}
 				}
 				else if (arch == "LSTM")
