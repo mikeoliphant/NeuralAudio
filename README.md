@@ -31,7 +31,7 @@ Other architectures will work fine, but will have somewhat reduced performance.
 
 To load a model:
 ```
-NeuralModel* model = NeuralAudio::NeuralModel::CreateFromFile("<path to model file");
+NeuralModel* model = NeuralAudio::NeuralModel::CreateFromFile("<path to model file>");
 ```
 
 To process a model:
