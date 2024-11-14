@@ -4,13 +4,25 @@
 
 namespace NeuralAudio
 {
+	enum ModelLoadMode
+	{
+		PreferRTNeural,
+		PreferNAMCore,
+	};
+
 	class NeuralModel
 	{
 	public:
 		static NeuralModel* CreateFromFile(std::filesystem::path modelPath);
-		static void SetPreferNAM(bool val)
+
+		static void SetLSTMLoadMode(ModelLoadMode val)
 		{
-			preferNAM = val;
+			lstmLoadMode = val;
+		}
+
+		static void SetWaveNetLoadMode(ModelLoadMode val)
+		{
+			wavenetLoadMode = val;
 		}
 
 		virtual float GetRecommendedInputDBAdjustment()
@@ -37,6 +49,7 @@ namespace NeuralAudio
 		}
 
 	private:
-		inline static bool preferNAM = false;
+		inline static ModelLoadMode lstmLoadMode = ModelLoadMode::PreferRTNeural;
+		inline static ModelLoadMode wavenetLoadMode = ModelLoadMode::PreferRTNeural;
 	};
 }
