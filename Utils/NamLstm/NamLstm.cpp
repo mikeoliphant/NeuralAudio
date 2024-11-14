@@ -9,11 +9,11 @@ int main()
 
 	auto model = NeuralAudio::NeuralModel::CreateFromFile("C:\\Users\\oliph\\Downloads\\MODOrange\\AMP Orange Nasty.json");
 
-	NeuralAudio::NeuralModel::SetPreferNAM(true);
+	NeuralAudio::NeuralModel::SetLSTMLoadMode(NeuralAudio::ModelLoadMode::PreferNAMCore);
 
 	auto namModel = NeuralAudio::NeuralModel::CreateFromFile("C:\\Users\\oliph\\Downloads\\BossLSTM-1x16.nam");
 
-	NeuralAudio::NeuralModel::SetPreferNAM(false);
+	NeuralAudio::NeuralModel::SetLSTMLoadMode(NeuralAudio::ModelLoadMode::PreferRTNeural);
 
 	auto rtNeuralModel = NeuralAudio::NeuralModel::CreateFromFile("C:\\Users\\oliph\\Downloads\\BossLSTM-1x16.nam");
 

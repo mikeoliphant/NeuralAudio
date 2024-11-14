@@ -280,16 +280,20 @@ namespace NeuralAudio
 		ModelType* model = nullptr;
 	};
 
+	using StdDilations = wavenet::Dilations<1, 2, 4, 8, 16, 32, 64, 128, 256, 512>;
+	using LiteDilations1 = wavenet::Dilations<1, 2, 4, 8, 16, 32, 64>;
+	using LiteDilations2 = wavenet::Dilations<128, 256, 512, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512>;
+
 	template <int numChannels, int headSize>
 	class RTNeuralWaveNetModelT : public RTNeuralModel
 	{
 		using ModelType = typename std::conditional<numChannels == 16,
-			wavenet::Wavenet_Model<float, 1, numChannels,
-				wavenet::Layer_Array<float, 1, 1, headSize, numChannels, 3, false, FastMathsProvider, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512>,
-				wavenet::Layer_Array<float, numChannels, 1, 1, headSize, 3, true, FastMathsProvider, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512>>,
-			wavenet::Wavenet_Model<float, 1, numChannels,
-				wavenet::Layer_Array<float, 1, 1, headSize, numChannels, 3, false, FastMathsProvider, 1, 2, 4, 8, 16, 32, 64>,
-				wavenet::Layer_Array<float, numChannels, 1, 1, headSize, 3, true, FastMathsProvider, 128, 256, 512, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512>>
+			wavenet::Wavenet_Model<float, 1,
+				wavenet::Layer_Array<float, 1, 1, headSize, numChannels, 3, StdDilations, false, FastMathsProvider>,
+				wavenet::Layer_Array<float, numChannels, 1, 1, headSize, 3, StdDilations, true, FastMathsProvider>>,
+			wavenet::Wavenet_Model<float, 1,
+				wavenet::Layer_Array<float, 1, 1, headSize, numChannels, 3, LiteDilations1, false, FastMathsProvider>,
+				wavenet::Layer_Array<float, numChannels, 1, 1, headSize, 3, LiteDilations2, true, FastMathsProvider>>
 			>::type;
 
 	public:
@@ -335,11 +339,7 @@ namespace NeuralAudio
 
 			nlohmann::json config = modelJson["config"];
 
-			std::vector<float> weights = modelJson["weights"];
-
-			model->load_weights(modelJson, weights);
-
-			model->reset();
+			model->load_weights(modelJson);
 
 			return true;
 		}

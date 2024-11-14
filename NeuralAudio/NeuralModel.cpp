@@ -67,6 +67,8 @@ namespace NeuralAudio
 			if (dilationJson[i] != checkDilations[i])
 				return false;
 		}
+
+		return true;
 	}
 
 	NeuralModel* NeuralModel::CreateFromFile(std::filesystem::path modelPath)
@@ -84,72 +86,69 @@ namespace NeuralAudio
 		{
 			std::string arch = modelJson["architecture"];
 
-			if (!preferNAM)
+			if ((arch == "WaveNet") && (wavenetLoadMode == ModelLoadMode::PreferRTNeural))
 			{
-				if (arch == "WaveNet")
+				nlohmann::json config = modelJson["config"];
+
+				if (config["layers"].size() == 2)
 				{
-					nlohmann::json config = modelJson["config"];
+					nlohmann::json firstLayerConfig = config["layers"][0];
+					nlohmann::json secondLayerConfig = config["layers"][1];
 
-					if (config["layers"].size() == 2)
+					if (!firstLayerConfig["gated"] && !secondLayerConfig["gated"] && !firstLayerConfig["head_bias"] && secondLayerConfig["head_bias"])
 					{
-						nlohmann::json firstLayerConfig = config["layers"][0];
-						nlohmann::json secondLayerConfig = config["layers"][1];
+						bool isOfficialArchitecture = false;
 
-						if (!firstLayerConfig["gated"] && !secondLayerConfig["gated"] && !firstLayerConfig["head_bias"] && secondLayerConfig["head_bias"])
+						if (firstLayerConfig["channels"] == 16)
 						{
-							bool isOfficialArchitecture = false;
-
-							if (firstLayerConfig["channels"] == 16)
+							if (CheckDilations(firstLayerConfig["dilations"], stdDilations) && CheckDilations(secondLayerConfig["dilations"], stdDilations))
 							{
-								if (CheckDilations(firstLayerConfig["dilations"], stdDilations) && CheckDilations(secondLayerConfig["dilations"], stdDilations))
-								{
-									isOfficialArchitecture = true;
-								}
+								isOfficialArchitecture = true;
 							}
-							else
+						}
+						else
+						{
+							if (CheckDilations(firstLayerConfig["dilations"], liteDilations) && CheckDilations(secondLayerConfig["dilations"], liteDilations2))
 							{
-								if (CheckDilations(firstLayerConfig["dilations"], liteDilations) && CheckDilations(secondLayerConfig["dilations"], liteDilations2))
-								{
-									isOfficialArchitecture = true;
-								}
+								isOfficialArchitecture = true;
 							}
+						}
 
-							if (isOfficialArchitecture)
+						if (isOfficialArchitecture)
+						{
+							auto modelDef = FindWaveNetDefinition(firstLayerConfig["channels"], firstLayerConfig["head_size"]);
+
+							if (modelDef != nullptr)
 							{
-								auto modelDef = FindWaveNetDefinition(firstLayerConfig["channels"], firstLayerConfig["head_size"]);
+								auto model = modelDef->CreateModel();
 
-								if (modelDef != nullptr)
-								{
-									auto model = modelDef->CreateModel();
+								model->LoadFromNAMJson(modelJson);
 
-									model->LoadFromNAMJson(modelJson);
-
-									newModel = model;
-								}
+								newModel = model;
 							}
 						}
 					}
 				}
-				else if (arch == "LSTM")
+			}
+			else if ((arch == "LSTM") && (lstmLoadMode == ModelLoadMode::PreferRTNeural))
+			{
+				nlohmann::json config = modelJson["config"];
+
+				auto modelDef = FindLSTMDefinition(config["num_layers"], config["hidden_size"]);
+
+				if (modelDef != nullptr)
 				{
-					nlohmann::json config = modelJson["config"];
+					RTNeuralModel* model = modelDef->CreateModel();
+					model->LoadFromNAMJson(modelJson);
 
-					auto modelDef = FindLSTMDefinition(config["num_layers"], config["hidden_size"]);
+					newModel = model;
+				}
+				else
+				{
+					RTNeuralModelDyn* model = new RTNeuralModelDyn;
+					model->LoadFromNAMJson(modelJson);
 
-					if (modelDef != nullptr)
-					{
-						RTNeuralModel* model = modelDef->CreateModel();
-						model->LoadFromNAMJson(modelJson);
-
-						newModel = model;
-					}
-					else
-					{
-						RTNeuralModelDyn* model = new RTNeuralModelDyn;
-						model->LoadFromNAMJson(modelJson);
-
-						newModel = model;
-					}
+					newModel = model;
 				}
 			}
 
