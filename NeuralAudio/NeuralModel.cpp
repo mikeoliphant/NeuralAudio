@@ -162,7 +162,7 @@ namespace NeuralAudio
 				newModel = model;
 			}
 		}
-		else if (modelPath.extension() == ".json")
+		else if ((modelPath.extension() == ".json") || (modelPath.extension() == ".aidax"))
 		{
 			const auto layers = modelJson.at("layers");
 			const size_t numLayers = layers.size() - 1;
