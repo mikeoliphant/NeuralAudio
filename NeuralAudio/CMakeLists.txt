@@ -34,6 +34,7 @@ set(RTNEURAL_WN_SOURCES ../deps/RTNeural-NAM/wavenet/wavenet_layer.hpp
 
 add_library(NeuralAudio STATIC ${SOURCES} ${NAM_SOURCES} ${RTNEURAL_WN_SOURCES})
 
+target_include_directories(NeuralAudio PUBLIC ..)
 target_include_directories(NeuralAudio PUBLIC ../deps/NeuralAmpModelerCore)
 target_include_directories(NeuralAudio PUBLIC ../deps/RTNeural)
 target_include_directories(NeuralAudio PUBLIC ../deps/RTNeural-NAM/wavenet)
