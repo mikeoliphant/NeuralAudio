@@ -6,5 +6,5 @@ function(create_util util_name)
     target_compile_features(${util_name} PRIVATE cxx_std_17)
 endfunction()
 
-add_subdirectory(NamLstm)
+add_subdirectory(ModelTest)
 
