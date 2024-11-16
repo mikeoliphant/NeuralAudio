@@ -3,12 +3,6 @@ set(CMAKE_CXX_STANDARD 17)
 add_definitions(-DNAM_SAMPLE_FLOAT)
 add_definitions(-DDSP_SAMPLE_FLOAT)
 
-include_directories(SYSTEM ../deps/NeuralAmpModelerCore)
-include_directories(SYSTEM ../deps/RTNeural)
-include_directories(SYSTEM ../deps/RTNeural-NAM/wavenet)
-include_directories(SYSTEM ../deps/RTNeural/modules/Eigen)
-include_directories(SYSTEM ../deps/RTNeural/modules/json)
-
 if (MSVC)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
 endif()
@@ -39,6 +33,12 @@ set(RTNEURAL_WN_SOURCES ../deps/RTNeural-NAM/wavenet/wavenet_layer.hpp
 	../deps/RTNeural-NAM/wavenet/wavenet_model.hpp)
 
 add_library(NeuralAudio STATIC ${SOURCES} ${NAM_SOURCES} ${RTNEURAL_WN_SOURCES})
+
+target_include_directories(NeuralAudio PUBLIC ../deps/NeuralAmpModelerCore)
+target_include_directories(NeuralAudio PUBLIC ../deps/RTNeural)
+target_include_directories(NeuralAudio PUBLIC ../deps/RTNeural-NAM/wavenet)
+target_include_directories(NeuralAudio PUBLIC ../deps/RTNeural/modules/Eigen)
+target_include_directories(NeuralAudio PUBLIC ../deps/RTNeural/modules/json)
 
 set_property(TARGET NeuralAudio PROPERTY POSITION_INDEPENDENT_CODE ON)
 
