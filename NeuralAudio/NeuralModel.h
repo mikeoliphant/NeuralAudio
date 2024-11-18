@@ -15,6 +15,10 @@ namespace NeuralAudio
 	public:
 		static NeuralModel* CreateFromFile(std::filesystem::path modelPath);
 
+		virtual ~NeuralModel()
+		{
+		}
+
 		static void SetLSTMLoadMode(ModelLoadMode val)
 		{
 			lstmLoadMode = val;

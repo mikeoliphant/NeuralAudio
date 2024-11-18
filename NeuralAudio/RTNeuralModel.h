@@ -144,7 +144,7 @@ namespace NeuralAudio
 			if (model != nullptr)
 			{
 				delete model;
-				model == nullptr;
+				model = nullptr;
 			}
 		}
 
@@ -307,7 +307,7 @@ namespace NeuralAudio
 			if (model != nullptr)
 			{
 				delete model;
-				model == nullptr;
+				model = nullptr;
 			}
 		}
 
