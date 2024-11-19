@@ -6,49 +6,20 @@
 
 namespace NeuralAudio
 {
-	inline static float fast_tanh(const float x)
-	{
-		const float ax = fabsf(x);
-		const float x2 = x * x;
-
-		return (x * (2.45550750702956f + 2.45550750702956f * ax + (0.893229853513558f + 0.821226666969744f * ax) * x2)
-			/ (2.44506634652299f + (2.44506634652299f + x2) * fabsf(x + 0.814642734961073f * x * ax)));
-	}
-
 	struct FastMathsProvider
 	{
 		template <typename Matrix>
-		static auto tanh(Matrix& x)
+		static auto tanh(const Matrix& x)
 		{
-			using T = typename Matrix::Scalar;
-
-			long size = x.rows() * x.cols();
-			float* data = x.data();
-
-			for (long i = 0; i < size; i++)
-			{
-				data[i] = 0.5f * (fast_tanh(data[i] * 0.5f) + 1.0f);
-			}
-
-			return x;
+			return x.array().tanh();
 		}
 
 		template <typename Matrix>
-		static auto sigmoid(Matrix& x)
+		static auto sigmoid(const Matrix& x)
 		{
 			using T = typename Matrix::Scalar;
 
-			long size = x.rows() * x.cols();
-			float* data = x.data();
-
-			for (long i = 0; i < size; i++)
-			{
-				data[i] = 0.5f * (fast_tanh(data[i] * 0.5f) + 1.0f);
-			}
-
-			return x;
-
-			//return ((x.array() / (T)2).array().tanh() + (T)1) / (T)2;
+			return ((x.array() / (T)2).array().tanh() + (T)1) / (T)2;
 		}
 
 		template <typename Matrix>
@@ -56,48 +27,6 @@ namespace NeuralAudio
 		{
 			return x.array().exp();
 		}
-	};
-
-	template <typename T, int size, typename MathsProvider = FastMathsProvider>
-	class FastTanhActivationT
-	{
-		using v_type = Eigen::Matrix<T, size, 1>;
-
-	public:
-		static constexpr auto in_size = size;
-		static constexpr auto out_size = size;
-
-		FastTanhActivationT()
-			: outs(outs_internal)
-		{
-		}
-
-		/** Returns the name of this layer. */
-		std::string getName() const noexcept { return "tanh"; }
-
-		/** Returns true if this layer is an activation layer. */
-		constexpr bool isActivation() const noexcept { return true; }
-
-		RTNEURAL_REALTIME void reset() {}
-
-		/** Performs forward propagation for tanh activation. */
-		RTNEURAL_REALTIME inline void forward(v_type& ins) noexcept
-		{
-			long size = ins.rows() * ins.cols();
-			T* data = ins.data();
-
-			for (long i = 0; i < size; i++)
-			{
-				data[i] = fast_tanh(data[i]);
-			}
-
-			outs = ins;
-		}
-
-		v_type& outs;
-
-	private:
-		v_type outs_internal;
 	};
 
 	class RTNeuralModel : public NeuralModel
@@ -360,11 +289,11 @@ namespace NeuralAudio
 	{
 		using ModelType = typename std::conditional<numChannels == 16,
 			wavenet::Wavenet_Model<float, 1,
-				wavenet::Layer_Array<float, 1, 1, headSize, numChannels, 3, StdDilations, false, FastMathsProvider, FastTanhActivationT<float, numChannels, FastMathsProvider>>,
-				wavenet::Layer_Array<float, numChannels, 1, 1, headSize, 3, StdDilations, true, FastMathsProvider, FastTanhActivationT<float, headSize, FastMathsProvider>>>,
+				wavenet::Layer_Array<float, 1, 1, headSize, numChannels, 3, StdDilations, false, FastMathsProvider>,
+				wavenet::Layer_Array<float, numChannels, 1, 1, headSize, 3, StdDilations, true, FastMathsProvider>>,
 			wavenet::Wavenet_Model<float, 1,
-				wavenet::Layer_Array<float, 1, 1, headSize, numChannels, 3, LiteDilations1, false, FastMathsProvider, FastTanhActivationT<float, numChannels, FastMathsProvider>>,
-				wavenet::Layer_Array<float, numChannels, 1, 1, headSize, 3, LiteDilations2, true, FastMathsProvider, FastTanhActivationT<float, headSize, FastMathsProvider>>>
+				wavenet::Layer_Array<float, 1, 1, headSize, numChannels, 3, LiteDilations1, false, FastMathsProvider>,
+				wavenet::Layer_Array<float, numChannels, 1, 1, headSize, 3, LiteDilations2, true, FastMathsProvider>>
 			>::type;
 
 	public:
