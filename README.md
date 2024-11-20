@@ -11,9 +11,13 @@ NeuralAudio currently supports the following model types:
 
 # Underlying Libraries and Performance
 
-[RTNeural](https://github.com/jatinchowdhury18/RTNeural) is used for RTNeural keras models and most NAM models.
+[RTNeural](https://github.com/jatinchowdhury18/RTNeural) is used for RTNeural keras models.
 
-The official NAM WaveNet model architectures ("Standard", "Lite", "Feather", "Nano") are loaded using RTNeural by default, and use pre-compiled static architectures. Other NAM WaveNet model architectures will fall back on using the [NAM Core implementation](https://github.com/sdatkinson/NeuralAmpModelerCore).
+The [NAM Core implementation](https://github.com/sdatkinson/NeuralAmpModelerCore) is used by default for NAM models, both LSTM and WaveNet.
+
+You can also instruct the library to load NAM models using RTNeural (see the API overview below).
+
+When using RTNeural, the official NAM WaveNet model architectures ("Standard", "Lite", "Feather", "Nano") are loaded using RTNeural by default, and use pre-compiled static architectures. Other NAM WaveNet model architectures will fall back on using the [NAM Core implementation](https://github.com/sdatkinson/NeuralAmpModelerCore).
 
 A subset of LSTM models are processed using pre-compiled static architectures (increasing performance). Currently the following architectures are accelerated:
 
@@ -42,16 +46,16 @@ model->Process(pointerToFloatInputData, pointerToFloatOutputData, int numSamples
 
 Use **model->GetRecommendedInputDBAdjustment()** and **model->GetRecommendedOutputDBAdjustment()** to obtain the ideal input and output volume level adjustments in dB.
 
-If you would like to force the use of the NAM Core implementation for NAM models, you can.
+If you would like to force the use of RTNeural for NAM models, you can.
 
 For LSTM:
 ```
-NeuralAudio::NeuralModel::SetLSTMLoadMode(NeuralAudio::PreferNAMCore);
+NeuralAudio::NeuralModel::SetLSTMLoadMode(NeuralAudio::PreferRTNeural);
 ```
 
 For WaveNet:
 ```
-NeuralAudio::NeuralModel::SetWaveNetLoadMode(NeuralAudio::PreferNAMCore)
+NeuralAudio::NeuralModel::SetWaveNetLoadMode(NeuralAudio::PreferRTNeural)
 ```
 
 # Software Using NeuralAudio
