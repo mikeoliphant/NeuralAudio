@@ -23,7 +23,10 @@ jobs:
       env:
         CXX: clang++
       run: |
-        cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_UTILS=ON
+        if [${{ matrix.os }} == "windows-latest"]
+          cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_UTILS=ON
+        else
+          cmake -G "Visual Studio 17 2022" -A x64  -T ClangCL ..
         cmake --build . --config $BUILD_TYPE -j4
 
     - name: Upload binary
