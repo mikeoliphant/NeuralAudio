@@ -53,7 +53,7 @@ namespace NeuralAudio
 		}
 
 	private:
-		inline static ModelLoadMode lstmLoadMode = ModelLoadMode::PreferRTNeural;
-		inline static ModelLoadMode wavenetLoadMode = ModelLoadMode::PreferRTNeural;
+		inline static ModelLoadMode lstmLoadMode = ModelLoadMode::PreferNAMCore;
+		inline static ModelLoadMode wavenetLoadMode = ModelLoadMode::PreferNAMCore;
 	};
 }
