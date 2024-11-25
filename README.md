@@ -44,9 +44,15 @@ To process a model:
 model->Process(pointerToFloatInputData, pointerToFloatOutputData, int numSamples);
 ```
 
-Use **model->GetRecommendedInputDBAdjustment()** and **model->GetRecommendedOutputDBAdjustment()** to obtain the ideal input and output volume level adjustments in dB.
+## Input/Output calibration
 
-If you would like to force the use of RTNeural for NAM models, you can.
+Use ```model->GetRecommendedInputDBAdjustment()``` and ```model->GetRecommendedOutputDBAdjustment()``` to obtain the ideal input and output volume level adjustments in dB.
+
+To set a known audio input level (ie: from an audio interface), use ```model->SetAudioInputLevelDBu(float audioDBu)```. This is set at 12DBu by default.
+
+## Model load behavior
+
+By default, NAM models are loaded using the NAM Core codebase. If you would like to force the use of RTNeural for NAM models, you can.
 
 For LSTM:
 ```
