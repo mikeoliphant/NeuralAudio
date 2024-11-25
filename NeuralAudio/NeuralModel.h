@@ -1,6 +1,7 @@
 #pragma once
 
 #include <filesystem>
+#include "json.hpp"
 
 namespace NeuralAudio
 {
@@ -29,19 +30,24 @@ namespace NeuralAudio
 			wavenetLoadMode = val;
 		}
 
+		static void SetAudioInputLevelDBu(float audioDBu)
+		{
+			audioInputLevelDBu = audioDBu;
+		}
+
 		virtual float GetRecommendedInputDBAdjustment()
 		{
-			return 0;
+			return audioInputLevelDBu - modelInputLevelDBu;
 		}
 
 		virtual float GetRecommendedOutputDBAdjustment()
 		{
-			return 0;
+			return -18 - modelLoudnessDB;
 		}
 
 		virtual float GetSampleRate()
 		{
-			return 48000;
+			return sampleRate;
 		}
 
 		virtual void Process(float* input, float* output, int numSamples)
@@ -52,7 +58,16 @@ namespace NeuralAudio
 		{
 		}
 
-	private:
+	protected:
+		void ReadNAMConfig(nlohmann::json& modelJson);
+		void ReadRTNeuralConfig(nlohmann::json& modelJson);
+
+		float modelInputLevelDBu = 12;
+		float modelOutputLevelDBu = 12;
+		float modelLoudnessDB = -18;
+		float sampleRate = 48000;
+
+		inline static float audioInputLevelDBu = 12;
 		inline static ModelLoadMode lstmLoadMode = ModelLoadMode::PreferNAMCore;
 		inline static ModelLoadMode wavenetLoadMode = ModelLoadMode::PreferNAMCore;
 	};

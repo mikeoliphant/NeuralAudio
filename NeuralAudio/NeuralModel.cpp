@@ -200,4 +200,55 @@ namespace NeuralAudio
 
 		return newModel;
 	}
+
+	void NeuralModel::ReadNAMConfig(nlohmann::json& modelJson)
+	{
+		if (modelJson.contains("samplerate"))
+		{
+			sampleRate = modelJson["samplerate"];
+		}
+
+		if (modelJson.contains("sample_rate"))
+		{
+			sampleRate = modelJson["sample_rate"];
+		}
+
+		if (modelJson.contains("metadata"))
+		{
+			nlohmann::json metaData = modelJson["metadata"];
+
+			if (metaData.contains("loudness"))
+			{
+				modelLoudnessDB = (float)metaData["loudness"];
+			}
+
+			if (metaData.contains("input_level_dbu"))
+			{
+				modelInputLevelDBu = metaData["input_level_dbu"];
+			}
+
+			if (metaData.contains("output_level_dbu"))
+			{
+				modelOutputLevelDBu = metaData["output_level_dbu"];
+			}
+		}
+	}
+
+	void NeuralModel::ReadRTNeuralConfig(nlohmann::json& modelJson)
+	{
+		if (modelJson.contains("samplerate"))
+		{
+			sampleRate = modelJson["samplerate"];
+		}
+
+		if (modelJson.contains("in_gain"))
+		{
+			modelInputLevelDBu = modelJson["in_gain"];
+		}
+
+		if (modelJson.contains("out_gain"))
+		{
+			modelLoudnessDB = -18 - (float)modelJson["out_gain"];
+		}
+	}
 }

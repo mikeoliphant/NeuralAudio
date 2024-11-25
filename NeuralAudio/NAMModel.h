@@ -27,22 +27,9 @@ namespace NeuralAudio
 			if (namModel)
 				namModel.reset();
 
+			ReadNAMConfig(modelJson);
+
 			std::string arch = modelJson["architecture"];
-
-			if (modelJson.contains("metadata"))
-			{
-				nlohmann::json metaData = modelJson["metadata"];
-
-				if (metaData.contains("loudness"))
-				{
-					modelOutputDBAdjustment = -18 - (float)metaData["loudness"];
-				}
-			}
-
-			if (modelJson.contains("sample_rate"))
-			{
-				sampleRate = modelJson["sample_rate"];
-			}
 
 			nlohmann::json config = modelJson["config"];
 
@@ -80,16 +67,6 @@ namespace NeuralAudio
 			return true;
 		}
 
-		float GetRecommendedOutputDBAdjustment()
-		{
-			return modelOutputDBAdjustment;
-		}
-
-		virtual float GetSampleRate()
-		{
-			return sampleRate;
-		}
-
 		void Process(float* input, float* output, int numSamples)
 		{
 			namModel->process(input, output, numSamples);
@@ -102,7 +79,5 @@ namespace NeuralAudio
 
 	private:
 		std::unique_ptr<nam::DSP> namModel = nullptr;
-		float sampleRate = 48000;
-		float modelOutputDBAdjustment = 0;
 	};
 }

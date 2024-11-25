@@ -32,37 +32,9 @@ namespace NeuralAudio
 	class RTNeuralModel : public NeuralModel
 	{
 	public:
-		virtual float GetRecommendedInputDBAdjustment()
-		{
-			return inputGain;
-		}
-
-		virtual float GetRecommendedOutputDBAdjustment()
-		{
-			return outputGain;
-		}
-		
-		float GetSampleRate()
-		{
-			return sampleRate;
-		}
-
 		bool LoadFromKerasJson(nlohmann::json& modelJson)
 		{
-			if (modelJson.contains("samplerate"))
-			{
-				sampleRate = modelJson["samplerate"];
-			}
-
-			if (modelJson.contains("in_gain"))
-			{
-				inputGain = modelJson["in_gain"];
-			}
-
-			if (modelJson.contains("out_gain"))
-			{
-				outputGain = modelJson["out_gain"];
-			}
+			ReadRTNeuralConfig(modelJson);
 
 			return CreateModelFromKerasJson(modelJson);
 
@@ -76,25 +48,7 @@ namespace NeuralAudio
 
 		virtual bool LoadFromNAMJson(nlohmann::json& modelJson)
 		{
-			if (modelJson.contains("samplerate"))
-			{
-				sampleRate = modelJson["samplerate"];
-			}
-
-			if (modelJson.contains("sample_rate"))
-			{
-				sampleRate = modelJson["sample_rate"];
-			}
-
-			if (modelJson.contains("metadata"))
-			{
-				nlohmann::json metaData = modelJson["metadata"];
-
-				if (metaData.contains("loudness"))
-				{
-					outputGain = -18 - (float)metaData["loudness"];
-				}
-			}
+			ReadNAMConfig(modelJson);
 
 			return CreateModelFromNAMJson(modelJson);
 		}
@@ -103,11 +57,6 @@ namespace NeuralAudio
 		{
 			return false;
 		}
-
-	protected:
-		float sampleRate = 48000;
-		float inputGain = 0;
-		float outputGain = 0;
 	};
 
 	template <std::size_t ... Is, typename F>
