@@ -1,4 +1,4 @@
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 add_definitions(-DNAM_SAMPLE_FLOAT)
 add_definitions(-DDSP_SAMPLE_FLOAT)
@@ -30,7 +30,8 @@ set(NAM_SOURCES	../deps/NeuralAmpModelerCore/NAM/activations.h
 
 set(RTNEURAL_WN_SOURCES ../deps/RTNeural-NAM/wavenet/wavenet_layer.hpp
 	../deps/RTNeural-NAM/wavenet/wavenet_layer_array.hpp
-	../deps/RTNeural-NAM/wavenet/wavenet_model.hpp)
+	../deps/RTNeural-NAM/wavenet/wavenet_model.hpp
+	../deps/RTNeural-NAM/wavenet/arena.hpp)
 
 add_library(NeuralAudio STATIC ${SOURCES} ${NAM_SOURCES} ${RTNEURAL_WN_SOURCES})
 

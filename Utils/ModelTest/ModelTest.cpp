@@ -58,7 +58,5 @@ int main()
 	std::cout << "Nam: " << nam << std::endl;
 	std::cout << "RTNeural is: " << (nam / rt) << "x" << std::endl;
 
-
-
 	return 0;
 }

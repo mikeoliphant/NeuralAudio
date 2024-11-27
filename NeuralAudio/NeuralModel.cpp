@@ -217,17 +217,17 @@ namespace NeuralAudio
 		{
 			nlohmann::json metaData = modelJson["metadata"];
 
-			if (metaData.contains("loudness"))
+			if (metaData.contains("loudness") && metaData["loudness"].is_number_float())
 			{
 				modelLoudnessDB = (float)metaData["loudness"];
 			}
 
-			if (metaData.contains("input_level_dbu"))
+			if (metaData.contains("input_level_dbu") && metaData["input_level_dbu"].is_number_float())
 			{
 				modelInputLevelDBu = metaData["input_level_dbu"];
 			}
 
-			if (metaData.contains("output_level_dbu"))
+			if (metaData.contains("output_level_dbu") && metaData["output_level_dbu"].is_number_float())
 			{
 				modelOutputLevelDBu = metaData["output_level_dbu"];
 			}
@@ -241,12 +241,12 @@ namespace NeuralAudio
 			sampleRate = modelJson["samplerate"];
 		}
 
-		if (modelJson.contains("in_gain"))
+		if (modelJson.contains("in_gain") && modelJson["in_gain"].is_number_float())
 		{
 			modelInputLevelDBu = modelJson["in_gain"];
 		}
 
-		if (modelJson.contains("out_gain"))
+		if (modelJson.contains("out_gain") && modelJson["out_gain"].is_number_float())
 		{
 			modelLoudnessDB = -18 - (float)modelJson["out_gain"];
 		}
