@@ -290,13 +290,22 @@ namespace NeuralAudio
 
 			model->load_weights(modelJson);
 
+			SetMaxAudioBufferSize(defaultMaxAudioBufferSize);
+
 			return true;
+		}
+
+		void SetMaxAudioBufferSize(int maxSize)
+		{
+			model->prepare(maxSize);
 		}
 
 		void Process(float* input, float* output, int numSamples)
 		{
-			for (int i = 0; i < numSamples; i++)
-				output[i] = model->forward(input[i]);
+			model->forward(input, output, numSamples);
+
+			//for (int i = 0; i < numSamples; i++)
+			//	output[i] = model->forward(input[i]);
 		}
 
 		void Prewarm()

@@ -35,6 +35,15 @@ namespace NeuralAudio
 			audioInputLevelDBu = audioDBu;
 		}
 
+		static void SetDefaultMaxAudioBufferSize(int maxSize)
+		{
+			defaultMaxAudioBufferSize = maxSize;
+		}
+
+		virtual void SetMaxAudioBufferSize(int maxSize)
+		{
+		}
+
 		virtual float GetRecommendedInputDBAdjustment()
 		{
 			return audioInputLevelDBu - modelInputLevelDBu;
@@ -70,5 +79,6 @@ namespace NeuralAudio
 		inline static float audioInputLevelDBu = 12;
 		inline static ModelLoadMode lstmLoadMode = ModelLoadMode::PreferNAMCore;
 		inline static ModelLoadMode wavenetLoadMode = ModelLoadMode::PreferNAMCore;
+		inline static int defaultMaxAudioBufferSize = 512;
 	};
 }
