@@ -17,7 +17,7 @@ The [NAM Core implementation](https://github.com/sdatkinson/NeuralAmpModelerCore
 
 You can also instruct the library to load NAM models using RTNeural (see the API overview below).
 
-When using RTNeural, the official NAM WaveNet model architectures ("Standard", "Lite", "Feather", "Nano") are loaded using RTNeural by default, and use pre-compiled static architectures. Other NAM WaveNet model architectures will fall back on using the [NAM Core implementation](https://github.com/sdatkinson/NeuralAmpModelerCore).
+When using RTNeural, the official NAM WaveNet model architectures ("Standard", "Lite", "Feather", "Nano") are loaded using RTNeural using pre-compiled static architectures. Other NAM WaveNet model architectures will fall back on using the [NAM Core implementation](https://github.com/sdatkinson/NeuralAmpModelerCore).
 
 A subset of LSTM models are processed using pre-compiled static architectures (increasing performance). Currently the following architectures are accelerated:
 
