@@ -11,7 +11,7 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest]
-    name: Build ${{ matrix.os }}
+    name: Build Windows
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v3.3.0
@@ -31,7 +31,7 @@ jobs:
     - name: Upload binary
       uses: actions/upload-artifact@v4
       with:
-        name: ModelTest-${{ matrix.os }}
+        name: ModelTest-Windows
         path: ${{github.workspace}}/build/Utils/ModelTest
 
   build-linux-x64:
@@ -55,5 +55,5 @@ jobs:
     - name: Upload ModelTest
       uses: actions/upload-artifact@v4
       with:
-        name: ModelTest-${{ matrix.os }}
+        name: ModelTest-Linux-x64
         path: ${{github.workspace}}/build/Utils/ModelTest
