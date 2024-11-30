@@ -17,7 +17,7 @@ The [NAM Core implementation](https://github.com/sdatkinson/NeuralAmpModelerCore
 
 You can also instruct the library to load NAM models using RTNeural (see the API overview below).
 
-When using RTNeural, the official NAM WaveNet model architectures ("Standard", "Lite", "Feather", "Nano") are loaded using RTNeural by default, and use pre-compiled static architectures. Other NAM WaveNet model architectures will fall back on using the [NAM Core implementation](https://github.com/sdatkinson/NeuralAmpModelerCore).
+When using RTNeural, the official NAM WaveNet model architectures ("Standard", "Lite", "Feather", "Nano") are loaded using RTNeural using pre-compiled static architectures. Other NAM WaveNet model architectures will fall back on using the [NAM Core implementation](https://github.com/sdatkinson/NeuralAmpModelerCore).
 
 A subset of LSTM models are processed using pre-compiled static architectures (increasing performance). Currently the following architectures are accelerated:
 
@@ -43,6 +43,24 @@ To process a model:
 ```
 model->Process(pointerToFloatInputData, pointerToFloatOutputData, int numSamples);
 ```
+
+## Setting maximum buffer size
+
+Some models need to allocate memory based on the size of the audio buffers being used. You need to make sure that processing does not exceed the specified maximum buffer size.
+
+The default maximum size is 512 samples. To change it, do:
+
+```
+NeuralAudio::NeuralModel::SetDefaultMaxAudioBufferSize(maxSize);
+```
+
+if you want to change the maximum buffer size of an already created model, do:
+
+```
+model->SetMaxAudioBufferSize(int maxSize);
+```
+
+***Note: this is not real-time safe, and should not be done on a real-time audio thread.***
 
 ## Input/Output calibration
 
