@@ -24,7 +24,35 @@ jobs:
         cmake -G "Visual Studio 17 2022" -A x64 -DBUILD_UTILS=ON -T ClangCL ..
         cmake --build . --config=release -j4
 
+    - name: Run ModelTest
+      working-directory: ${{github.workspace}}/build
+      run: ./Utils/ModelTest/Release/ModelTest.exe
+
     - name: Upload binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: ModelTest-${{ matrix.os }}
+        path: ${{github.workspace}}/build/Utils/ModelTest
+
+  build-linux-x64:
+    name: Build Linux x64
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3.3.0
+      with:
+        submodules: recursive
+    
+    - name: Build
+      working-directory: ${{github.workspace}}/build
+      run: |
+        cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_UTILS=ON 
+        cmake --build . --config $BUILD_TYPE -j4
+
+    - name: Run ModelTest
+      working-directory: ${{github.workspace}}/build
+      run: ./Utils/ModelTest/ModelTest
+
+    - name: Upload ModelTest
       uses: actions/upload-artifact@v4
       with:
         name: ModelTest-${{ matrix.os }}
