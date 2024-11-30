@@ -41,6 +41,8 @@ jobs:
     
     - name: Build
       working-directory: ${{github.workspace}}/build
+      env:
+        CXX: g++-13
       run: |
         cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_UTILS=ON 
         cmake --build . --config $BUILD_TYPE -j4
