@@ -8,11 +8,8 @@ env:
 
 jobs:
   build:
-    strategy:
-      matrix:
-        os: [windows-latest]
     name: Build Windows
-    runs-on: ${{ matrix.os }}
+    runs-on: windows-latest
     steps:
     - uses: actions/checkout@v3.3.0
       with:
@@ -32,7 +29,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: ModelTest-Windows
-        path: ${{github.workspace}}/build/Utils/ModelTest
+        path: ${{github.workspace}}/build/Utils
 
   build-linux-x64:
     name: Build Linux x64
@@ -56,4 +53,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: ModelTest-Linux-x64
-        path: ${{github.workspace}}/build/Utils/ModelTest
+        path: ${{github.workspace}}/build/Utils
