@@ -24,7 +24,7 @@ static double BenchModel(NeuralAudio::NeuralModel* model, int blockSize, int num
 
 int main(int argc, char* argv[])
 {
-	std::filesystem::path modelPath = argv[0];
+	std::filesystem::path modelPath = std::filesystem::current_path();
 	
 	while (modelPath.filename() != "Utils")
 	{
@@ -32,7 +32,8 @@ int main(int argc, char* argv[])
 
 		if (modelPath == modelPath.root_path())
 		{
-			std::cout << "Unable to find Models: " << argv[0] << std::endl;
+			std::cout << "Unable to find Models: " << std::filesystem::current_path() << std::endl;
+			std::cout << "ModelTest must be run from within the Utils subdirectory" << std::endl;
 
 			return -1;
 		}
