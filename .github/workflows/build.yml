@@ -22,8 +22,8 @@ jobs:
         cmake --build . --config=release -j4
 
     - name: Run ModelTest
-      working-directory: ${{github.workspace}}/build
-      run: ./Utils/ModelTest/Release/ModelTest.exe
+      working-directory: ${{github.workspace}}/build/Utils/ModelTest/Release
+      run: ./ModelTest.exe
 
     - name: Upload binary
       uses: actions/upload-artifact@v4
@@ -48,8 +48,8 @@ jobs:
         cmake --build . --config $BUILD_TYPE -j4
 
     - name: Run ModelTest
-      working-directory: ${{github.workspace}}/build
-      run: ./Utils/ModelTest/ModelTest
+      working-directory: ${{github.workspace}}/build/Utils/ModelTest
+      run: ./ModelTest
 
     - name: Upload ModelTest
       uses: actions/upload-artifact@v4
