@@ -22,16 +22,23 @@ static double BenchModel(NeuralAudio::NeuralModel* model, int blockSize, int num
 	return std::chrono::duration_cast<std::chrono::duration<double>> (end - start).count();
 }
 
-int main()
+int main(int argc, char* argv[])
 {
-	std::filesystem::path modelPath = std::filesystem::current_path().parent_path() / "Models";
-
-	if (!std::filesystem::exists(modelPath))
+	std::filesystem::path modelPath = argv[0];
+	
+	while (modelPath.filename() != "Utils")
 	{
-		std::cout << "Model path does not exist: " << modelPath << std::endl;
+		modelPath = modelPath.parent_path();
 
-		return -1;
+		if (modelPath == modelPath.root_path())
+		{
+			std::cout << "Unable to find Models: " << argv[0] << std::endl;
+
+			return -1;
+		}
 	}
+
+	modelPath = modelPath / "Models";
 
 	NeuralAudio::NeuralModel::SetWaveNetLoadMode(NeuralAudio::ModelLoadMode::PreferRTNeural);
 
