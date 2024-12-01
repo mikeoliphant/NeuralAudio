@@ -1,3 +1,4 @@
+#include <filesystem>
 #include <RTNeural/RTNeural.h>
 #include <NeuralAudio/NeuralModel.h>
 
@@ -23,13 +24,22 @@ static double BenchModel(NeuralAudio::NeuralModel* model, int blockSize, int num
 
 int main()
 {
+	std::filesystem::path modelPath = std::filesystem::current_path().parent_path() / "Models";
+
+	if (!std::filesystem::exists(modelPath))
+	{
+		std::cout << "Model path does not exist: " << modelPath << std::endl;
+
+		return -1;
+	}
+
 	NeuralAudio::NeuralModel::SetWaveNetLoadMode(NeuralAudio::ModelLoadMode::PreferRTNeural);
 
-	auto wnStandardModelRTNeural = NeuralAudio::NeuralModel::CreateFromFile(std::string{ MODEL_DIR } + "BossWN-standard.nam");
+	auto wnStandardModelRTNeural = NeuralAudio::NeuralModel::CreateFromFile(modelPath / "BossWN-standard.nam");
 
 	NeuralAudio::NeuralModel::SetWaveNetLoadMode(NeuralAudio::ModelLoadMode::PreferNAMCore);
 
-	auto wnStandardModelNAM = NeuralAudio::NeuralModel::CreateFromFile(std::string{ MODEL_DIR } + "BossWN-standard.nam");
+	auto wnStandardModelNAM = NeuralAudio::NeuralModel::CreateFromFile(modelPath / "BossWN-standard.nam");
 
 	double rt = BenchModel(wnStandardModelRTNeural, 64, 1024);
 	double nam = BenchModel(wnStandardModelNAM, 64, 1024);
@@ -40,14 +50,15 @@ int main()
 	std::cout << "Nam: " << nam << std::endl;
 	std::cout << "RTNeural is: " << (nam / rt) << "x" << std::endl;
 
+	std::cout << std::endl;
 
 	NeuralAudio::NeuralModel::SetLSTMLoadMode(NeuralAudio::ModelLoadMode::PreferRTNeural);
 
-	auto lstmModelRTNeural = NeuralAudio::NeuralModel::CreateFromFile(std::string{ MODEL_DIR } + "BossLSTM-1x16.nam");
+	auto lstmModelRTNeural = NeuralAudio::NeuralModel::CreateFromFile(modelPath / "BossLSTM-1x16.nam");
 
 	NeuralAudio::NeuralModel::SetLSTMLoadMode(NeuralAudio::ModelLoadMode::PreferNAMCore);
 
-	auto lstmModelNAM = NeuralAudio::NeuralModel::CreateFromFile(std::string{ MODEL_DIR } + "BossLSTM-1x16.nam");
+	auto lstmModelNAM = NeuralAudio::NeuralModel::CreateFromFile(modelPath / "BossLSTM-1x16.nam");
 
 	rt = BenchModel(lstmModelRTNeural, 64, 1024);
 	nam = BenchModel(lstmModelNAM, 64, 1024);
