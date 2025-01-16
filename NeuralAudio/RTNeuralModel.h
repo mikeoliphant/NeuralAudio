@@ -1,5 +1,7 @@
 #pragma once
 
+#define WEIGHT_TYPE double // float
+
 #include "NeuralModel.h"
 #include <RTNeural/RTNeural.h>
 #include "wavenet_model.hpp"
@@ -17,7 +19,7 @@ namespace NeuralAudio
 		template <typename Matrix>
 		static auto sigmoid(const Matrix& x)
 		{
-			using T = typename Matrix::Scalar;
+			using T = WEIGHT_TYPE;
 
 			return ((x.array() / (T)2).array().tanh() + (T)1) / (T)2;
 		}
@@ -77,9 +79,9 @@ namespace NeuralAudio
 	class RTNeuralLSTMModelT : public RTNeuralModel
 	{
 		using ModelType = typename std::conditional<numLayers == 1,
-			RTNeural::ModelT<float, 1, 1, RTNeural::LSTMLayerT<float, 1, hiddenSize, RTNeural::SampleRateCorrectionMode::None, FastMathsProvider>, RTNeural::DenseT<float, hiddenSize, 1>>,
-			RTNeural::ModelT<float, 1, 1, RTNeural::LSTMLayerT<float, 1, hiddenSize, RTNeural::SampleRateCorrectionMode::None, FastMathsProvider>,
-				RTNeural::LSTMLayerT<float, hiddenSize, hiddenSize, RTNeural::SampleRateCorrectionMode::None, FastMathsProvider>, RTNeural::DenseT<float, hiddenSize, 1>>
+			RTNeural::ModelT<WEIGHT_TYPE, 1, 1, RTNeural::LSTMLayerT<WEIGHT_TYPE, 1, hiddenSize, RTNeural::SampleRateCorrectionMode::None, FastMathsProvider>, RTNeural::DenseT<WEIGHT_TYPE, hiddenSize, 1>>,
+			RTNeural::ModelT<WEIGHT_TYPE, 1, 1, RTNeural::LSTMLayerT<WEIGHT_TYPE, 1, hiddenSize, RTNeural::SampleRateCorrectionMode::None, FastMathsProvider>,
+				RTNeural::LSTMLayerT<WEIGHT_TYPE, hiddenSize, hiddenSize, RTNeural::SampleRateCorrectionMode::None, FastMathsProvider>, RTNeural::DenseT<WEIGHT_TYPE, hiddenSize, 1>>
 		>::type;
 
 	public:
@@ -113,6 +115,21 @@ namespace NeuralAudio
 			return true;
 		}
 
+		std::vector<WEIGHT_TYPE> GetWeights(std::vector<float> weights)
+		{
+			//if (std::is_same<WEIGHT_TYPE, float>::value)
+			//	return weights;
+
+			std::vector<WEIGHT_TYPE> newVec;
+
+			newVec.resize(weights.size());
+
+			for (int i = 0; i < weights.size(); i++)
+				newVec[i] = (WEIGHT_TYPE)weights[i];
+
+			return newVec;
+		}
+
 		bool CreateModelFromNAMJson(nlohmann::json& modelJson)
 		{
 			if (model != nullptr)
@@ -134,67 +151,67 @@ namespace NeuralAudio
 			auto iter = weights.begin();
 
 			ForEachIndex<numLayers>([&](auto layer)
+			{
+				const int layerInputSize = (layer == 0) ? networkInputSize : hiddenSize;
+
+				Eigen::MatrixXf inputPlusHidden = Eigen::Map<Eigen::MatrixXf>(&(*iter), layerInputSize + hiddenSize, gateSize);
+
+				auto& lstmLayer = model->template get<layer>();
+
+				// Input weights
+				std::vector<std::vector<WEIGHT_TYPE>> inputWeights;
+
+				inputWeights.resize(layerInputSize);
+
+				for (size_t col = 0; col < layerInputSize; col++)
 				{
-					const int layerInputSize = (layer == 0) ? networkInputSize : hiddenSize;
+					inputWeights[col].resize(gateSize);
 
-					Eigen::MatrixXf inputPlusHidden = Eigen::Map<Eigen::MatrixXf>(&(*iter), layerInputSize + hiddenSize, gateSize);
-
-					auto& lstmLayer = model->template get<layer>();
-
-					// Input weights
-					std::vector<std::vector<float>> inputWeights;
-
-					inputWeights.resize(layerInputSize);
-
-					for (size_t col = 0; col < layerInputSize; col++)
+					for (size_t row = 0; row < gateSize; row++)
 					{
-						inputWeights[col].resize(gateSize);
-
-						for (size_t row = 0; row < gateSize; row++)
-						{
-							inputWeights[col][row] = inputPlusHidden(col, row);
-						}
+						inputWeights[col][row] = (WEIGHT_TYPE)inputPlusHidden(col, row);
 					}
+				}
 
-					lstmLayer.setWVals(inputWeights);
+				lstmLayer.setWVals(inputWeights);
 
-					// Recurrent weights
-					std::vector<std::vector<float>> hiddenWeights;
+				// Recurrent weights
+				std::vector<std::vector<WEIGHT_TYPE>> hiddenWeights;
 
-					hiddenWeights.resize(hiddenSize);
+				hiddenWeights.resize(hiddenSize);
 
-					for (size_t col = 0; col < hiddenSize; col++)
+				for (size_t col = 0; col < hiddenSize; col++)
+				{
+					hiddenWeights[col].resize(gateSize);
+
+					for (size_t row = 0; row < gateSize; row++)
 					{
-						hiddenWeights[col].resize(gateSize);
-
-						for (size_t row = 0; row < gateSize; row++)
-						{
-							hiddenWeights[col][row] = inputPlusHidden(col + layerInputSize, row);
-						}
+						hiddenWeights[col][row] = (WEIGHT_TYPE)inputPlusHidden(col + layerInputSize, row);
 					}
+				}
 
-					lstmLayer.setUVals(hiddenWeights);
+				lstmLayer.setUVals(hiddenWeights);
 
-					iter += (gateSize * (layerInputSize + hiddenSize));
+				iter += (gateSize * (layerInputSize + hiddenSize));
 
-					// Bias weights
-					std::vector<float> biasWeights = std::vector<float>(iter, iter + gateSize);
+				// Bias weights
+				std::vector<float> biasWeights = std::vector<float>(iter, iter + gateSize);
 
-					lstmLayer.setBVals(biasWeights);
+				lstmLayer.setBVals(GetWeights(biasWeights));
 
-					iter += gateSize;
+				iter += gateSize;
 
-					// initial internal state values follow here in NAM, but aren't supported by RTNeural
+				// initial internal state values follow here in NAM, but aren't supported by RTNeural
 
-					iter += hiddenSize * 2;	// (hidden state and cell state)
-				});
+				iter += hiddenSize * 2;	// (hidden state and cell state)
+			});
 
 			// Dense layer weights
 			auto& denseLayer = model->template get<numLayers>();
 
-			std::vector<std::vector<float>> denseWeights;
+			std::vector<std::vector<WEIGHT_TYPE>> denseWeights;
 			denseWeights.resize(1);
-			denseWeights[0] = std::vector<float>(iter, iter + hiddenSize);
+			denseWeights[0] = GetWeights(std::vector<float>(iter, iter + hiddenSize));
 
 			denseLayer.setWeights(denseWeights);
 
@@ -202,7 +219,10 @@ namespace NeuralAudio
 
 			// Dense layer bias
 			auto denseBias = std::vector<float>(iter, iter + networkOutputSize);
-			denseLayer.setBias(&(*iter));
+
+			WEIGHT_TYPE bias = (WEIGHT_TYPE)*iter;
+
+			denseLayer.setBias(&bias);
 
 			iter += networkOutputSize;
 
@@ -214,12 +234,16 @@ namespace NeuralAudio
 		void Process(float* input, float* output, int numSamples)
 		{
 			for (int i = 0; i < numSamples; i++)
-				output[i] = model->forward(input + i);
+			{
+				WEIGHT_TYPE val = (WEIGHT_TYPE)*(input + i);
+
+				output[i] = model->forward(&val);
+			}
 		}
 
 		void Prewarm()
 		{
-			float sample = 0;
+			WEIGHT_TYPE sample = (WEIGHT_TYPE)0;
 
 			for (int i = 0; i < 2048; i++)
 				model->forward(&sample);
