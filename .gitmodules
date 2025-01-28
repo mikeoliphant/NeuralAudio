@@ -4,7 +4,3 @@
 [submodule "deps/RTNeural"]
 	path = deps/RTNeural
 	url = https://github.com/mikeoliphant/RTNeural
-[submodule "deps/RTNeural-NAM"]
-	path = deps/RTNeural-NAM
-	url = https://github.com/mikeoliphant/RTNeural-NAM
-	branch = no_deps
