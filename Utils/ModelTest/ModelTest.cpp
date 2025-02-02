@@ -80,10 +80,54 @@ static double ComputeError(NeuralAudio::NeuralModel* model1, NeuralAudio::Neural
 	return sqrt(totErr / (double)(blockSize * numBlocks));
 }
 
-int main(int argc, char* argv[])
+void RunTests(std::filesystem::path modelPath)
+{
+	int dataSize = 4096 * 64;
+
+	int blockSize = 64;
+	int numBlocks = dataSize / blockSize;
+
+	NeuralAudio::NeuralModel::SetDefaultMaxAudioBufferSize(blockSize);
+
+	NeuralAudio::NeuralModel::SetWaveNetLoadMode(NeuralAudio::ModelLoadMode::PreferRTNeural);
+	NeuralAudio::NeuralModel::SetLSTMLoadMode(NeuralAudio::ModelLoadMode::PreferRTNeural);
+
+	auto rtNeuralModel = NeuralAudio::NeuralModel::CreateFromFile(modelPath);
+
+	NeuralAudio::NeuralModel::SetWaveNetLoadMode(NeuralAudio::ModelLoadMode::PreferNAMCore);
+	NeuralAudio::NeuralModel::SetLSTMLoadMode(NeuralAudio::ModelLoadMode::PreferNAMCore);
+
+	auto namCoreModel = NeuralAudio::NeuralModel::CreateFromFile(modelPath);
+
+	NeuralAudio::NeuralModel::SetWaveNetLoadMode(NeuralAudio::ModelLoadMode::PreferInternal);
+	NeuralAudio::NeuralModel::SetLSTMLoadMode(NeuralAudio::ModelLoadMode::PreferInternal);
+
+	auto internalModel = NeuralAudio::NeuralModel::CreateFromFile(modelPath);
+
+	double mse = ComputeError(namCoreModel, internalModel, blockSize, numBlocks);
+	std::cout << "NAM vs Internal MSE: " << mse << std::endl;
+
+	mse = ComputeError(namCoreModel, rtNeuralModel, blockSize, numBlocks);
+	std::cout << "NAM vs RTNeural MSE: " << mse << std::endl;
+	std::cout << std::endl;
+
+	auto internal = BenchModel(internalModel, blockSize, numBlocks);
+	auto rt = BenchModel(rtNeuralModel, blockSize, numBlocks);
+	auto nam = BenchModel(namCoreModel, blockSize, numBlocks);
+
+	std::cout << "NAM Core: " << std::get<0>(nam) << " (" << std::get<1>(nam) << ")" << std::endl;
+	std::cout << "RTNeural: " << std::get<0>(rt) << " (" << std::get<1>(rt) << ")" << std::endl;
+	std::cout << "Internal: " << std::get<0>(internal) << " (" << std::get<1>(internal) << ")" << std::endl;
+	std::cout << "RTNeural is: " << (std::get<0>(nam) / std::get<0>(rt)) << "x NAM" << std::endl;
+	std::cout << "Internal is: " << (std::get<0>(nam) / std::get<0>(internal)) << "x NAM" << std::endl;
+
+	std::cout << std::endl;
+}
+
+int RunDefaultTests()
 {
 	std::filesystem::path modelPath = std::filesystem::current_path();
-	
+
 	while (modelPath.filename() != "Utils")
 	{
 		modelPath = modelPath.parent_path();
@@ -101,76 +145,19 @@ int main(int argc, char* argv[])
 
 	std::cout << "Loading models from: " << modelPath << std::endl;
 
-	int dataSize = 4096 * 64;
-
-	int blockSize = 64;
-	int numBlocks = dataSize / blockSize;
-
-	NeuralAudio::NeuralModel::SetDefaultMaxAudioBufferSize(blockSize);
-
-	NeuralAudio::NeuralModel::SetWaveNetLoadMode(NeuralAudio::ModelLoadMode::PreferRTNeural);
-
-	auto wnStandardModelRTNeural = NeuralAudio::NeuralModel::CreateFromFile(modelPath / "BossWN-standard.nam");
-
-	NeuralAudio::NeuralModel::SetWaveNetLoadMode(NeuralAudio::ModelLoadMode::PreferNAMCore);
-
-	auto wnStandardModelNAM = NeuralAudio::NeuralModel::CreateFromFile(modelPath / "BossWN-standard.nam");
-
-	NeuralAudio::NeuralModel::SetWaveNetLoadMode(NeuralAudio::ModelLoadMode::PreferInternal);
-
-	auto wnStandardModelInt = NeuralAudio::NeuralModel::CreateFromFile(modelPath / "BossWN-standard.nam");
-
 	std::cout << "WaveNet Test" << std::endl;
-
-	double mse = ComputeError(wnStandardModelNAM, wnStandardModelInt, blockSize, numBlocks);
-	std::cout << "NAM vs Internal MSE: " << mse << std::endl;
-
-	mse = ComputeError(wnStandardModelNAM, wnStandardModelRTNeural, blockSize, numBlocks);
-	std::cout << "NAM vs RTNeural MSE: " << mse << std::endl;
-	std::cout << std::endl;
-
-	auto internal = BenchModel(wnStandardModelInt, blockSize, numBlocks);
-	auto rt = BenchModel(wnStandardModelRTNeural, blockSize, numBlocks);
-	auto nam = BenchModel(wnStandardModelNAM, blockSize, numBlocks);
-
-	std::cout << "NAM: " << std::get<0>(nam) << " (" << std::get<1>(nam) << ")" << std::endl;
-	std::cout << "RTNeural: " << std::get<0>(rt) << " (" << std::get<1>(rt) << ")" << std::endl;
-	std::cout << "Internal: " << std::get<0>(internal) << " (" << std::get<1>(internal) << ")" << std::endl;
-	std::cout << "RTNeural is: " << (std::get<0>(nam) / std::get<0>(rt)) << "x NAM" << std::endl;
-	std::cout << "Internal is: " << (std::get<0>(nam) / std::get<0>(internal)) << "x NAM" << std::endl;
-
-	std::cout << std::endl;
-
-	NeuralAudio::NeuralModel::SetLSTMLoadMode(NeuralAudio::ModelLoadMode::PreferRTNeural);
-
-	auto lstmModelRTNeural = NeuralAudio::NeuralModel::CreateFromFile(modelPath / "BossLSTM-1x16.nam");
-
-	NeuralAudio::NeuralModel::SetLSTMLoadMode(NeuralAudio::ModelLoadMode::PreferNAMCore);
-
-	auto lstmModelNAM = NeuralAudio::NeuralModel::CreateFromFile(modelPath / "BossLSTM-1x16.nam");
-
-	NeuralAudio::NeuralModel::SetLSTMLoadMode(NeuralAudio::ModelLoadMode::PreferInternal);
-
-	auto lstmModelInt = NeuralAudio::NeuralModel::CreateFromFile(modelPath / "BossLSTM-1x16.nam");
-
-	rt = BenchModel(lstmModelRTNeural, blockSize, numBlocks);
-	nam = BenchModel(lstmModelNAM, blockSize, numBlocks);
-	internal = BenchModel(lstmModelInt, blockSize, numBlocks);
+	RunTests(modelPath / "BossWN-standard.nam");
 
 	std::cout << "LSTM Test" << std::endl;
+	RunTests(modelPath / "BossLSTM-1x16.nam");
 
-	mse = ComputeError(lstmModelNAM, lstmModelInt, blockSize, numBlocks);
-	std::cout << "NAM vs Internal MSE: " << mse << std::endl;
+	return 0;
+}
 
-	mse = ComputeError(lstmModelNAM, lstmModelRTNeural, blockSize, numBlocks);
-	std::cout << "NAM vs RTNeural MSE: " << mse << std::endl;
-	std::cout << std::endl;
-
-	std::cout << "NAM: " << std::get<0>(nam) << " (" << std::get<1>(nam) << ")" << std::endl;
-	std::cout << "RTNeural: " << std::get<0>(rt) << " (" << std::get<1>(rt) << ")" << std::endl;
-	std::cout << "Internal: " << std::get<0>(internal) << " (" << std::get<1>(internal) << ")" << std::endl;
-	std::cout << "RTNeural is: " << (std::get<0>(nam) / std::get<0>(rt)) << "x NAM" << std::endl;
-	std::cout << "Internal is: " << (std::get<0>(nam) / std::get<0>(internal)) << "x NAM" << std::endl;
+int main(int argc, char* argv[])
+{
+	if (RunDefaultTests() < 0)
+		return -1;
 
 	return 0;
 }
