@@ -118,12 +118,14 @@ namespace NeuralAudio
 
 		WaveNetLayer()
 		{
-			layerBuffer.resize(Channels, LAYER_ARRAY_BUFFER_SIZE);
-			layerBuffer.setZero();
-
 			bufAlloc++;
 
-			bufferStart = ReceptiveFieldSize + (MAX_NUM_FRAMES * bufAlloc);
+			long size = ReceptiveFieldSize + (MAX_NUM_FRAMES * bufAlloc);
+
+			layerBuffer.resize(Channels, size);
+			layerBuffer.setZero();
+
+			bufferStart = ReceptiveFieldSize;
 
 			state.setZero();
 		}
@@ -143,7 +145,7 @@ namespace NeuralAudio
 		{
 			bufferStart += numFrames;
 
-			if ((bufferStart + MAX_NUM_FRAMES) > LAYER_ARRAY_BUFFER_SIZE)
+			if ((bufferStart + MAX_NUM_FRAMES) > layerBuffer.cols())
 				RewindBuffer();
 		}
 
@@ -153,7 +155,7 @@ namespace NeuralAudio
 
 			long start = ReceptiveFieldSize;
 
-			layerBuffer.middleCols(start - ReceptiveFieldSize, ReceptiveFieldSize) = layerBuffer.middleCols(bufferStart - ReceptiveFieldSize, ReceptiveFieldSize);
+			//layerBuffer.middleCols(start - ReceptiveFieldSize, ReceptiveFieldSize) = layerBuffer.middleCols(bufferStart - ReceptiveFieldSize, ReceptiveFieldSize);
 
 			bufferStart = start;
 		}
