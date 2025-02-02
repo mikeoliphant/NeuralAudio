@@ -155,7 +155,7 @@ namespace NeuralAudio
 
 			long start = ReceptiveFieldSize;
 
-			//layerBuffer.middleCols(start - ReceptiveFieldSize, ReceptiveFieldSize) = layerBuffer.middleCols(bufferStart - ReceptiveFieldSize, ReceptiveFieldSize);
+			layerBuffer.middleCols(start - ReceptiveFieldSize, ReceptiveFieldSize) = layerBuffer.middleCols(bufferStart - ReceptiveFieldSize, ReceptiveFieldSize);
 
 			bufferStart = start;
 		}
