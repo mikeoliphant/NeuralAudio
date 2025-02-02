@@ -213,13 +213,15 @@ namespace NeuralAudio
 
 							newModel = model;
 						}
-						else
-						{
-							RTNeuralModelDyn* model = new RTNeuralModelDyn;
-							model->LoadFromNAMJson(modelJson);
+					}
 
-							newModel = model;
-						}
+					// If we didn't have a static model that matched, use RTNeural's dynamic model
+					if (newModel == nullptr)
+					{
+						RTNeuralModelDyn* model = new RTNeuralModelDyn;
+						model->LoadFromNAMJson(modelJson);
+
+						newModel = model;
 					}
 				}
 			}

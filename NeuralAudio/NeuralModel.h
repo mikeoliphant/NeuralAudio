@@ -78,8 +78,8 @@ namespace NeuralAudio
 		float sampleRate = 48000;
 
 		inline static float audioInputLevelDBu = 12;
-		inline static ModelLoadMode lstmLoadMode = ModelLoadMode::PreferNAMCore;
-		inline static ModelLoadMode wavenetLoadMode = ModelLoadMode::PreferNAMCore;
+		inline static ModelLoadMode lstmLoadMode = ModelLoadMode::PreferInternal;
+		inline static ModelLoadMode wavenetLoadMode = ModelLoadMode::PreferInternal;
 		inline static int defaultMaxAudioBufferSize = 128;
 	};
 }
