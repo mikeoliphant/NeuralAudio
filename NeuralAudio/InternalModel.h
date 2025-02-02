@@ -94,14 +94,15 @@ namespace NeuralAudio
 
 		void Process(float* input, float* output, int numSamples)
 		{
-			int toProcess = std::min(numSamples, model->GetMaxFrames());
+			int offset = 0;
 
 			while (numSamples > 0)
 			{
-				model->Process(input, output, toProcess);
+				int toProcess = std::min(numSamples, model->GetMaxFrames());
 
-				input += toProcess;
-				output += toProcess;
+				model->Process(input + offset, output + offset, toProcess);
+
+				offset += toProcess;
 				numSamples -= toProcess;
 			}
 		}

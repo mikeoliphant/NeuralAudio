@@ -115,6 +115,8 @@ namespace NeuralAudio
 		{
 			layerBuffer.resize(Channels, LAYER_ARRAY_BUFFER_SIZE);
 			layerBuffer.setZero();
+
+			state.setZero();
 		}
 
 		void SetWeights(std::vector<float>::iterator& weights)
@@ -126,11 +128,6 @@ namespace NeuralAudio
 
 		void SetMaxFrames(const long maxFrames)
 		{
-			if (state.cols() == maxFrames)
-				return;
-
-			//state.resize(Channels, maxFrames);
-			state.setZero();
 		}
 		
 		void RewindBuffer(long start, long bufferStart)
@@ -216,11 +213,7 @@ namespace NeuralAudio
 				{
 					std::get<layerIndex>(layers).SetMaxFrames(maxFrames);
 				});
-			
-			//arrayOutputs.resize(Channels, maxFrames);
-
-			//headOutputs.resize(HeadSize, maxFrames);
-		}
+					}
 
 		void RewindBuffers()
 		{
@@ -238,7 +231,7 @@ namespace NeuralAudio
 		{
 			bufferStart += numFrames;
 
-			if (bufferStart + numFrames > LAYER_ARRAY_BUFFER_SIZE)
+			if ((bufferStart + MAX_NUM_FRAMES) > LAYER_ARRAY_BUFFER_SIZE)
 				RewindBuffers();
 		}
 
@@ -309,8 +302,6 @@ namespace NeuralAudio
 			if (this->maxFrames > MAX_NUM_FRAMES)
 				this->maxFrames = MAX_NUM_FRAMES;
 
-			//headArray.resize(headLayerChannels, this->maxFrames);
-
 			ForEachIndex<sizeof...(LayerArrays)>([&](auto layerIndex)
 				{
 					std::get<layerIndex>(layerArrays).SetMaxFrames(this->maxFrames);
@@ -327,7 +318,7 @@ namespace NeuralAudio
 
 		void Process(const float* input, float* output, const int numFrames)
 		{
-			auto condition = Eigen::Map<const Eigen::Matrix<float, 1, MAX_NUM_FRAMES>>(input, 1, numFrames);
+			auto condition = Eigen::Map<const Eigen::Matrix<float, 1, -1>>(input, 1, numFrames);
 
 			headArray.setZero();
 
@@ -339,7 +330,7 @@ namespace NeuralAudio
 					}
 					else
 					{
-						std::get<layerIndex>(layerArrays).Process(std::get<layerIndex - 1>(layerArrays).arrayOutputs, condition, std::get<layerIndex - 1>(layerArrays).headOutputs.leftCols(numFrames), numFrames);
+						std::get<layerIndex>(layerArrays).Process(std::get<layerIndex - 1>(layerArrays).arrayOutputs.leftCols(numFrames), condition, std::get<layerIndex - 1>(layerArrays).headOutputs.leftCols(numFrames), numFrames);
 					}
 				});
 
@@ -347,7 +338,7 @@ namespace NeuralAudio
 
 			auto out = Eigen::Map<Eigen::Matrix<float, 1, -1>>(output, 1, numFrames);
 
-			out.noalias() = headScale * finalHeadArray;
+			out.noalias() = headScale * finalHeadArray.leftCols(numFrames);
 
 			AdvanceBuffers(numFrames);
 		}
