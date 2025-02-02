@@ -7,7 +7,7 @@
 #include "Activation.h"
 
 #define MAX_NUM_FRAMES 64
-#define LAYER_ARRAY_BUFFER_SIZE 4096 // 65536
+#define LAYER_ARRAY_BUFFER_SIZE 4096
 
 namespace NeuralAudio
 {
@@ -120,12 +120,13 @@ namespace NeuralAudio
 		{
 			bufAlloc++;
 
-			long size = ReceptiveFieldSize + (MAX_NUM_FRAMES * bufAlloc);
+			long size = ReceptiveFieldSize + LAYER_ARRAY_BUFFER_SIZE ;
 
 			layerBuffer.resize(Channels, size);
 			layerBuffer.setZero();
 
-			bufferStart = ReceptiveFieldSize;
+			// offset prevents buffer rewinds of various layers from happening at the same time
+			bufferStart = size - (MAX_NUM_FRAMES * bufAlloc);
 
 			state.setZero();
 		}
