@@ -156,8 +156,15 @@ int RunDefaultTests()
 
 int main(int argc, char* argv[])
 {
-	if (RunDefaultTests() < 0)
-		return -1;
+	if (argc > 1)
+	{
+		RunTests(argv[1]);
+	}
+	else
+	{
+		if (RunDefaultTests() < 0)
+			return -1;
+	}
 
 	return 0;
 }
