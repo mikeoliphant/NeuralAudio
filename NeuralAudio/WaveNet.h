@@ -6,13 +6,15 @@
 #include "NeuralModel.h"
 #include "Activation.h"
 
-#define MAX_NUM_FRAMES 64
+#ifndef WAVENET_MAX_NUM_FRAMES
+#define WAVENET_MAX_NUM_FRAMES 64
+#endif
 #define LAYER_ARRAY_BUFFER_SIZE 4096
 
 namespace NeuralAudio
 {
-	int numRewinds = 0;
-	int maxRewinds = 0;
+	//int numRewinds = 0;
+	//int maxRewinds = 0;
 
 	template <int InChannels, int OutChannels, int KernelSize, bool DoBias, int Dilation>
 	class Conv1D
@@ -128,7 +130,7 @@ namespace NeuralAudio
 			layerBuffer.setZero();
 
 			// offset prevents buffer rewinds of various layers from happening at the same time
-			bufferStart = size - (MAX_NUM_FRAMES * allocNum);
+			bufferStart = size - (WAVENET_MAX_NUM_FRAMES * allocNum);
 		}
 
 		void SetWeights(std::vector<float>::iterator& weights)
@@ -146,13 +148,13 @@ namespace NeuralAudio
 		{
 			bufferStart += numFrames;
 
-			if ((bufferStart + MAX_NUM_FRAMES) > layerBuffer.cols())
+			if ((bufferStart + WAVENET_MAX_NUM_FRAMES) > layerBuffer.cols())
 				RewindBuffer();
 		}
 
 		void RewindBuffer()
 		{
-			numRewinds++;
+			//numRewinds++;
 
 			long start = ReceptiveFieldSize;
 
@@ -191,7 +193,7 @@ namespace NeuralAudio
 		Conv1D<Channels, Channels, KernelSize, true, Dilation> conv1D;
 		DenseLayer<ConditionSize, Channels, false> inputMixin;
 		DenseLayer<Channels, Channels, true> oneByOne;
-		Eigen::Matrix<float, Channels, MAX_NUM_FRAMES> state;
+		Eigen::Matrix<float, Channels, WAVENET_MAX_NUM_FRAMES> state;
 	};
 
 	template <int... values>
@@ -226,8 +228,8 @@ namespace NeuralAudio
 		static constexpr auto NumChannelsP = Channels;
 		static constexpr auto HeadSizeP = HeadSize;
 
-		Eigen::Matrix<float, Channels, MAX_NUM_FRAMES> arrayOutputs;
-		Eigen::Matrix<float, HeadSize, MAX_NUM_FRAMES> headOutputs;
+		Eigen::Matrix<float, Channels, WAVENET_MAX_NUM_FRAMES> arrayOutputs;
+		Eigen::Matrix<float, HeadSize, WAVENET_MAX_NUM_FRAMES> headOutputs;
 
 		WaveNetLayerArray()
 		{
@@ -322,8 +324,8 @@ namespace NeuralAudio
 		{
 			this->maxFrames = maxFrames;
 
-			if (this->maxFrames > MAX_NUM_FRAMES)
-				this->maxFrames = MAX_NUM_FRAMES;
+			if (this->maxFrames > WAVENET_MAX_NUM_FRAMES)
+				this->maxFrames = WAVENET_MAX_NUM_FRAMES;
 
 			ForEachIndex<sizeof...(LayerArrays)>([&](auto layerIndex)
 				{
@@ -333,7 +335,7 @@ namespace NeuralAudio
 
 		void Process(const float* input, float* output, const int numFrames)
 		{
-			numRewinds = 0;
+			//numRewinds = 0;
 
 			auto condition = Eigen::Map<const Eigen::Matrix<float, 1, -1>>(input, 1, numFrames);
 
@@ -357,19 +359,19 @@ namespace NeuralAudio
 
 			out.noalias() = headScale * finalHeadArray.leftCols(numFrames);
 
-			if (numRewinds > maxRewinds)
-			{
-				maxRewinds = numRewinds;
+			//if (numRewinds > maxRewinds)
+			//{
+			//	maxRewinds = numRewinds;
 
-				std::cout << "New Max Rewinds: " << maxRewinds << std::endl;
-			}
+			//	std::cout << "New Max Rewinds: " << maxRewinds << std::endl;
+			//}
 		}
 
 	private:
 		static constexpr auto headLayerChannels = std::tuple_element_t<0, std::tuple<LayerArrays...>>::NumChannelsP;
 
 		std::tuple<LayerArrays...> layerArrays;
-		Eigen::Matrix<float, headLayerChannels, MAX_NUM_FRAMES> headArray;
+		Eigen::Matrix<float, headLayerChannels, WAVENET_MAX_NUM_FRAMES> headArray;
 		float headScale;
 		int maxFrames;
 	};

@@ -92,7 +92,7 @@ namespace NeuralAudio
 			model->SetMaxFrames(defaultMaxAudioBufferSize);
 		}
 
-		void Process(float* input, float* output, int numSamples)
+		void Process(const float* input, float* output, int numSamples)
 		{
 			int offset = 0;
 
@@ -212,7 +212,7 @@ namespace NeuralAudio
 			//model->prepare(maxSize);
 		}
 
-		void Process(float* input, float* output, int numSamples)
+		void Process(const float* input, float* output, int numSamples)
 		{
 			model->Process(input, output, numSamples);
 		}
