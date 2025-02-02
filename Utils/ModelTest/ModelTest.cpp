@@ -145,10 +145,10 @@ int RunDefaultTests()
 
 	std::cout << "Loading models from: " << modelPath << std::endl;
 
-	std::cout << "WaveNet Test" << std::endl;
+	std::cout << "WaveNet (Standard) Test" << std::endl;
 	RunTests(modelPath / "BossWN-standard.nam");
 
-	std::cout << "LSTM Test" << std::endl;
+	std::cout << "LSTM (1x16) Test" << std::endl;
 	RunTests(modelPath / "BossLSTM-1x16.nam");
 
 	return 0;

@@ -26,11 +26,14 @@ namespace NeuralAudio
 			//lstmModelDefs.push_back(new RTNeuralLSTMDefinitionT<2, 16>);
 
 			wavenetModelDefs.push_back(new RTNeuralWaveNetDefinitionT<16, 8>);	// Standard
-			//wavenetModelDefs.push_back(new RTNeuralWaveNetDefinitionT<12, 6>);	// Lite
-			//wavenetModelDefs.push_back(new RTNeuralWaveNetDefinitionT<8, 4>);	// Feather
-			//wavenetModelDefs.push_back(new RTNeuralWaveNetDefinitionT<4, 2>);	// Nano
+			wavenetModelDefs.push_back(new RTNeuralWaveNetDefinitionT<12, 6>);	// Lite
+			wavenetModelDefs.push_back(new RTNeuralWaveNetDefinitionT<8, 4>);	// Feather
+			wavenetModelDefs.push_back(new RTNeuralWaveNetDefinitionT<4, 2>);	// Nano
 
 			internalWavenetModelDefs.push_back(new InternalWaveNetDefinitionT<16, 8>);	// Standard
+			internalWavenetModelDefs.push_back(new InternalWaveNetDefinitionT<12, 6>);	// Lite
+			internalWavenetModelDefs.push_back(new InternalWaveNetDefinitionT<8, 4>);	// Feather
+			internalWavenetModelDefs.push_back(new InternalWaveNetDefinitionT<4, 2>);	// Nano
 
 			internalLSTMModelDefs.push_back(new InternalLSTMDefinitionT<16>);	// 1x16
 
