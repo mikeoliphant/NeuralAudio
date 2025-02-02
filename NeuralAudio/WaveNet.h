@@ -13,7 +13,6 @@ namespace NeuralAudio
 {
 	int numRewinds = 0;
 	int maxRewinds = 0;
-	int bufAlloc = 0;
 
 	template <int InChannels, int OutChannels, int KernelSize, bool DoBias, int Dilation>
 	class Conv1D
@@ -118,17 +117,18 @@ namespace NeuralAudio
 
 		WaveNetLayer()
 		{
-			bufAlloc++;
+			state.setZero();
+		}
 
-			long size = ReceptiveFieldSize + LAYER_ARRAY_BUFFER_SIZE ;
+		void AllocBuffer(int allocNum)
+		{
+			long size = ReceptiveFieldSize + LAYER_ARRAY_BUFFER_SIZE;
 
 			layerBuffer.resize(Channels, size);
 			layerBuffer.setZero();
 
 			// offset prevents buffer rewinds of various layers from happening at the same time
-			bufferStart = size - (MAX_NUM_FRAMES * bufAlloc);
-
-			state.setZero();
+			bufferStart = size - (MAX_NUM_FRAMES * allocNum);
 		}
 
 		void SetWeights(std::vector<float>::iterator& weights)
@@ -233,6 +233,16 @@ namespace NeuralAudio
 		{
 		}
 
+		int AllocBuffers(int allocNum)
+		{
+			ForEachIndex<numLayers>([&](auto layerIndex)
+				{
+					std::get<layerIndex>(layers).AllocBuffer(allocNum++);
+				});
+
+			return allocNum;
+		}
+
 		void SetMaxFrames(const long maxFrames)
 		{
 			ForEachIndex<numLayers>([&](auto layerIndex)
@@ -280,6 +290,13 @@ namespace NeuralAudio
 	public:
 		WaveNetModel()
 		{
+			int allocNum = 1;
+
+			ForEachIndex<sizeof...(LayerArrays)>([&](auto layerIndex)
+				{
+					allocNum = std::get<layerIndex>(layerArrays).AllocBuffers(allocNum);
+				});
+
 		}
 
 		void SetWeights(std::vector<float> weights)
