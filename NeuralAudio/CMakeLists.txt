@@ -11,7 +11,12 @@ set(SOURCES
 	NeuralModel.h
 	NeuralModel.cpp
 	NAMModel.h
-	RTNeuralModel.h)
+	RTNeuralModel.h
+	Activation.h
+	WaveNet.h
+	LSTM.h
+	InternalModel.h
+	TemplateHelper.h)
 
 set(NAM_SOURCES	../deps/NeuralAmpModelerCore/NAM/activations.h
 	../deps/NeuralAmpModelerCore/NAM/activations.cpp

@@ -2,6 +2,7 @@
 #include "NeuralModel.h"
 #include "NAMModel.h"
 #include "RTNeuralModel.h"
+#include "InternalModel.h"
 
 namespace NeuralAudio
 {
@@ -9,23 +10,29 @@ namespace NeuralAudio
 
 	static std::list<RTNeuralLSTMDefinitionBase*> lstmModelDefs;
 	static std::list<RTNeuralWaveNetDefinitionBase*> wavenetModelDefs;
+	static std::list<InternalWaveNetDefinitionBase*> internalWavenetModelDefs;
+	static std::list<InternalLSTMDefinitionBase*> internalLSTMModelDefs;
 
 	static void EnsureModelDefsAreLoaded()
 	{
 		if (!modelDefsAreLoaded)
 		{
-			lstmModelDefs.push_back(new RTNeuralLSTMDefinitionT<1, 8>);
-			lstmModelDefs.push_back(new RTNeuralLSTMDefinitionT<1, 12>);
+			//lstmModelDefs.push_back(new RTNeuralLSTMDefinitionT<1, 8>);
+			//lstmModelDefs.push_back(new RTNeuralLSTMDefinitionT<1, 12>);
 			lstmModelDefs.push_back(new RTNeuralLSTMDefinitionT<1, 16>);
-			lstmModelDefs.push_back(new RTNeuralLSTMDefinitionT<1, 24>);
-			lstmModelDefs.push_back(new RTNeuralLSTMDefinitionT<2, 8>);
-			lstmModelDefs.push_back(new RTNeuralLSTMDefinitionT<2, 12>);
-			lstmModelDefs.push_back(new RTNeuralLSTMDefinitionT<2, 16>);
+			//lstmModelDefs.push_back(new RTNeuralLSTMDefinitionT<1, 24>);
+			//lstmModelDefs.push_back(new RTNeuralLSTMDefinitionT<2, 8>);
+			//lstmModelDefs.push_back(new RTNeuralLSTMDefinitionT<2, 12>);
+			//lstmModelDefs.push_back(new RTNeuralLSTMDefinitionT<2, 16>);
 
 			wavenetModelDefs.push_back(new RTNeuralWaveNetDefinitionT<16, 8>);	// Standard
-			wavenetModelDefs.push_back(new RTNeuralWaveNetDefinitionT<12, 6>);	// Lite
-			wavenetModelDefs.push_back(new RTNeuralWaveNetDefinitionT<8, 4>);	// Feather
-			wavenetModelDefs.push_back(new RTNeuralWaveNetDefinitionT<4, 2>);	// Nano
+			//wavenetModelDefs.push_back(new RTNeuralWaveNetDefinitionT<12, 6>);	// Lite
+			//wavenetModelDefs.push_back(new RTNeuralWaveNetDefinitionT<8, 4>);	// Feather
+			//wavenetModelDefs.push_back(new RTNeuralWaveNetDefinitionT<4, 2>);	// Nano
+
+			internalWavenetModelDefs.push_back(new InternalWaveNetDefinitionT<16, 8>);	// Standard
+
+			internalLSTMModelDefs.push_back(new InternalLSTMDefinitionT<16>);	// 1x16
 
 			modelDefsAreLoaded = true;
 		}
@@ -47,6 +54,28 @@ namespace NeuralAudio
 		for (auto const& model : wavenetModelDefs)
 		{
 			if ((numChannels == model->GetNumChannels()) && (headSize == model->GetHeadSize()))
+				return model;
+		}
+
+		return nullptr;
+	}
+
+	static InternalWaveNetDefinitionBase* FindInternalWaveNetDefinition(size_t numChannels, size_t headSize)
+	{
+		for (auto const& model : internalWavenetModelDefs)
+		{
+			if ((numChannels == model->GetNumChannels()) && (headSize == model->GetHeadSize()))
+				return model;
+		}
+
+		return nullptr;
+	}
+
+	static InternalLSTMDefinitionBase* FindInternalLSTMDefinition(size_t hiddenSize)
+	{
+		for (auto const& model : internalLSTMModelDefs)
+		{
+			if (hiddenSize == model->GetHiddenSize())
 				return model;
 		}
 
@@ -86,69 +115,109 @@ namespace NeuralAudio
 		{
 			std::string arch = modelJson["architecture"];
 
-			if ((arch == "WaveNet") && (wavenetLoadMode == ModelLoadMode::PreferRTNeural))
+			if (arch == "WaveNet") 
 			{
-				nlohmann::json config = modelJson["config"];
-
-				if (config["layers"].size() == 2)
+				if (wavenetLoadMode != ModelLoadMode::PreferNAMCore)
 				{
-					nlohmann::json firstLayerConfig = config["layers"][0];
-					nlohmann::json secondLayerConfig = config["layers"][1];
+					nlohmann::json config = modelJson["config"];
 
-					if (!firstLayerConfig["gated"] && !secondLayerConfig["gated"] && !firstLayerConfig["head_bias"] && secondLayerConfig["head_bias"])
+					if (config["layers"].size() == 2)
 					{
-						bool isOfficialArchitecture = false;
+						nlohmann::json firstLayerConfig = config["layers"][0];
+						nlohmann::json secondLayerConfig = config["layers"][1];
 
-						if (firstLayerConfig["channels"] == 16)
+						if (!firstLayerConfig["gated"] && !secondLayerConfig["gated"] && !firstLayerConfig["head_bias"] && secondLayerConfig["head_bias"])
 						{
-							if (CheckDilations(firstLayerConfig["dilations"], stdDilations) && CheckDilations(secondLayerConfig["dilations"], stdDilations))
+							bool isOfficialArchitecture = false;
+
+							if (firstLayerConfig["channels"] == 16)
 							{
-								isOfficialArchitecture = true;
+								if (CheckDilations(firstLayerConfig["dilations"], stdDilations) && CheckDilations(secondLayerConfig["dilations"], stdDilations))
+								{
+									isOfficialArchitecture = true;
+								}
+							}
+							else
+							{
+								if (CheckDilations(firstLayerConfig["dilations"], liteDilations) && CheckDilations(secondLayerConfig["dilations"], liteDilations2))
+								{
+									isOfficialArchitecture = true;
+								}
+							}
+
+							if (isOfficialArchitecture)
+							{
+								if (wavenetLoadMode == ModelLoadMode::PreferInternal)
+								{
+									auto modelDef = FindInternalWaveNetDefinition(firstLayerConfig["channels"], firstLayerConfig["head_size"]);
+
+									if (modelDef != nullptr)
+									{
+										auto model = modelDef->CreateModel();
+
+										model->LoadFromNAMJson(modelJson);
+
+										newModel = model;
+									}
+								}
+								else
+								{
+									auto modelDef = FindWaveNetDefinition(firstLayerConfig["channels"], firstLayerConfig["head_size"]);
+
+									if (modelDef != nullptr)
+									{
+										auto model = modelDef->CreateModel();
+
+										model->LoadFromNAMJson(modelJson);
+
+										newModel = model;
+									}
+								}
 							}
 						}
-						else
-						{
-							if (CheckDilations(firstLayerConfig["dilations"], liteDilations) && CheckDilations(secondLayerConfig["dilations"], liteDilations2))
-							{
-								isOfficialArchitecture = true;
-							}
-						}
+					}
+				}
+			}
+			else if (arch == "LSTM")
+			{
+				if (lstmLoadMode != ModelLoadMode::PreferNAMCore)
+				{
+					nlohmann::json config = modelJson["config"];
 
-						if (isOfficialArchitecture)
+					if (lstmLoadMode == ModelLoadMode::PreferInternal)
+					{
+						if (config["num_layers"] == 1)
 						{
-							auto modelDef = FindWaveNetDefinition(firstLayerConfig["channels"], firstLayerConfig["head_size"]);
+							auto modelDef = FindInternalLSTMDefinition(config["hidden_size"]);
 
 							if (modelDef != nullptr)
 							{
 								auto model = modelDef->CreateModel();
-
 								model->LoadFromNAMJson(modelJson);
 
 								newModel = model;
 							}
 						}
 					}
-				}
-			}
-			else if ((arch == "LSTM") && (lstmLoadMode == ModelLoadMode::PreferRTNeural))
-			{
-				nlohmann::json config = modelJson["config"];
+					else
+					{
+						auto modelDef = FindLSTMDefinition(config["num_layers"], config["hidden_size"]);
 
-				auto modelDef = FindLSTMDefinition(config["num_layers"], config["hidden_size"]);
+						if (modelDef != nullptr)
+						{
+							RTNeuralModel* model = modelDef->CreateModel();
+							model->LoadFromNAMJson(modelJson);
 
-				if (modelDef != nullptr)
-				{
-					RTNeuralModel* model = modelDef->CreateModel();
-					model->LoadFromNAMJson(modelJson);
+							newModel = model;
+						}
+						else
+						{
+							RTNeuralModelDyn* model = new RTNeuralModelDyn;
+							model->LoadFromNAMJson(modelJson);
 
-					newModel = model;
-				}
-				else
-				{
-					RTNeuralModelDyn* model = new RTNeuralModelDyn;
-					model->LoadFromNAMJson(modelJson);
-
-					newModel = model;
+							newModel = model;
+						}
+					}
 				}
 			}
 

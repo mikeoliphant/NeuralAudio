@@ -7,6 +7,7 @@ namespace NeuralAudio
 {
 	enum ModelLoadMode
 	{
+		PreferInternal,
 		PreferRTNeural,
 		PreferNAMCore,
 	};
@@ -79,6 +80,6 @@ namespace NeuralAudio
 		inline static float audioInputLevelDBu = 12;
 		inline static ModelLoadMode lstmLoadMode = ModelLoadMode::PreferNAMCore;
 		inline static ModelLoadMode wavenetLoadMode = ModelLoadMode::PreferNAMCore;
-		inline static int defaultMaxAudioBufferSize = 512;
+		inline static int defaultMaxAudioBufferSize = 128;
 	};
 }

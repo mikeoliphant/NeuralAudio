@@ -1,8 +1,8 @@
 #include <filesystem>
-#include <RTNeural/RTNeural.h>
+#include <iostream>
 #include <NeuralAudio/NeuralModel.h>
 
-static double BenchModel(NeuralAudio::NeuralModel* model, int blockSize, int numBlocks)
+static std::tuple<double, double> BenchModel(NeuralAudio::NeuralModel* model, int blockSize, int numBlocks)
 {
 	std::vector<float> inData;
 	inData.resize(blockSize);
@@ -12,14 +12,72 @@ static double BenchModel(NeuralAudio::NeuralModel* model, int blockSize, int num
 
 	auto start = std::chrono::high_resolution_clock::now();
 
+	double maxBlock = 0;
+
 	for (int block = 0; block < numBlocks; block++)
 	{
+		auto blockStart = std::chrono::high_resolution_clock::now();
+
 		model->Process(inData.data(), outData.data(), blockSize);
+
+		auto blockEnd = std::chrono::high_resolution_clock::now();
+
+		maxBlock = std::max(maxBlock, std::chrono::duration_cast<std::chrono::duration<double>> (blockEnd - blockStart).count());
 	}
 
 	auto end = std::chrono::high_resolution_clock::now();
 
-	return std::chrono::duration_cast<std::chrono::duration<double>> (end - start).count();
+	double tot = std::chrono::duration_cast<std::chrono::duration<double>> (end - start).count();
+
+	return std::tie(tot, maxBlock);
+}
+
+static double ComputeError(NeuralAudio::NeuralModel* model1, NeuralAudio::NeuralModel* model2, int blockSize, int numBlocks)
+{
+	std::vector<float> inData;
+	inData.resize(blockSize);
+
+	std::vector<float> outData;
+	outData.resize(blockSize);
+
+	std::vector<float> outData2;
+	outData2.resize(blockSize);
+
+	// Run zeros through for a bit to make sure both models are reset
+
+	std::fill(inData.begin(), inData.end(), 0);
+
+	int blocks = std::max(4096 / blockSize, 1);
+
+	for (int block = 0; block < blocks; block++)
+	{
+		model1->Process(inData.data(), outData.data(), blockSize);
+		model2->Process(inData.data(), outData2.data(), blockSize);
+	}
+
+	double totErr = 0;
+
+	long pos = 0;
+
+	for (int block = 0; block < numBlocks; block++)
+	{
+		for (int i = 0; i < blockSize; i++)
+		{
+			inData[i] = sin(pos++ * 0.01);
+		}
+
+		model1->Process(inData.data(), outData.data(), blockSize);
+		model2->Process(inData.data(), outData2.data(), blockSize);
+
+		for (int i = 0; i < blockSize; i++)
+		{
+			double diff = outData[i] - outData2[i];
+
+			totErr += (diff * diff);
+		}
+	}
+
+	return sqrt(totErr / (double)(blockSize * numBlocks));
 }
 
 int main(int argc, char* argv[])
@@ -41,6 +99,15 @@ int main(int argc, char* argv[])
 
 	modelPath = modelPath / "Models";
 
+	std::cout << "Loading models from: " << modelPath << std::endl;
+
+	int dataSize = 4096 * 64;
+
+	int blockSize = 64;
+	int numBlocks = dataSize / blockSize;
+
+	NeuralAudio::NeuralModel::SetDefaultMaxAudioBufferSize(blockSize);
+
 	NeuralAudio::NeuralModel::SetWaveNetLoadMode(NeuralAudio::ModelLoadMode::PreferRTNeural);
 
 	auto wnStandardModelRTNeural = NeuralAudio::NeuralModel::CreateFromFile(modelPath / "BossWN-standard.nam");
@@ -49,14 +116,28 @@ int main(int argc, char* argv[])
 
 	auto wnStandardModelNAM = NeuralAudio::NeuralModel::CreateFromFile(modelPath / "BossWN-standard.nam");
 
-	double rt = BenchModel(wnStandardModelRTNeural, 64, 1024);
-	double nam = BenchModel(wnStandardModelNAM, 64, 1024);
+	NeuralAudio::NeuralModel::SetWaveNetLoadMode(NeuralAudio::ModelLoadMode::PreferInternal);
 
-	std::cout << "NAM Test" << std::endl;
+	auto wnStandardModelInt = NeuralAudio::NeuralModel::CreateFromFile(modelPath / "BossWN-standard.nam");
 
-	std::cout << "RTNeural: " << rt << std::endl;
-	std::cout << "Nam: " << nam << std::endl;
-	std::cout << "RTNeural is: " << (nam / rt) << "x" << std::endl;
+	std::cout << "WaveNet Test" << std::endl;
+
+	double mse = ComputeError(wnStandardModelNAM, wnStandardModelInt, blockSize, numBlocks);
+	std::cout << "NAM vs Internal MSE: " << mse << std::endl;
+
+	mse = ComputeError(wnStandardModelNAM, wnStandardModelRTNeural, blockSize, numBlocks);
+	std::cout << "NAM vs RTNeural MSE: " << mse << std::endl;
+	std::cout << std::endl;
+
+	auto internal = BenchModel(wnStandardModelInt, blockSize, numBlocks);
+	auto rt = BenchModel(wnStandardModelRTNeural, blockSize, numBlocks);
+	auto nam = BenchModel(wnStandardModelNAM, blockSize, numBlocks);
+
+	std::cout << "NAM: " << std::get<0>(nam) << " (" << std::get<1>(nam) << ")" << std::endl;
+	std::cout << "RTNeural: " << std::get<0>(rt) << " (" << std::get<1>(rt) << ")" << std::endl;
+	std::cout << "Internal: " << std::get<0>(internal) << " (" << std::get<1>(internal) << ")" << std::endl;
+	std::cout << "RTNeural is: " << (std::get<0>(nam) / std::get<0>(rt)) << "x NAM" << std::endl;
+	std::cout << "Internal is: " << (std::get<0>(nam) / std::get<0>(internal)) << "x NAM" << std::endl;
 
 	std::cout << std::endl;
 
@@ -68,14 +149,28 @@ int main(int argc, char* argv[])
 
 	auto lstmModelNAM = NeuralAudio::NeuralModel::CreateFromFile(modelPath / "BossLSTM-1x16.nam");
 
-	rt = BenchModel(lstmModelRTNeural, 64, 1024);
-	nam = BenchModel(lstmModelNAM, 64, 1024);
+	NeuralAudio::NeuralModel::SetLSTMLoadMode(NeuralAudio::ModelLoadMode::PreferInternal);
+
+	auto lstmModelInt = NeuralAudio::NeuralModel::CreateFromFile(modelPath / "BossLSTM-1x16.nam");
+
+	rt = BenchModel(lstmModelRTNeural, blockSize, numBlocks);
+	nam = BenchModel(lstmModelNAM, blockSize, numBlocks);
+	internal = BenchModel(lstmModelInt, blockSize, numBlocks);
 
 	std::cout << "LSTM Test" << std::endl;
 
-	std::cout << "RTNeural: " << rt << std::endl;
-	std::cout << "Nam: " << nam << std::endl;
-	std::cout << "RTNeural is: " << (nam / rt) << "x" << std::endl;
+	mse = ComputeError(lstmModelNAM, lstmModelInt, blockSize, numBlocks);
+	std::cout << "NAM vs Internal MSE: " << mse << std::endl;
+
+	mse = ComputeError(lstmModelNAM, lstmModelRTNeural, blockSize, numBlocks);
+	std::cout << "NAM vs RTNeural MSE: " << mse << std::endl;
+	std::cout << std::endl;
+
+	std::cout << "NAM: " << std::get<0>(nam) << " (" << std::get<1>(nam) << ")" << std::endl;
+	std::cout << "RTNeural: " << std::get<0>(rt) << " (" << std::get<1>(rt) << ")" << std::endl;
+	std::cout << "Internal: " << std::get<0>(internal) << " (" << std::get<1>(internal) << ")" << std::endl;
+	std::cout << "RTNeural is: " << (std::get<0>(nam) / std::get<0>(rt)) << "x NAM" << std::endl;
+	std::cout << "Internal is: " << (std::get<0>(nam) / std::get<0>(internal)) << "x NAM" << std::endl;
 
 	return 0;
 }
