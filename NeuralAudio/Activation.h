@@ -6,6 +6,8 @@ namespace NeuralAudio
 {
 	inline float FastTanh(const float x)
 	{
+		//return std::tanh(x);
+
 		const float ax = fabsf(x);
 		const float x2 = x * x;
 
@@ -15,6 +17,7 @@ namespace NeuralAudio
 
 	inline float FastSigmoid(float x)
 	{
+		//return 1.0f / (1.0f + std::exp(-x));
 		return  0.5f * (FastTanh(x * 0.5f) + 1);
 	}
 }

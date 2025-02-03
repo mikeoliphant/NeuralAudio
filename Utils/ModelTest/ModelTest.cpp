@@ -80,7 +80,7 @@ static double ComputeError(NeuralAudio::NeuralModel* model1, NeuralAudio::Neural
 	return sqrt(totErr / (double)(blockSize * numBlocks));
 }
 
-void RunTests(std::filesystem::path modelPath)
+void RunNAMTests(std::filesystem::path modelPath)
 {
 	int dataSize = 4096 * 64;
 
@@ -124,6 +124,39 @@ void RunTests(std::filesystem::path modelPath)
 	std::cout << std::endl;
 }
 
+void RunKerasTests(std::filesystem::path modelPath)
+{
+	int dataSize = 4096 * 64;
+
+	int blockSize = 64;
+	int numBlocks = dataSize / blockSize;
+
+	NeuralAudio::NeuralModel::SetDefaultMaxAudioBufferSize(blockSize);
+
+	NeuralAudio::NeuralModel::SetWaveNetLoadMode(NeuralAudio::ModelLoadMode::PreferInternal);
+	NeuralAudio::NeuralModel::SetLSTMLoadMode(NeuralAudio::ModelLoadMode::PreferInternal);
+
+	auto internalModel = NeuralAudio::NeuralModel::CreateFromFile(modelPath);
+
+	NeuralAudio::NeuralModel::SetWaveNetLoadMode(NeuralAudio::ModelLoadMode::PreferRTNeural);
+	NeuralAudio::NeuralModel::SetLSTMLoadMode(NeuralAudio::ModelLoadMode::PreferRTNeural);
+
+	auto rtNeuralModel = NeuralAudio::NeuralModel::CreateFromFile(modelPath);
+
+	double mse = ComputeError(rtNeuralModel, internalModel, blockSize, numBlocks);
+	std::cout << "Internal vs RTNeural MSE: " << mse << std::endl;
+	std::cout << std::endl;
+
+	auto internal = BenchModel(internalModel, blockSize, numBlocks);
+	auto rt = BenchModel(rtNeuralModel, blockSize, numBlocks);
+
+	std::cout << "RTNeural: " << std::get<0>(rt) << " (" << std::get<1>(rt) << ")" << std::endl;
+	std::cout << "Internal: " << std::get<0>(internal) << " (" << std::get<1>(internal) << ")" << std::endl;
+	std::cout << "Internal is: " << (std::get<0>(rt) / std::get<0>(internal)) << "x RTNeural" << std::endl;
+
+	std::cout << std::endl;
+}
+
 int RunDefaultTests()
 {
 	std::filesystem::path modelPath = std::filesystem::current_path();
@@ -146,19 +179,32 @@ int RunDefaultTests()
 	std::cout << "Loading models from: " << modelPath << std::endl;
 
 	std::cout << "WaveNet (Standard) Test" << std::endl;
-	RunTests(modelPath / "BossWN-standard.nam");
+	RunNAMTests(modelPath / "BossWN-standard.nam");
 
 	std::cout << "LSTM (1x16) Test" << std::endl;
-	RunTests(modelPath / "BossLSTM-1x16.nam");
+	RunNAMTests(modelPath / "BossLSTM-1x16.nam");
 
 	return 0;
 }
 
 int main(int argc, char* argv[])
 {
+	RunKerasTests("C:\\Users\\oliph\\Downloads\\MODOrange\\AMP Orange Nasty.json");
+
+	return 0;
+
 	if (argc > 1)
 	{
-		RunTests(argv[1]);
+		std::filesystem::path modelPath = argv[1];
+
+		if (modelPath.extension() == ".nam")
+		{
+			RunNAMTests(modelPath);
+		}
+		else
+		{
+			RunKerasTests(modelPath);
+		}
 	}
 	else
 	{

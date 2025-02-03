@@ -94,7 +94,7 @@ namespace NeuralAudio
 
 			model = new ModelType;
 
-			model->parseJson(modelJson, true);
+			model->parseJson(modelJson, false);
 			model->reset();
 
 			return true;
@@ -323,7 +323,7 @@ namespace NeuralAudio
 
 		bool CreateModelFromKerasJson(nlohmann::json& modelJson)
 		{
-			model = RTNeural::json_parser::parseJson<float, FastMathsProvider>(modelJson, true);
+			model = RTNeural::json_parser::parseJson<float, FastMathsProvider>(modelJson, false);
 			model->reset();
 
 			return true;

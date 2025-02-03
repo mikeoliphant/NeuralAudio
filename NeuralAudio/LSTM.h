@@ -5,6 +5,20 @@
 
 namespace NeuralAudio
 {
+	struct LSTMLayerDef
+	{
+		std::vector<float> InputWeights;
+		std::vector<float> HiddenWeights;
+		std::vector<float> BiasWeights;
+	};
+
+	struct LSTMDef
+	{
+		std::vector<LSTMLayerDef> Layers;
+		std::vector<float> HeadWeights;
+		float HeadBias;
+	};
+
 	template<int InputSize, int HiddenSize>
 	class LSTMLayer
 	{
@@ -22,9 +36,9 @@ namespace NeuralAudio
 		constexpr static long hOffset = InputSize;
 
 	public:
-		auto GetHiddenState() const { return this->state(Eigen::placeholders::lastN(HiddenSize)); };
+		auto GetHiddenState() const { return state(Eigen::placeholders::lastN(HiddenSize)); };
 
-		void SetWeights(std::vector<float>::iterator& weights)
+		void SetNAMWeights(std::vector<float>::iterator& weights)
 		{
 			for (int i = 0; i < inputHiddenWeights.rows(); i++)
 				for (int j = 0; j < inputHiddenWeights.cols(); j++)
@@ -34,10 +48,39 @@ namespace NeuralAudio
 				bias[i] = *(weights++);
 
 			for (int i = 0; i < HiddenSize; i++)
-				this->state[i + InputSize] = *(weights++);
+				state[i + InputSize] = *(weights++);
 
 			for (int i = 0; i < HiddenSize; i++)
-				this->cellState[i] = *(weights++);
+				cellState[i] = *(weights++);
+		}
+
+		void SetWeights(LSTMLayerDef& def)
+		{
+			std::vector<float>::iterator it = def.InputWeights.begin();
+
+			for (int j = 0; j < InputSize; j++)
+				for (int i = 0; i < inputHiddenWeights.rows(); i++)
+				{
+					inputHiddenWeights(i, j) = *(it++);
+				}
+
+			assert(std::distance(def.InputWeights.begin(), it) == def.InputWeights.size());
+
+			it = def.HiddenWeights.begin();
+
+			for (int j = 0; j < HiddenSize; j++)
+				for (int i = 0; i < inputHiddenWeights.rows(); i++)
+				{
+					inputHiddenWeights(i, j + InputSize) = *(it++);
+				}
+
+			assert(std::distance(def.HiddenWeights.begin(), it) == def.HiddenWeights.size());
+
+			for (int i = 0; i < bias.rows(); i++)
+				bias[i] = def.BiasWeights[i];
+
+			state.setZero();
+			cellState.setZero();
 		}
 
 		inline void Process(const float* input)
@@ -48,10 +91,10 @@ namespace NeuralAudio
 			gates = (inputHiddenWeights * state) + bias;
 
 			for (auto i = 0; i < HiddenSize; i++)
-				cellState[i] = (FastSigmoid(gates[i + fOffset]) * cellState[i]) + (FastSigmoid(gates[i + iOffset]) * FastTanh(this->gates[i + gOffset]));
+				cellState[i] = (FastSigmoid(gates[i + fOffset]) * cellState[i]) + (FastSigmoid(gates[i + iOffset]) * FastTanh(gates[i + gOffset]));
 
 			for (int i = 0; i < HiddenSize; i++)
-				this->state[i + hOffset] = FastSigmoid(gates[i + oOffset]) * FastTanh(cellState[i]);
+				state[i + hOffset] = FastSigmoid(gates[i + oOffset]) * FastTanh(cellState[i]);
 		}
 	};
 
@@ -64,11 +107,11 @@ namespace NeuralAudio
 		float headBias;
 
 	public:
-		void SetWeights(std::vector<float> weights)
+		void SetNAMWeights(std::vector<float> weights)
 		{
 			std::vector<float>::iterator it = weights.begin();
 
-			layer.SetWeights(it);
+			layer.SetNAMWeights(it);
 
 			for (int i = 0; i < HiddenSize; i++)
 				headWeights[i] = *(it++);
@@ -76,6 +119,16 @@ namespace NeuralAudio
 			headBias = *(it++);
 
 			assert(std::distance(weights.begin(), it) == weights.size());
+		}
+
+		void SetWeights(LSTMDef& def)
+		{
+			for (int i = 0; i < HiddenSize; i++)
+				headWeights[i] = def.HeadWeights[i];
+
+			headBias = def.HeadBias;
+
+			layer.SetWeights(def.Layers[0]);
 		}
 
 		void Process(const float* input, float* output, const int numSamples)

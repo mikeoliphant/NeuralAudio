@@ -24,7 +24,7 @@ namespace NeuralAudio
 
 		virtual bool CreateModelFromKerasJson(nlohmann::json& modelJson)
 		{
-			return false;
+			return CreateModelFromKerasJson(modelJson);
 		}
 
 		virtual bool LoadFromNAMJson(nlohmann::json& modelJson)
@@ -200,9 +200,78 @@ namespace NeuralAudio
 
 			nlohmann::json config = modelJson["config"];
 
-			model->SetWeights(modelJson["weights"]);
+			model->SetNAMWeights(modelJson["weights"]);
 
 			SetMaxAudioBufferSize(defaultMaxAudioBufferSize);
+
+			return true;
+		}
+
+		std::vector<float> FlattenWeights(const nlohmann::json& weights)
+		{
+			std::vector<float> vec;
+
+			for (auto i = 0; i < weights.size(); i++)
+			{
+				if (weights[i].is_array())
+				{
+					auto subVec = FlattenWeights(weights[i]);
+					vec.insert(vec.end(), subVec.begin(), subVec.end());
+				}
+				else
+				{
+					vec.push_back(weights[i]);
+				}
+			}
+
+			return vec;
+		}
+
+		bool CreateModelFromKerasJson(nlohmann::json& modelJson)
+		{
+			if (model != nullptr)
+			{
+				delete model;
+				model = nullptr;
+			}
+
+			model = new LSTMModel<HiddenSize>;
+
+			nlohmann::json config = modelJson["config"];
+
+			const auto layers = modelJson.at("layers");
+			const size_t numLayers = layers.size();
+
+			if (numLayers < 2)
+				return false;
+
+			auto lastLayer = layers[numLayers - 1];
+
+			if (lastLayer["type"] != "dense")
+				return false;
+
+			LSTMDef lstmDef;
+
+			lstmDef.HeadWeights = FlattenWeights(lastLayer["weights"][0]);
+			lstmDef.HeadBias = lastLayer["weights"][1][0];
+
+			for (int i = 0; i < (numLayers - 1); i++)
+			{
+				auto layer = layers[i];
+
+				if (layer["type"] != "lstm")
+					return false;
+
+				LSTMLayerDef layerDef;
+
+				layerDef.InputWeights = FlattenWeights(layer["weights"][0]);
+				layerDef.HiddenWeights = FlattenWeights(layer["weights"][1]);
+				layerDef.BiasWeights = FlattenWeights(layer["weights"][2]);
+
+				lstmDef.Layers.push_back(layerDef);
+			}
+
+			model->SetWeights(lstmDef);
 
 			return true;
 		}
