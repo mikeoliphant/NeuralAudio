@@ -45,12 +45,12 @@ namespace NeuralAudio
 	class InternalWaveNetModelT : public InternalModel
 	{
 		using ModelType = typename std::conditional<numChannels == 16,
-			NeuralAudio::WaveNetModel<
-				NeuralAudio::WaveNetLayerArray<1, 1, headSize, numChannels, 3, IStdDilations, false>,
-				NeuralAudio::WaveNetLayerArray<numChannels, 1, 1, headSize, 3, IStdDilations, true>>,
-			NeuralAudio::WaveNetModel<
-				NeuralAudio::WaveNetLayerArray<1, 1, headSize, numChannels, 3, ILiteDilations1, false>,
-				NeuralAudio::WaveNetLayerArray<numChannels, 1, 1, headSize, 3, ILiteDilations2, true>>
+			NeuralAudio::WaveNetModelT<
+				NeuralAudio::WaveNetLayerArrayT<1, 1, headSize, numChannels, 3, IStdDilations, false>,
+				NeuralAudio::WaveNetLayerArrayT<numChannels, 1, 1, headSize, 3, IStdDilations, true>>,
+			NeuralAudio::WaveNetModelT<
+				NeuralAudio::WaveNetLayerArrayT<1, 1, headSize, numChannels, 3, ILiteDilations1, false>,
+				NeuralAudio::WaveNetLayerArrayT<numChannels, 1, 1, headSize, 3, ILiteDilations2, true>>
 			>::type;
 
 	public:
@@ -196,7 +196,7 @@ namespace NeuralAudio
 				model = nullptr;
 			}
 
-			model = new LSTMModel<HiddenSize>;
+			model = new LSTMModelT<HiddenSize>;
 
 			nlohmann::json config = modelJson["config"];
 
@@ -235,7 +235,7 @@ namespace NeuralAudio
 				model = nullptr;
 			}
 
-			model = new LSTMModel<HiddenSize>;
+			model = new LSTMModelT<HiddenSize>;
 
 			nlohmann::json config = modelJson["config"];
 
@@ -304,7 +304,7 @@ namespace NeuralAudio
 		}
 
 	private:
-		LSTMModel<HiddenSize>* model = nullptr;
+		LSTMModelT<HiddenSize>* model = nullptr;
 	};
 
 

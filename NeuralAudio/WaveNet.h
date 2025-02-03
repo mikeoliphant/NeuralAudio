@@ -17,7 +17,7 @@ namespace NeuralAudio
 	//int maxRewinds = 0;
 
 	template <int InChannels, int OutChannels, int KernelSize, bool DoBias, int Dilation>
-	class Conv1D
+	class Conv1DT
 	{
 	public:
 		void SetWeights(std::vector<float>::iterator& inWeights)
@@ -61,7 +61,7 @@ namespace NeuralAudio
 	};
 
 	template <int InSize, int OutSize, bool DoBias>
-	class DenseLayer
+	class DenseLayerT
 	{
 	public:
 		void SetWeights(std::vector<float>::iterator& inWeights)
@@ -109,7 +109,7 @@ namespace NeuralAudio
 	};
 
 	template <int ConditionSize, int Channels, int KernelSize, int Dilation>
-	class WaveNetLayer
+	class WaveNetLayerT
 	{
 	public:
 		static constexpr auto ReceptiveFieldSize = (KernelSize - 1) * Dilation;
@@ -117,7 +117,7 @@ namespace NeuralAudio
 		Eigen::Matrix<float, Channels, -1> layerBuffer;
 		long bufferStart;
 
-		WaveNetLayer()
+		WaveNetLayerT()
 		{
 			state.setZero();
 		}
@@ -190,9 +190,9 @@ namespace NeuralAudio
 		}
 
 	private:
-		Conv1D<Channels, Channels, KernelSize, true, Dilation> conv1D;
-		DenseLayer<ConditionSize, Channels, false> inputMixin;
-		DenseLayer<Channels, Channels, true> oneByOne;
+		Conv1DT<Channels, Channels, KernelSize, true, Dilation> conv1D;
+		DenseLayerT<ConditionSize, Channels, false> inputMixin;
+		DenseLayerT<Channels, Channels, true> oneByOne;
 		Eigen::Matrix<float, Channels, WAVENET_MAX_NUM_FRAMES> state;
 	};
 
@@ -200,7 +200,7 @@ namespace NeuralAudio
 		using Dilations = std::integer_sequence<int, values...>;
 
 	template <int InputSize, int ConditionSize, int HeadSize, int Channels, int KernelSize, typename DilationsSequence, bool HasHeadBias>
-	class WaveNetLayerArray
+	class WaveNetLayerArrayT
 	{
 		template <typename>
 		struct LayersHelper
@@ -210,15 +210,15 @@ namespace NeuralAudio
 		template <int... dilationVals>
 		struct LayersHelper<Dilations<dilationVals...>>
 		{
-			using type = std::tuple<WaveNetLayer<ConditionSize, Channels, KernelSize, dilationVals>...>;
+			using type = std::tuple<WaveNetLayerT<ConditionSize, Channels, KernelSize, dilationVals>...>;
 		};
 
 		using Layers = typename LayersHelper<DilationsSequence>::type;
 
 	private:
 		Layers layers;
-		DenseLayer<InputSize, Channels, false> rechannel;
-		DenseLayer<Channels, HeadSize, HasHeadBias> headRechannel;
+		DenseLayerT<InputSize, Channels, false> rechannel;
+		DenseLayerT<Channels, HeadSize, HasHeadBias> headRechannel;
 
 		static constexpr auto numLayers = std::tuple_size_v<decltype (layers)>;
 		static constexpr auto lastLayer = numLayers - 1;
@@ -231,7 +231,7 @@ namespace NeuralAudio
 		Eigen::Matrix<float, Channels, WAVENET_MAX_NUM_FRAMES> arrayOutputs;
 		Eigen::Matrix<float, HeadSize, WAVENET_MAX_NUM_FRAMES> headOutputs;
 
-		WaveNetLayerArray()
+		WaveNetLayerArrayT()
 		{
 		}
 
@@ -287,10 +287,10 @@ namespace NeuralAudio
 	};
 
 	template <typename... LayerArrays>
-	class WaveNetModel
+	class WaveNetModelT
 	{
 	public:
-		WaveNetModel()
+		WaveNetModelT()
 		{
 			int allocNum = 1;
 

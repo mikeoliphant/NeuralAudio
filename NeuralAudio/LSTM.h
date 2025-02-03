@@ -20,7 +20,7 @@ namespace NeuralAudio
 	};
 
 	template<int InputSize, int HiddenSize>
-	class LSTMLayer
+	class LSTMLayerT
 	{
 	private:
 		Eigen::Matrix<float, 4 * HiddenSize, InputSize + HiddenSize>  inputHiddenWeights;
@@ -99,10 +99,10 @@ namespace NeuralAudio
 	};
 
 	template<int HiddenSize>
-	class LSTMModel
+	class LSTMModelT
 	{
 	private:
-		LSTMLayer<1, HiddenSize> layer;
+		LSTMLayerT<1, HiddenSize> layer;
 		Eigen::Vector<float, HiddenSize> headWeights;
 		float headBias;
 
