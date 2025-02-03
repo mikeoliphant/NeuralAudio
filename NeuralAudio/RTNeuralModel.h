@@ -35,7 +35,7 @@ namespace NeuralAudio
 	public:
 		bool LoadFromKerasJson(nlohmann::json& modelJson)
 		{
-			ReadRTNeuralConfig(modelJson);
+			ReadKerasConfig(modelJson);
 
 			return CreateModelFromKerasJson(modelJson);
 

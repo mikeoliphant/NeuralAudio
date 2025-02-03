@@ -329,7 +329,7 @@ namespace NeuralAudio
 		}
 	}
 
-	void NeuralModel::ReadRTNeuralConfig(nlohmann::json& modelJson)
+	void NeuralModel::ReadKerasConfig(nlohmann::json& modelJson)
 	{
 		if (modelJson.contains("samplerate"))
 		{

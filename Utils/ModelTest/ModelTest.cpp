@@ -189,9 +189,9 @@ int RunDefaultTests()
 
 int main(int argc, char* argv[])
 {
-	RunKerasTests("C:\\Users\\oliph\\Downloads\\MODOrange\\AMP Orange Nasty.json");
+	//RunKerasTests("C:\\Users\\oliph\\Downloads\\MODOrange\\AMP Orange Nasty.json");
 
-	return 0;
+	//return 0;
 
 	if (argc > 1)
 	{
