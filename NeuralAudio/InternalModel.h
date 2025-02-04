@@ -170,7 +170,7 @@ namespace NeuralAudio
 
 
 
-	template <int HiddenSize>
+	template <int NumLayers, int HiddenSize>
 	class InternalLSTMModelT : public InternalModel
 	{
 	public:
@@ -196,7 +196,7 @@ namespace NeuralAudio
 				model = nullptr;
 			}
 
-			model = new LSTMModelT<HiddenSize>;
+			model = new LSTMModelT<NumLayers, HiddenSize>;
 
 			nlohmann::json config = modelJson["config"];
 
@@ -235,7 +235,7 @@ namespace NeuralAudio
 				model = nullptr;
 			}
 
-			model = new LSTMModelT<HiddenSize>;
+			model = new LSTMModelT<NumLayers, HiddenSize>;
 
 			nlohmann::json config = modelJson["config"];
 
@@ -304,7 +304,7 @@ namespace NeuralAudio
 		}
 
 	private:
-		LSTMModelT<HiddenSize>* model = nullptr;
+		LSTMModelT<NumLayers, HiddenSize>* model = nullptr;
 	};
 
 
@@ -316,19 +316,29 @@ namespace NeuralAudio
 			return nullptr;
 		}
 
+		virtual int GetNumLayers()
+		{
+			return 0;
+		}
+
 		virtual int GetHiddenSize()
 		{
 			return 0;
 		}
 	};
 
-	template <int HiddenSize>
+	template <int NumLayers, int HiddenSize>
 	class InternalLSTMDefinitionT : public InternalLSTMDefinitionBase
 	{
 	public:
 		InternalModel* CreateModel()
 		{
-			return new InternalLSTMModelT<HiddenSize>;
+			return new InternalLSTMModelT<NumLayers, HiddenSize>;
+		}
+
+		virtual int GetNumLayers()
+		{
+			return NumLayers;
 		}
 
 		virtual int GetHiddenSize()

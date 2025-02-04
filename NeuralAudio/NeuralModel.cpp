@@ -21,7 +21,7 @@ namespace NeuralAudio
 			//lstmModelDefs.push_back(new RTNeuralLSTMDefinitionT<1, 12>);
 			lstmModelDefs.push_back(new RTNeuralLSTMDefinitionT<1, 16>);
 			//lstmModelDefs.push_back(new RTNeuralLSTMDefinitionT<1, 24>);
-			//lstmModelDefs.push_back(new RTNeuralLSTMDefinitionT<2, 8>);
+			lstmModelDefs.push_back(new RTNeuralLSTMDefinitionT<2, 8>);
 			//lstmModelDefs.push_back(new RTNeuralLSTMDefinitionT<2, 12>);
 			//lstmModelDefs.push_back(new RTNeuralLSTMDefinitionT<2, 16>);
 
@@ -35,7 +35,8 @@ namespace NeuralAudio
 			internalWavenetModelDefs.push_back(new InternalWaveNetDefinitionT<8, 4>);	// Feather
 			internalWavenetModelDefs.push_back(new InternalWaveNetDefinitionT<4, 2>);	// Nano
 
-			internalLSTMModelDefs.push_back(new InternalLSTMDefinitionT<16>);	// 1x16
+			internalLSTMModelDefs.push_back(new InternalLSTMDefinitionT<1, 16>);
+			internalLSTMModelDefs.push_back(new InternalLSTMDefinitionT<2, 8>);
 
 			modelDefsAreLoaded = true;
 		}
@@ -74,11 +75,11 @@ namespace NeuralAudio
 		return nullptr;
 	}
 
-	static InternalLSTMDefinitionBase* FindInternalLSTMDefinition(size_t hiddenSize)
+	static InternalLSTMDefinitionBase* FindInternalLSTMDefinition(size_t numLayers, size_t hiddenSize)
 	{
 		for (auto const& model : internalLSTMModelDefs)
 		{
-			if (hiddenSize == model->GetHiddenSize())
+			if ((numLayers == model->GetNumLayers()) && (hiddenSize == model->GetHiddenSize()))
 				return model;
 		}
 
@@ -189,17 +190,14 @@ namespace NeuralAudio
 
 					if (lstmLoadMode == ModelLoadMode::PreferInternal)
 					{
-						if (config["num_layers"] == 1)
+						auto modelDef = FindInternalLSTMDefinition(config["num_layers"], config["hidden_size"]);
+
+						if (modelDef != nullptr)
 						{
-							auto modelDef = FindInternalLSTMDefinition(config["hidden_size"]);
+							auto model = modelDef->CreateModel();
+							model->LoadFromNAMJson(modelJson);
 
-							if (modelDef != nullptr)
-							{
-								auto model = modelDef->CreateModel();
-								model->LoadFromNAMJson(modelJson);
-
-								newModel = model;
-							}
+							newModel = model;
 						}
 					}
 					else
@@ -249,7 +247,7 @@ namespace NeuralAudio
 				{
 					if (numLayers == 1)
 					{
-						auto modelDef = FindInternalLSTMDefinition(hiddenSize);
+						auto modelDef = FindInternalLSTMDefinition(numLayers, hiddenSize);
 
 						if (modelDef != nullptr)
 						{

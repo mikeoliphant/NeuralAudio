@@ -2,6 +2,7 @@
 
 #include <Eigen/Dense>
 #include "Activation.h"
+#include "TemplateHelper.h"
 
 namespace NeuralAudio
 {
@@ -98,20 +99,41 @@ namespace NeuralAudio
 		}
 	};
 
-	template<int HiddenSize>
+	template<int NumLayers, int HiddenSize>
 	class LSTMModelT
 	{
 	private:
-		LSTMLayerT<1, HiddenSize> layer;
+		LSTMLayerT<1, HiddenSize> firstLayer;
+		std::vector<LSTMLayerT<HiddenSize, HiddenSize>> remainingLayers;
 		Eigen::Vector<float, HiddenSize> headWeights;
 		float headBias;
 
 	public:
+		LSTMModelT()
+		{
+			if constexpr (NumLayers > 1)
+			{
+				remainingLayers.resize(NumLayers - 1);
+
+				ForEachIndex<NumLayers - 1>([&](auto layerIndex)
+					{
+						LSTMLayerT<HiddenSize, HiddenSize> layer;
+
+						remainingLayers.push_back(layer);
+					});
+			}
+		}
+
 		void SetNAMWeights(std::vector<float> weights)
 		{
 			std::vector<float>::iterator it = weights.begin();
 
-			layer.SetNAMWeights(it);
+			firstLayer.SetNAMWeights(it);
+
+			ForEachIndex<NumLayers - 1>([&](auto layerIndex)
+				{
+					remainingLayers[layerIndex].SetNAMWeights(it);
+				});
 
 			for (int i = 0; i < HiddenSize; i++)
 				headWeights[i] = *(it++);
@@ -128,16 +150,40 @@ namespace NeuralAudio
 
 			headBias = def.HeadBias;
 
-			layer.SetWeights(def.Layers[0]);
+			firstLayer.SetWeights(def.Layers[0]);
+
+			ForEachIndex<NumLayers - 1>([&](auto layerIndex)
+				{
+					remainingLayers[layerIndex].SetWeights(def.Layers[layerIndex + 1]);
+				});
 		}
 
 		void Process(const float* input, float* output, const int numSamples)
 		{
 			for (auto i = 0; i < numSamples; i++)
 			{
-				layer.Process(input + i);
+				firstLayer.Process(input + i);
 
-				output[i] = headWeights.dot(layer.GetHiddenState()) + headBias;
+				ForEachIndex<NumLayers - 1>([&](auto layerIndex)
+					{
+						if constexpr (layerIndex == 0)
+						{
+							remainingLayers[layerIndex].Process(firstLayer.GetHiddenState().data());
+						}
+						else
+						{
+							remainingLayers[layerIndex].Process(remainingLayers[layerIndex - 1].GetHiddenState().data());
+						}
+					});
+
+				if constexpr (NumLayers == 1)
+				{
+					output[i] = headWeights.dot(firstLayer.GetHiddenState()) + headBias;
+				}
+				else
+				{
+					output[i] = headWeights.dot(remainingLayers[NumLayers - 2].GetHiddenState()) + headBias;
+				}
 			}
 		}
 	};

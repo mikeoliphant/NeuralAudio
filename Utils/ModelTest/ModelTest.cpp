@@ -82,6 +82,9 @@ static double ComputeError(NeuralAudio::NeuralModel* model1, NeuralAudio::Neural
 
 void RunNAMTests(std::filesystem::path modelPath)
 {
+	std::cout << "Model: " << modelPath << std::endl;
+	std::cout << std::endl;
+
 	int dataSize = 4096 * 64;
 
 	int blockSize = 64;
@@ -126,6 +129,8 @@ void RunNAMTests(std::filesystem::path modelPath)
 
 void RunKerasTests(std::filesystem::path modelPath)
 {
+	std::cout << "Model: " << modelPath << std::endl;
+
 	int dataSize = 4096 * 64;
 
 	int blockSize = 64;
@@ -190,6 +195,7 @@ int RunDefaultTests()
 int main(int argc, char* argv[])
 {
 	//RunKerasTests("C:\\Users\\oliph\\Downloads\\MODOrange\\AMP Orange Nasty.json");
+	//RunNAMTests("C:\\Code\\NeuralAudio\\Utils\\Models\\BossLSTM-2x8.nam");
 
 	//return 0;
 
