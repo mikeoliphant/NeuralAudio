@@ -2,6 +2,23 @@
 #include <iostream>
 #include <NeuralAudio/NeuralModel.h>
 
+static std::string LoadModes[] = { "Internal", "RTNeural", "NAMCore" };
+
+NeuralAudio::NeuralModel* LoadModel(std::filesystem::path modelPath, NeuralAudio::EModelLoadMode loadMode)
+{
+	NeuralAudio::NeuralModel::SetWaveNetLoadMode(loadMode);
+	NeuralAudio::NeuralModel::SetLSTMLoadMode(loadMode);
+
+	auto model = NeuralAudio::NeuralModel::CreateFromFile(modelPath);
+
+	if (model->GetLoadMode() != loadMode)
+	{
+		std::cout << "**Warning: Tried to load " << LoadModes[loadMode] << " but got " << LoadModes[model->GetLoadMode()] << std::endl;
+	}
+
+	return model;
+}
+
 static std::tuple<double, double> BenchModel(NeuralAudio::NeuralModel* model, int blockSize, int numBlocks)
 {
 	std::vector<float> inData;
@@ -92,20 +109,9 @@ void RunNAMTests(std::filesystem::path modelPath)
 
 	NeuralAudio::NeuralModel::SetDefaultMaxAudioBufferSize(blockSize);
 
-	NeuralAudio::NeuralModel::SetWaveNetLoadMode(NeuralAudio::ModelLoadMode::PreferRTNeural);
-	NeuralAudio::NeuralModel::SetLSTMLoadMode(NeuralAudio::ModelLoadMode::PreferRTNeural);
-
-	auto rtNeuralModel = NeuralAudio::NeuralModel::CreateFromFile(modelPath);
-
-	NeuralAudio::NeuralModel::SetWaveNetLoadMode(NeuralAudio::ModelLoadMode::PreferNAMCore);
-	NeuralAudio::NeuralModel::SetLSTMLoadMode(NeuralAudio::ModelLoadMode::PreferNAMCore);
-
-	auto namCoreModel = NeuralAudio::NeuralModel::CreateFromFile(modelPath);
-
-	NeuralAudio::NeuralModel::SetWaveNetLoadMode(NeuralAudio::ModelLoadMode::PreferInternal);
-	NeuralAudio::NeuralModel::SetLSTMLoadMode(NeuralAudio::ModelLoadMode::PreferInternal);
-
-	auto internalModel = NeuralAudio::NeuralModel::CreateFromFile(modelPath);
+	auto rtNeuralModel = LoadModel(modelPath, NeuralAudio::EModelLoadMode::RTNeural);
+	auto namCoreModel = LoadModel(modelPath, NeuralAudio::EModelLoadMode::NAMCore);
+	auto internalModel = LoadModel(modelPath, NeuralAudio::EModelLoadMode::Internal);
 
 	double mse = ComputeError(namCoreModel, internalModel, blockSize, numBlocks);
 	std::cout << "NAM vs Internal MSE: " << mse << std::endl;
@@ -138,15 +144,8 @@ void RunKerasTests(std::filesystem::path modelPath)
 
 	NeuralAudio::NeuralModel::SetDefaultMaxAudioBufferSize(blockSize);
 
-	NeuralAudio::NeuralModel::SetWaveNetLoadMode(NeuralAudio::ModelLoadMode::PreferInternal);
-	NeuralAudio::NeuralModel::SetLSTMLoadMode(NeuralAudio::ModelLoadMode::PreferInternal);
-
-	auto internalModel = NeuralAudio::NeuralModel::CreateFromFile(modelPath);
-
-	NeuralAudio::NeuralModel::SetWaveNetLoadMode(NeuralAudio::ModelLoadMode::PreferRTNeural);
-	NeuralAudio::NeuralModel::SetLSTMLoadMode(NeuralAudio::ModelLoadMode::PreferRTNeural);
-
-	auto rtNeuralModel = NeuralAudio::NeuralModel::CreateFromFile(modelPath);
+	auto internalModel = LoadModel(modelPath, NeuralAudio::EModelLoadMode::Internal);
+	auto rtNeuralModel = LoadModel(modelPath, NeuralAudio::EModelLoadMode::RTNeural);
 
 	double mse = ComputeError(rtNeuralModel, internalModel, blockSize, numBlocks);
 	std::cout << "Internal vs RTNeural MSE: " << mse << std::endl;

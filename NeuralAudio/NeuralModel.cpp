@@ -121,7 +121,7 @@ namespace NeuralAudio
 
 			if (arch == "WaveNet") 
 			{
-				if (wavenetLoadMode != ModelLoadMode::PreferNAMCore)
+				if (wavenetLoadMode != EModelLoadMode::NAMCore)
 				{
 					nlohmann::json config = modelJson["config"];
 
@@ -151,7 +151,7 @@ namespace NeuralAudio
 
 							if (isOfficialArchitecture)
 							{
-								if (wavenetLoadMode == ModelLoadMode::PreferInternal)
+								if (wavenetLoadMode == EModelLoadMode::Internal)
 								{
 									auto modelDef = FindInternalWaveNetDefinition(firstLayerConfig["channels"], firstLayerConfig["head_size"]);
 
@@ -184,11 +184,11 @@ namespace NeuralAudio
 			}
 			else if (arch == "LSTM")
 			{
-				if (lstmLoadMode != ModelLoadMode::PreferNAMCore)
+				if (lstmLoadMode != EModelLoadMode::NAMCore)
 				{
 					nlohmann::json config = modelJson["config"];
 
-					if (lstmLoadMode == ModelLoadMode::PreferInternal)
+					if (lstmLoadMode == EModelLoadMode::Internal)
 					{
 						auto modelDef = FindInternalLSTMDefinition(config["num_layers"], config["hidden_size"]);
 
@@ -243,7 +243,7 @@ namespace NeuralAudio
 
 			if (modelType == "lstm")
 			{
-				if (lstmLoadMode == ModelLoadMode::PreferInternal)
+				if (lstmLoadMode == EModelLoadMode::Internal)
 				{
 					if (numLayers == 1)
 					{

@@ -5,11 +5,11 @@
 
 namespace NeuralAudio
 {
-	enum ModelLoadMode
+	enum EModelLoadMode
 	{
-		PreferInternal,
-		PreferRTNeural,
-		PreferNAMCore,
+		Internal,
+		RTNeural,
+		NAMCore
 	};
 
 	class NeuralModel
@@ -21,12 +21,12 @@ namespace NeuralAudio
 		{
 		}
 
-		static void SetLSTMLoadMode(ModelLoadMode val)
+		static void SetLSTMLoadMode(EModelLoadMode val)
 		{
 			lstmLoadMode = val;
 		}
 
-		static void SetWaveNetLoadMode(ModelLoadMode val)
+		static void SetWaveNetLoadMode(EModelLoadMode val)
 		{
 			wavenetLoadMode = val;
 		}
@@ -39,6 +39,11 @@ namespace NeuralAudio
 		static void SetDefaultMaxAudioBufferSize(int maxSize)
 		{
 			defaultMaxAudioBufferSize = maxSize;
+		}
+
+		virtual EModelLoadMode GetLoadMode()
+		{
+			return EModelLoadMode::Internal;
 		}
 
 		virtual void SetMaxAudioBufferSize(int maxSize)
@@ -78,8 +83,8 @@ namespace NeuralAudio
 		float sampleRate = 48000;
 
 		inline static float audioInputLevelDBu = 12;
-		inline static ModelLoadMode lstmLoadMode = ModelLoadMode::PreferInternal;
-		inline static ModelLoadMode wavenetLoadMode = ModelLoadMode::PreferInternal;
+		inline static EModelLoadMode lstmLoadMode = EModelLoadMode::Internal;
+		inline static EModelLoadMode wavenetLoadMode = EModelLoadMode::Internal;
 		inline static int defaultMaxAudioBufferSize = 128;
 	};
 }

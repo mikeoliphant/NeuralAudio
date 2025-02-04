@@ -33,6 +33,11 @@ namespace NeuralAudio
 	class RTNeuralModel : public NeuralModel
 	{
 	public:
+		EModelLoadMode GetLoadMode()
+		{
+			return EModelLoadMode::RTNeural;
+		}
+
 		bool LoadFromKerasJson(nlohmann::json& modelJson)
 		{
 			ReadKerasConfig(modelJson);
