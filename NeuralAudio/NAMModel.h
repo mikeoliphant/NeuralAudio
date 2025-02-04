@@ -24,7 +24,7 @@ namespace NeuralAudio
 
 		EModelLoadMode GetLoadMode()
 		{
-			return EModelLoadMode::RTNeural;
+			return EModelLoadMode::NAMCore;
 		}
 
 		bool LoadFromJson(nlohmann::json& modelJson)
