@@ -11,15 +11,13 @@ NeuralAudio currently supports the following model types:
 
 # Underlying Libraries and Performance
 
-[RTNeural](https://github.com/jatinchowdhury18/RTNeural) is used for RTNeural keras models.
+By default, NeuralAudio uses its own implementation of WaveNet and LSTM network models.
 
-The [NAM Core implementation](https://github.com/sdatkinson/NeuralAmpModelerCore) is used by default for NAM models, both LSTM and WaveNet.
+It can also load models using the [NAM Core implementation](https://github.com/sdatkinson/NeuralAmpModelerCore) and [RTNeural](https://github.com/jatinchowdhury18/RTNeural).
 
-You can also instruct the library to load NAM models using RTNeural (see the API overview below).
+For WaveNet, the internal implmeentation supports the offical NAM network architectures:  "Standard", "Lite", "Feather", "Nano".
 
-When using RTNeural, the official NAM WaveNet model architectures ("Standard", "Lite", "Feather", "Nano") are loaded using RTNeural using pre-compiled static architectures. Other NAM WaveNet model architectures will fall back on using the [NAM Core implementation](https://github.com/sdatkinson/NeuralAmpModelerCore).
-
-A subset of LSTM models are processed using pre-compiled static architectures (increasing performance). Currently the following architectures are accelerated:
+For LSTM, the internal implementation supports the following architectures:
 
 - LSTM 1x8
 - LSTM 1x12
@@ -29,7 +27,9 @@ A subset of LSTM models are processed using pre-compiled static architectures (i
 - LSTM 2x12
 - LSTM 2x16
 
-Other architectures will work fine, but will have somewhat reduced performance.
+All NAM files with WaveNet and LSTM architectures not supported internally will fall back to the NAM Core implementation.
+
+All keras models not supported internally will fall back to the RTNeural implmentation.
 
 # API overview
 
@@ -48,7 +48,7 @@ model->Process(pointerToFloatInputData, pointerToFloatOutputData, int numSamples
 
 Some models need to allocate memory based on the size of the audio buffers being used. You need to make sure that processing does not exceed the specified maximum buffer size.
 
-The default maximum size is 512 samples. To change it, do:
+The default maximum size is 128 samples. To change it, do:
 
 ```
 NeuralAudio::NeuralModel::SetDefaultMaxAudioBufferSize(maxSize);
@@ -70,17 +70,27 @@ To set a known audio input level (ie: from an audio interface), use ```model->Se
 
 ## Model load behavior
 
-By default, NAM models are loaded using the NAM Core codebase. If you would like to force the use of RTNeural for NAM models, you can.
+By default, NAM models are loaded using the NAM Core codebase. If you would like to force the use of RTNeural for NAM models, you can use
 
-For LSTM:
 ```
-NeuralAudio::NeuralModel::SetLSTMLoadMode(NeuralAudio::PreferRTNeural);
+NeuralAudio::NeuralModel::SetLSTMLoadMode(loadMode)
 ```
 
-For WaveNet:
+and
+
 ```
-NeuralAudio::NeuralModel::SetWaveNetLoadMode(NeuralAudio::PreferRTNeural)
+NeuralAudio::NeuralModel::SetWaveNetLoadMode(loadMode)
 ```
+
+where "loadMode" is one of:
+
+```
+NeuralAudio::EModelLoadMode::Internal
+NeuralAudio::EModelLoadMode::NAMCore
+NeuralAudio::EModelLoadMode::RTNeural
+```
+
+You can check which implementation was actually used to load the model with ```model->GetLoadMode()```.
 
 # Software Using NeuralAudio
 
