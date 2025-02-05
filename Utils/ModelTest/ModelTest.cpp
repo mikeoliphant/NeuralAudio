@@ -113,11 +113,11 @@ void RunNAMTests(std::filesystem::path modelPath)
 	auto namCoreModel = LoadModel(modelPath, NeuralAudio::EModelLoadMode::NAMCore);
 	auto internalModel = LoadModel(modelPath, NeuralAudio::EModelLoadMode::Internal);
 
-	double mse = ComputeError(namCoreModel, internalModel, blockSize, numBlocks);
-	std::cout << "NAM vs Internal MSE: " << mse << std::endl;
+	double rms = ComputeError(namCoreModel, internalModel, blockSize, numBlocks);
+	std::cout << "NAM vs Internal RMS err: " << rms << std::endl;
 
-	mse = ComputeError(namCoreModel, rtNeuralModel, blockSize, numBlocks);
-	std::cout << "NAM vs RTNeural MSE: " << mse << std::endl;
+	rms = ComputeError(namCoreModel, rtNeuralModel, blockSize, numBlocks);
+	std::cout << "NAM vs RTNeural RMS err: " << rms << std::endl;
 	std::cout << std::endl;
 
 	auto internal = BenchModel(internalModel, blockSize, numBlocks);
@@ -147,8 +147,8 @@ void RunKerasTests(std::filesystem::path modelPath)
 	auto internalModel = LoadModel(modelPath, NeuralAudio::EModelLoadMode::Internal);
 	auto rtNeuralModel = LoadModel(modelPath, NeuralAudio::EModelLoadMode::RTNeural);
 
-	double mse = ComputeError(rtNeuralModel, internalModel, blockSize, numBlocks);
-	std::cout << "Internal vs RTNeural MSE: " << mse << std::endl;
+	double rms = ComputeError(rtNeuralModel, internalModel, blockSize, numBlocks);
+	std::cout << "Internal vs RTNeural RMS err: " << rms << std::endl;
 	std::cout << std::endl;
 
 	auto internal = BenchModel(internalModel, blockSize, numBlocks);

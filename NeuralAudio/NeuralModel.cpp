@@ -17,26 +17,32 @@ namespace NeuralAudio
 	{
 		if (!modelDefsAreLoaded)
 		{
-			//lstmModelDefs.push_back(new RTNeuralLSTMDefinitionT<1, 8>);
-			//lstmModelDefs.push_back(new RTNeuralLSTMDefinitionT<1, 12>);
+#ifdef BUILD_STATIC_RTNEURAL
+			lstmModelDefs.push_back(new RTNeuralLSTMDefinitionT<1, 8>);
+			lstmModelDefs.push_back(new RTNeuralLSTMDefinitionT<1, 12>);
 			lstmModelDefs.push_back(new RTNeuralLSTMDefinitionT<1, 16>);
-			//lstmModelDefs.push_back(new RTNeuralLSTMDefinitionT<1, 24>);
+			lstmModelDefs.push_back(new RTNeuralLSTMDefinitionT<1, 24>);
 			lstmModelDefs.push_back(new RTNeuralLSTMDefinitionT<2, 8>);
-			//lstmModelDefs.push_back(new RTNeuralLSTMDefinitionT<2, 12>);
-			//lstmModelDefs.push_back(new RTNeuralLSTMDefinitionT<2, 16>);
+			lstmModelDefs.push_back(new RTNeuralLSTMDefinitionT<2, 12>);
+			lstmModelDefs.push_back(new RTNeuralLSTMDefinitionT<2, 16>);
 
 			wavenetModelDefs.push_back(new RTNeuralWaveNetDefinitionT<16, 8>);	// Standard
 			wavenetModelDefs.push_back(new RTNeuralWaveNetDefinitionT<12, 6>);	// Lite
 			wavenetModelDefs.push_back(new RTNeuralWaveNetDefinitionT<8, 4>);	// Feather
 			wavenetModelDefs.push_back(new RTNeuralWaveNetDefinitionT<4, 2>);	// Nano
-
+#endif
 			internalWavenetModelDefs.push_back(new InternalWaveNetDefinitionT<16, 8>);	// Standard
 			internalWavenetModelDefs.push_back(new InternalWaveNetDefinitionT<12, 6>);	// Lite
 			internalWavenetModelDefs.push_back(new InternalWaveNetDefinitionT<8, 4>);	// Feather
 			internalWavenetModelDefs.push_back(new InternalWaveNetDefinitionT<4, 2>);	// Nano
 
+			internalLSTMModelDefs.push_back(new InternalLSTMDefinitionT<1, 8>);
+			internalLSTMModelDefs.push_back(new InternalLSTMDefinitionT<1, 12>);
 			internalLSTMModelDefs.push_back(new InternalLSTMDefinitionT<1, 16>);
+			internalLSTMModelDefs.push_back(new InternalLSTMDefinitionT<1, 24>);
 			internalLSTMModelDefs.push_back(new InternalLSTMDefinitionT<2, 8>);
+			internalLSTMModelDefs.push_back(new InternalLSTMDefinitionT<2, 12>);
+			internalLSTMModelDefs.push_back(new InternalLSTMDefinitionT<2, 16>);
 
 			modelDefsAreLoaded = true;
 		}

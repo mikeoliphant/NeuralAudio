@@ -172,6 +172,8 @@ namespace NeuralAudio
 
 			inputMixin.ProcessAcc(condition, block);
 
+			//block = block.array().tanh();
+
 			float* data = block.data();
 			auto size = block.rows() * block.cols();
 
