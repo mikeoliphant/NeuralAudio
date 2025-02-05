@@ -94,6 +94,8 @@ NeuralAudio::EModelLoadMode::RTNeural
 
 You can check which implementation was actually used to load the model with ```model->GetLoadMode()```.
 
+**NOTE:** Because of compile time and executable size considerations, only the dynamic RTNeural implementation is built by default. If you want to use RTNeural, it is recommended that you add ```-DBUILD_STATIC_RTNEURAL=ON``` to your cmake commandline. This will create static model implmentations for the same sets of WaveNet and LSTM models as the internal implmentation, and results in increased performance.
+
 # Software Using NeuralAudio
 
 The following applications are using the NeuralAudio library for model processing:
