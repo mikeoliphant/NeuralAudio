@@ -72,16 +72,16 @@ To set a known audio input level (ie: from an audio interface), use ```model->Se
 
 ## Model load behavior
 
-By default, NAM models are loaded using the NAM Core codebase. If you would like to force the use of RTNeural for NAM models, you can use
+By default, models are loaded using the internal NeuralAudio implementation. If you would like to force the use of the NAM Core or RTNeural implementations, you can use:
 
 ```
-NeuralAudio::NeuralModel::SetLSTMLoadMode(loadMode)
+NeuralAudio::NeuralModel::SetWaveNetLoadMode(loadMode)
 ```
 
 and
 
 ```
-NeuralAudio::NeuralModel::SetWaveNetLoadMode(loadMode)
+NeuralAudio::NeuralModel::SetLSTMLoadMode(loadMode)
 ```
 
 where "loadMode" is one of:
