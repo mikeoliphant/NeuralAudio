@@ -16,6 +16,14 @@ NeuralAudio::NeuralModel* LoadModel(std::filesystem::path modelPath, NeuralAudio
 		std::cout << "**Warning: Tried to load " << LoadModes[loadMode] << " but got " << LoadModes[model->GetLoadMode()] << std::endl;
 	}
 
+	if (model->GetLoadMode() != NeuralAudio::EModelLoadMode::NAMCore)
+	{
+		if (!model->IsStatic())
+		{
+			std::cout << "**Warning: " << LoadModes[model->GetLoadMode()] << " model is not using a static architecture" << std::endl;
+		}
+	}
+
 	return model;
 }
 

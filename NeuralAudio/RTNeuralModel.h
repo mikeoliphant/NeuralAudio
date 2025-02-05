@@ -89,6 +89,11 @@ namespace NeuralAudio
 			}
 		}
 
+		bool IsStatic()
+		{
+			return true;
+		}
+
 		bool CreateModelFromKerasJson(nlohmann::json& modelJson)
 		{
 			if (model != nullptr)
@@ -252,6 +257,11 @@ namespace NeuralAudio
 			}
 		}
 
+		bool IsStatic()
+		{
+			return true;
+		}
+
 		//bool CreateModelFromKerasJson(nlohmann::json& modelJson)
 		//{
 		//	if (model != nullptr)
@@ -324,6 +334,11 @@ namespace NeuralAudio
 		{
 			if (model)
 				model.reset();
+		}
+
+		EModelLoadMode GetLoadMode()
+		{
+			return EModelLoadMode::RTNeural;
 		}
 
 		bool CreateModelFromKerasJson(nlohmann::json& modelJson)

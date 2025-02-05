@@ -68,6 +68,11 @@ namespace NeuralAudio
 			}
 		}
 
+		bool IsStatic()
+		{
+			return true;
+		}
+
 		bool CreateModelFromNAMJson(nlohmann::json& modelJson)
 		{
 			if (model != nullptr)
@@ -186,6 +191,11 @@ namespace NeuralAudio
 				delete model;
 				model = nullptr;
 			}
+		}
+
+		bool IsStatic()
+		{
+			return true;
 		}
 
 		bool CreateModelFromNAMJson(nlohmann::json& modelJson)

@@ -46,6 +46,11 @@ namespace NeuralAudio
 			return EModelLoadMode::Internal;
 		}
 
+		virtual bool IsStatic()
+		{
+			return false;
+		}
+
 		virtual void SetMaxAudioBufferSize(int maxSize)
 		{
 		}
