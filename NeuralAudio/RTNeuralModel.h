@@ -3,6 +3,7 @@
 #include "NeuralModel.h"
 #include <RTNeural/RTNeural.h>
 #include "wavenet_model.hpp"
+#include "TemplateHelper.h"
 
 namespace NeuralAudio
 {
@@ -32,9 +33,14 @@ namespace NeuralAudio
 	class RTNeuralModel : public NeuralModel
 	{
 	public:
+		EModelLoadMode GetLoadMode()
+		{
+			return EModelLoadMode::RTNeural;
+		}
+
 		bool LoadFromKerasJson(nlohmann::json& modelJson)
 		{
-			ReadRTNeuralConfig(modelJson);
+			ReadKerasConfig(modelJson);
 
 			return CreateModelFromKerasJson(modelJson);
 
@@ -58,20 +64,6 @@ namespace NeuralAudio
 			return false;
 		}
 	};
-
-	template <std::size_t ... Is, typename F>
-	void ForEachIndex(std::index_sequence<Is...>, F&& f)
-	{
-		int dummy[] = { 0, /* Handles empty Is. following cast handle evil operator comma */
-					   (static_cast<void>(f(std::integral_constant<std::size_t, Is>())), 0)... };
-		static_cast<void>(dummy); // avoid warning for unused variable
-	}
-
-	template <std::size_t N, typename F>
-	void ForEachIndex(F&& f)
-	{
-		ForEachIndex(std::make_index_sequence<N>(), std::forward<F>(f));
-	}
 
 	template <int numLayers, int hiddenSize>
 	class RTNeuralLSTMModelT : public RTNeuralModel
@@ -97,6 +89,11 @@ namespace NeuralAudio
 			}
 		}
 
+		bool IsStatic()
+		{
+			return true;
+		}
+
 		bool CreateModelFromKerasJson(nlohmann::json& modelJson)
 		{
 			if (model != nullptr)
@@ -107,7 +104,7 @@ namespace NeuralAudio
 
 			model = new ModelType;
 
-			model->parseJson(modelJson, true);
+			model->parseJson(modelJson, false);
 			model->reset();
 
 			return true;
@@ -260,6 +257,11 @@ namespace NeuralAudio
 			}
 		}
 
+		bool IsStatic()
+		{
+			return true;
+		}
+
 		//bool CreateModelFromKerasJson(nlohmann::json& modelJson)
 		//{
 		//	if (model != nullptr)
@@ -334,9 +336,14 @@ namespace NeuralAudio
 				model.reset();
 		}
 
+		EModelLoadMode GetLoadMode()
+		{
+			return EModelLoadMode::RTNeural;
+		}
+
 		bool CreateModelFromKerasJson(nlohmann::json& modelJson)
 		{
-			model = RTNeural::json_parser::parseJson<float, FastMathsProvider>(modelJson, true);
+			model = RTNeural::json_parser::parseJson<float, FastMathsProvider>(modelJson, false);
 			model->reset();
 
 			return true;

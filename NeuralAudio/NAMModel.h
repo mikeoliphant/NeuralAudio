@@ -22,6 +22,11 @@ namespace NeuralAudio
 				namModel.reset();
 		}
 
+		EModelLoadMode GetLoadMode()
+		{
+			return EModelLoadMode::NAMCore;
+		}
+
 		bool LoadFromJson(nlohmann::json& modelJson)
 		{
 			if (namModel)
