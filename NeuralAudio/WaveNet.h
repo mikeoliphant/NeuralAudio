@@ -1,5 +1,8 @@
 #pragma once
 
+// Based on WaveNet model structure from https://github.com/sdatkinson/NeuralAmpModelerCore
+// with some template ideas from https://github.com/jatinchowdhury18/RTNeural-NAM
+
 #include <Eigen/Dense>
 #include <Eigen/Core>
 #include "TemplateHelper.h"
