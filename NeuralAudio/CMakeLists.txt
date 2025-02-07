@@ -11,6 +11,12 @@ else()
     message(STATUS "NOT Building static RTNeural models")
 endif()
 
+set(WAVENET_FRAMES "64" CACHE STRING "WaveNet frame size")
+
+add_definitions(-DWAVENET_MAX_NUM_FRAMES=${WAVENET_FRAMES})
+
+message(STATUS "WaveNet frame size is: ${WAVENET_FRAMES}")
+
 if (MSVC)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
 endif()
