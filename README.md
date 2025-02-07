@@ -100,7 +100,7 @@ You can check which implementation was actually used to load the model with ```m
 
 First clone the repository:
 ```bash
-git clone --recurse-submodules [https://github.com/mikeoliphant/neural-amp-modeler-lv2](https://github.com/mikeoliphant/NeuralAudio)
+git clone --recurse-submodules https://github.com/mikeoliphant/NeuralAudio
 cd NeuralAudio/build
 ```
 
@@ -125,6 +125,8 @@ Note - you'll have to change the Visual Studio version if you are using a differ
 ```-DBUILD_STATIC_RTNEURAL=ON```: Build static RTNeural model architectures (slower compile, larger size - only use if you plan on forcing RTNeural model loading)
 
 ```-DWAVENET_FRAMES=XXX```: Sample buffer size for the internal WaveNet implementation. Defaults to 64. If you know you are going to be using a fixed sample buffer smaller or larger than this, use that instead. Note that the model will still be able to process any buffer size - it is just optimized for this size.
+
+```-DBUILD_UTILS=ON```: Build performance/accuracy testing tools (located in the "Utils" folder).
 
 # Software Using NeuralAudio
 
