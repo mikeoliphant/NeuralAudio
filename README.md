@@ -96,6 +96,36 @@ You can check which implementation was actually used to load the model with ```m
 
 **NOTE:** Because of compile time and executable size considerations, only the dynamic RTNeural implementation is built by default. If you want to use RTNeural, it is recommended that you add ```-DBUILD_STATIC_RTNEURAL=ON``` to your cmake commandline. This will create static model implmentations for the same sets of WaveNet and LSTM models as the internal implmentation, and results in increased performance.
 
+# Building
+
+First clone the repository:
+```bash
+git clone --recurse-submodules [https://github.com/mikeoliphant/neural-amp-modeler-lv2](https://github.com/mikeoliphant/NeuralAudio)
+cd NeuralAudio/build
+```
+
+Then compile the plugin using:
+
+**Linux/MacOS**
+```bash
+cmake .. -DCMAKE_BUILD_TYPE="Release"
+make -j4
+```
+
+**Windows**
+```bash
+cmake.exe -G "Visual Studio 17 2022" -A x64 ..
+cmake --build . --config=release -j4
+```
+
+Note - you'll have to change the Visual Studio version if you are using a different one.
+
+## CMake Options
+
+```-DBUILD_STATIC_RTNEURAL=ON```: Build static RTNeural model architectures (slower compile, larger size - only use if you plan on forcing RTNeural model loading)
+
+```-DWAVENET_FRAMES=XXX```: WaveNet sample buffer size. Defaults to 64. If you know you are going to be using a fixed sample buffer smaller or larger than this, use that instead. Note that the model will still be able to process any buffer size - it is just optimized for this size.
+
 # Software Using NeuralAudio
 
 The following applications are using the NeuralAudio library for model processing:
