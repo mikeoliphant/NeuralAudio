@@ -190,8 +190,8 @@ int RunDefaultTests()
 
 	std::cout << "Loading models from: " << modelPath << std::endl;
 
-	//std::cout << "WaveNet (Standard) Test" << std::endl;
-	//RunNAMTests(modelPath / "BossWN-standard.nam");
+	std::cout << "WaveNet (Standard) Test" << std::endl;
+	RunNAMTests(modelPath / "BossWN-standard.nam");
 
 	std::cout << "LSTM (1x16) Test" << std::endl;
 	RunNAMTests(modelPath / "BossLSTM-1x16.nam");

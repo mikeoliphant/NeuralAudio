@@ -218,11 +218,14 @@ namespace NeuralAudio
 						}
 
 						// Use a dynamic model if we had no static definition
-						InternalLSTMModelDyn* model = new InternalLSTMModelDyn;
-
-						if (model->LoadFromNAMJson(modelJson))
+						if (newModel == nullptr)
 						{
-							newModel = model;
+							InternalLSTMModelDyn* model = new InternalLSTMModelDyn;
+
+							if (model->LoadFromNAMJson(modelJson))
+							{
+								newModel = model;
+							}
 						}
 					}
 					else
