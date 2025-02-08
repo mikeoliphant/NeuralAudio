@@ -17,7 +17,7 @@ It can also load models using the [NAM Core implementation](https://github.com/s
 
 The internal NeuralAudio implmentation currently outperforms the other implementations on all tested platforms (Windows x64, Linux x64/Arm64).
 
-For WaveNet, the internal implmeentation supports the offical NAM network architectures:  "Standard", "Lite", "Feather", "Nano".
+For WaveNet, the internal implmeentation supports static models of the offical NAM network architectures:  "Standard", "Lite", "Feather", "Nano". It will also load any other WaveNet model, but with lower performance (although still faster than NAM Core).
 
 For LSTM, the internal implementation supports the following architectures:
 
@@ -29,7 +29,7 @@ For LSTM, the internal implementation supports the following architectures:
 - LSTM 2x12
 - LSTM 2x16
 
-All NAM files with WaveNet and LSTM architectures not supported internally will fall back to the NAM Core implementation.
+All NAM files with LSTM architectures not supported internally will fall back to the NAM Core implementation.
 
 All keras models not supported internally will fall back to the RTNeural implmentation.
 
