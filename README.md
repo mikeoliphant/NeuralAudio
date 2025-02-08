@@ -6,7 +6,7 @@ NeuralAudio is a C++ library designed to make it easy to use neural network mach
 
 NeuralAudio currently supports the following model types:
 
-- Neural Amp Modeler (NAM) WaveNet and LSTM models
+- [Neural Amp Modeler](https://github.com/sdatkinson/neural-amp-modeler) (NAM) WaveNet and LSTM models
 - [RTNeural](https://github.com/jatinchowdhury18/RTNeural) keras models (LSTM, GRU)
 
 # Underlying Libraries and Performance
