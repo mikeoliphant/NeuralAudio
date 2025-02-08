@@ -116,19 +116,7 @@ namespace NeuralAudio
 
 		void Prewarm()
 		{
-			const int numSamples = model->GetMaxFrames();
-
-			std::vector<float> input;
-			input.resize(numSamples);
-			std::fill(input.begin(), input.end(), 0);
-
-			std::vector<float> output;
-			output.resize(numSamples);
-
-			for (int block = 0; block < (4096 / numSamples); block++)
-			{
-				model->Process(input.data(), output.data(), numSamples);
-			}
+			NeuralModel::Prewarm(4096, model->GetMaxFrames());
 		}
 
 	private:
@@ -241,19 +229,7 @@ namespace NeuralAudio
 
 		void Prewarm()
 		{
-			const int numSamples = model->GetMaxFrames();
-
-			std::vector<float> input;
-			input.resize(numSamples);
-			std::fill(input.begin(), input.end(), 0);
-
-			std::vector<float> output;
-			output.resize(numSamples);
-
-			for (int block = 0; block < (4096 / numSamples); block++)
-			{
-				model->Process(input.data(), output.data(), numSamples);
-			}
+			NeuralModel::Prewarm(4096, model->GetMaxFrames());
 		}
 
 	private:
@@ -384,19 +360,7 @@ namespace NeuralAudio
 
 		void Prewarm()
 		{
-			//constexpr int numSamples = 64;
-
-			//std::vector<float> input;
-			//input.resize(numSamples);
-			//std::fill(input.begin(), input.end(), 0);
-
-			//std::vector<float> output;
-			//output.resize(numSamples);
-
-			//for (int block = 0; block < (4096 / numSamples); block++)
-			//{
-			//	model->Process(input.data(), output.data(), numSamples);
-			//}
+			NeuralModel::Prewarm(2048, 64);
 		}
 
 	private:
@@ -561,19 +525,7 @@ namespace NeuralAudio
 
 		void Prewarm()
 		{
-			//constexpr int numSamples = 64;
-
-			//std::vector<float> input;
-			//input.resize(numSamples);
-			//std::fill(input.begin(), input.end(), 0);
-
-			//std::vector<float> output;
-			//output.resize(numSamples);
-
-			//for (int block = 0; block < (4096 / numSamples); block++)
-			//{
-			//	model->Process(input.data(), output.data(), numSamples);
-			//}
+			NeuralModel::Prewarm(2048, 64);
 		}
 
 	private:

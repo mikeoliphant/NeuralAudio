@@ -58,7 +58,6 @@ namespace NeuralAudio
 				const float head_scale = config["head_scale"];
 
 				namModel = std::make_unique<nam::wavenet::WaveNet>(layer_array_params, head_scale, with_head, weights, sampleRate);
-				namModel->prewarm();
 			}
 			else if (arch == "LSTM")
 			{

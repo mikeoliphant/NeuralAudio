@@ -262,22 +262,6 @@ namespace NeuralAudio
 			return true;
 		}
 
-		//bool CreateModelFromKerasJson(nlohmann::json& modelJson)
-		//{
-		//	if (model != nullptr)
-		//	{
-		//		delete model;
-		//		model = nullptr;
-		//	}
-
-		//	model = new ModelType;
-
-		//	model->parseJson(modelJson, true);
-		//	model->reset();
-
-		//	return true;
-		//}
-
 		bool CreateModelFromNAMJson(nlohmann::json& modelJson)
 		{
 			if (model != nullptr)
@@ -305,9 +289,6 @@ namespace NeuralAudio
 		void Process(float* input, float* output, int numSamples)
 		{
 			model->forward(input, output, numSamples);
-
-			//for (int i = 0; i < numSamples; i++)
-			//	output[i] = model->forward(input[i]);
 		}
 
 		void Prewarm()

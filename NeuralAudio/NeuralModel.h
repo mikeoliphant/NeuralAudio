@@ -91,5 +91,20 @@ namespace NeuralAudio
 		inline static EModelLoadMode lstmLoadMode = EModelLoadMode::Internal;
 		inline static EModelLoadMode wavenetLoadMode = EModelLoadMode::Internal;
 		inline static int defaultMaxAudioBufferSize = 128;
+
+		void Prewarm(int numSamples, int blockSize)
+		{
+			std::vector<float> input;
+			input.resize(blockSize);
+			std::fill(input.begin(), input.end(), 0);
+
+			std::vector<float> output;
+			output.resize(blockSize);
+
+			for (int block = 0; block < (numSamples / blockSize); block++)
+			{
+				Process(input.data(), output.data(), blockSize);
+			}
+		}
 	};
 }

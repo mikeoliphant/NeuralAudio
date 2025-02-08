@@ -68,17 +68,8 @@ static double ComputeError(NeuralAudio::NeuralModel* model1, NeuralAudio::Neural
 	std::vector<float> outData2;
 	outData2.resize(blockSize);
 
-	// Run zeros through for a bit to make sure both models are reset
-
-	std::fill(inData.begin(), inData.end(), 0);
-
-	int blocks = std::max(4096 / blockSize, 1);
-
-	for (int block = 0; block < blocks; block++)
-	{
-		model1->Process(inData.data(), outData.data(), blockSize);
-		model2->Process(inData.data(), outData2.data(), blockSize);
-	}
+	model1->Prewarm();
+	model2->Prewarm();
 
 	double totErr = 0;
 
