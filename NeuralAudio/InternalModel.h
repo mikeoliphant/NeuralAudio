@@ -2,6 +2,7 @@
 
 #include "NeuralModel.h"
 #include "WaveNet.h"
+#include "WaveNetDynamic.h"
 #include "LSTM.h"
 
 namespace NeuralAudio
@@ -173,6 +174,90 @@ namespace NeuralAudio
 		}
 	};
 
+	class InternalWaveNetModelDyn : public InternalModel
+	{
+	public:
+		InternalWaveNetModelDyn()
+		{
+		}
+
+		~InternalWaveNetModelDyn()
+		{
+			if (model != nullptr)
+			{
+				delete model;
+				model = nullptr;
+			}
+		}
+
+		EModelLoadMode GetLoadMode()
+		{
+			return EModelLoadMode::Internal;
+		}
+
+		bool CreateModelFromNAMJson(nlohmann::json& modelJson)
+		{
+			nlohmann::json config = modelJson["config"];
+
+			std::vector<WaveNetLayerArray> layerArrays;
+
+			for (size_t i = 0; i < config["layers"].size(); i++)
+			{
+				nlohmann::json layerConfig = config["layers"][i];
+
+				layerArrays.push_back(WaveNetLayerArray(layerConfig["input_size"], layerConfig["condition_size"], layerConfig["head_size"],
+					layerConfig["channels"], layerConfig["kernel_size"], layerConfig["head_bias"], layerConfig["dilations"]));
+			}
+
+			model = new WaveNetModel(layerArrays);
+
+			model->SetWeights(modelJson["weights"]);
+
+			SetMaxAudioBufferSize(defaultMaxAudioBufferSize);
+
+			return true;
+		}
+
+		void SetMaxAudioBufferSize(int maxSize)
+		{
+			model->SetMaxFrames(defaultMaxAudioBufferSize);
+		}
+
+		void Process(float* input, float* output, int numSamples)
+		{
+			int offset = 0;
+
+			while (numSamples > 0)
+			{
+				int toProcess = std::min(numSamples, model->GetMaxFrames());
+
+				model->Process(input + offset, output + offset, toProcess);
+
+				offset += toProcess;
+				numSamples -= toProcess;
+			}
+		}
+
+		void Prewarm()
+		{
+			const int numSamples = model->GetMaxFrames();
+
+			std::vector<float> input;
+			input.resize(numSamples);
+			std::fill(input.begin(), input.end(), 0);
+
+			std::vector<float> output;
+			output.resize(numSamples);
+
+			for (int block = 0; block < (4096 / numSamples); block++)
+			{
+				model->Process(input.data(), output.data(), numSamples);
+			}
+		}
+
+	private:
+		WaveNetModel* model = nullptr;
+	};
 
 
 	template <int NumLayers, int HiddenSize>

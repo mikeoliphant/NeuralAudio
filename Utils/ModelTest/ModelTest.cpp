@@ -201,11 +201,6 @@ int RunDefaultTests()
 
 int main(int argc, char* argv[])
 {
-	//RunKerasTests("C:\\Users\\oliph\\Downloads\\MODOrange\\AMP Orange Nasty.json");
-	//RunNAMTests("C:\\Code\\NeuralAudio\\Utils\\Models\\BossLSTM-2x8.nam");
-
-	//return 0;
-
 	if (argc > 1)
 	{
 		std::filesystem::path modelPath = argv[1];

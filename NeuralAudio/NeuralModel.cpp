@@ -186,6 +186,17 @@ namespace NeuralAudio
 							}
 						}
 					}
+
+					if (newModel == nullptr)
+					{
+						// Use a dynamic model if we had no static definition
+						InternalWaveNetModelDyn* model = new InternalWaveNetModelDyn;
+
+						if (model->LoadFromNAMJson(modelJson))
+						{
+							newModel = model;
+						}
+					}
 				}
 			}
 			else if (arch == "LSTM")

@@ -28,6 +28,7 @@ set(SOURCES
 	RTNeuralModel.h
 	Activation.h
 	WaveNet.h
+	WaveNetDynamic.h
 	LSTM.h
 	InternalModel.h
 	TemplateHelper.h)
