@@ -30,6 +30,7 @@ set(SOURCES
 	WaveNet.h
 	WaveNetDynamic.h
 	LSTM.h
+	LSTMDynamic.h
 	InternalModel.h
 	TemplateHelper.h)
 

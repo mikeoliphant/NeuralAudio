@@ -216,6 +216,14 @@ namespace NeuralAudio
 
 							newModel = model;
 						}
+
+						// Use a dynamic model if we had no static definition
+						InternalLSTMModelDyn* model = new InternalLSTMModelDyn;
+
+						if (model->LoadFromNAMJson(modelJson))
+						{
+							newModel = model;
+						}
 					}
 					else
 					{
@@ -228,15 +236,15 @@ namespace NeuralAudio
 
 							newModel = model;
 						}
-					}
 
-					// If we didn't have a static model that matched, use RTNeural's dynamic model
-					if (newModel == nullptr)
-					{
-						RTNeuralModelDyn* model = new RTNeuralModelDyn;
-						model->LoadFromNAMJson(modelJson);
+						// If we didn't have a static model that matched, use RTNeural's dynamic model
+						if (newModel == nullptr)
+						{
+							RTNeuralModelDyn* model = new RTNeuralModelDyn;
+							model->LoadFromNAMJson(modelJson);
 
-						newModel = model;
+							newModel = model;
+						}
 					}
 				}
 			}
@@ -274,6 +282,17 @@ namespace NeuralAudio
 							{
 								newModel = model;
 							}
+						}
+					}
+
+					if (newModel == nullptr)
+					{
+						// Use a dynamic model if we had no static definition
+						InternalLSTMModelDyn* model = new InternalLSTMModelDyn;
+
+						if (model->LoadFromKerasJson(modelJson))
+						{
+							newModel = model;
 						}
 					}
 				}

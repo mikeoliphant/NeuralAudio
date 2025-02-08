@@ -4,6 +4,7 @@
 #include "WaveNet.h"
 #include "WaveNetDynamic.h"
 #include "LSTM.h"
+#include "LSTMDynamic.h"
 
 namespace NeuralAudio
 {
@@ -440,6 +441,143 @@ namespace NeuralAudio
 		{
 			return HiddenSize;
 		}
+	};
+
+	class InternalLSTMModelDyn : public InternalModel
+	{
+	public:
+		InternalLSTMModelDyn()
+			: model(nullptr)
+		{
+		}
+
+		~InternalLSTMModelDyn()
+		{
+			if (model != nullptr)
+			{
+				delete model;
+				model = nullptr;
+			}
+		}
+
+		bool CreateModelFromNAMJson(nlohmann::json& modelJson)
+		{
+			if (model != nullptr)
+			{
+				delete model;
+				model = nullptr;
+			}
+
+			nlohmann::json config = modelJson["config"];
+
+			model = new LSTMModel(config["num_layers"], config["hidden_size"]);
+
+			model->SetNAMWeights(modelJson["weights"]);
+
+			SetMaxAudioBufferSize(defaultMaxAudioBufferSize);
+
+			return true;
+		}
+
+		std::vector<float> FlattenWeights(const nlohmann::json& weights)
+		{
+			std::vector<float> vec;
+
+			for (auto i = 0; i < weights.size(); i++)
+			{
+				if (weights[i].is_array())
+				{
+					auto subVec = FlattenWeights(weights[i]);
+					vec.insert(vec.end(), subVec.begin(), subVec.end());
+				}
+				else
+				{
+					vec.push_back(weights[i]);
+				}
+			}
+
+			return vec;
+		}
+
+		bool CreateModelFromKerasJson(nlohmann::json& modelJson)
+		{
+			if (model != nullptr)
+			{
+				delete model;
+				model = nullptr;
+			}
+
+			nlohmann::json config = modelJson["config"];
+
+			const auto layers = modelJson.at("layers");
+			const size_t numLayers = layers.size();
+			const int hiddenSize = layers.at(0).at("shape").back();
+
+			if (numLayers < 2)
+				return false;
+
+			auto lastLayer = layers[numLayers - 1];
+
+			if (lastLayer["type"] != "dense")
+				return false;
+
+			model = new LSTMModel(numLayers, hiddenSize);
+
+			LSTMDef lstmDef;
+
+			lstmDef.HeadWeights = FlattenWeights(lastLayer["weights"][0]);
+			lstmDef.HeadBias = lastLayer["weights"][1][0];
+
+			for (int i = 0; i < (numLayers - 1); i++)
+			{
+				auto layer = layers[i];
+
+				if (layer["type"] != "lstm")
+					return false;
+
+				LSTMLayerDef layerDef;
+
+				layerDef.InputWeights = FlattenWeights(layer["weights"][0]);
+				layerDef.HiddenWeights = FlattenWeights(layer["weights"][1]);
+				layerDef.BiasWeights = FlattenWeights(layer["weights"][2]);
+
+				lstmDef.Layers.push_back(layerDef);
+			}
+
+			model->SetWeights(lstmDef);
+
+			return true;
+		}
+
+		void SetMaxAudioBufferSize(int maxSize)
+		{
+			//model->prepare(maxSize);
+		}
+
+		void Process(float* input, float* output, int numSamples)
+		{
+			model->Process(input, output, numSamples);
+		}
+
+		void Prewarm()
+		{
+			//constexpr int numSamples = 64;
+
+			//std::vector<float> input;
+			//input.resize(numSamples);
+			//std::fill(input.begin(), input.end(), 0);
+
+			//std::vector<float> output;
+			//output.resize(numSamples);
+
+			//for (int block = 0; block < (4096 / numSamples); block++)
+			//{
+			//	model->Process(input.data(), output.data(), numSamples);
+			//}
+		}
+
+	private:
+		LSTMModel* model = nullptr;
 	};
 }
 
