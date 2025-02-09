@@ -94,7 +94,7 @@ NeuralAudio::EModelLoadMode::RTNeural
 
 You can check which implementation was actually used to load the model with ```model->GetLoadMode()```.
 
-**NOTE:** Because of compile time and executable size considerations, only the dynamic RTNeural implementation is built by default. If you want to use RTNeural, it is recommended that you add ```-DBUILD_STATIC_RTNEURAL=ON``` to your cmake commandline. This will create static model implmentations for the same sets of WaveNet and LSTM models as the internal implmentation, and results in increased performance.
+**NOTE:** Because of compile time and executable size considerations, only the internal and dynamic RTNeural implementations are built by default. If you want to use RTNeural, it is recommended that you add ```-DBUILD_STATIC_RTNEURAL=ON``` to your cmake commandline. This will create static model implmentations for the same sets of WaveNet and LSTM models as the internal implmentation, and results in increased performance. If you want to use NAM Core, add ```DBUILD_NAMCORE=ON``` to your cmake commandline.
 
 # Building
 
@@ -122,7 +122,9 @@ Note - you'll have to change the Visual Studio version if you are using a differ
 
 ## CMake Options
 
-```-DBUILD_STATIC_RTNEURAL=ON```: Build static RTNeural model architectures (slower compile, larger size - only use if you plan on forcing RTNeural model loading)
+```-DBUILD_NAMCORE=ON```: Support loading models using the NAM Core implemenations.
+
+```-DBUILD_STATIC_RTNEURAL=ON```: Build static RTNeural model architectures (slower compile, larger size - only use if you plan on forcing RTNeural model loading).
 
 ```-DWAVENET_FRAMES=XXX```: Sample buffer size for the internal WaveNet implementation. Defaults to 64. If you know you are going to be using a fixed sample buffer smaller or larger than this, use that instead. Note that the model will still be able to process any buffer size - it is just optimized for this size.
 
