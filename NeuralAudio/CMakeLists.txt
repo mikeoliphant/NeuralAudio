@@ -11,6 +11,16 @@ else()
     message(STATUS "NOT Building static RTNeural models")
 endif()
 
+option(BUILD_NAMCORE "Build NAM Core" OFF)
+if(BUILD_NAMCORE)
+    message(STATUS "Building NAM Core implementation")
+    add_definitions(-DBUILD_NAMCORE)
+else()
+    message(STATUS "NOT Building NAM Core implementation")
+endif()
+
+
+
 set(WAVENET_FRAMES "64" CACHE STRING "WaveNet frame size")
 
 add_definitions(-DWAVENET_MAX_NUM_FRAMES=${WAVENET_FRAMES})
@@ -34,20 +44,16 @@ set(SOURCES
 	InternalModel.h
 	TemplateHelper.h)
 
-set(NAM_SOURCES	../deps/NeuralAmpModelerCore/NAM/activations.h
-	../deps/NeuralAmpModelerCore/NAM/activations.cpp
-	../deps/NeuralAmpModelerCore/NAM/version.h
-	../deps/NeuralAmpModelerCore/NAM/lstm.h
-	../deps/NeuralAmpModelerCore/NAM/lstm.cpp
-	../deps/NeuralAmpModelerCore/NAM/dsp.h
-	../deps/NeuralAmpModelerCore/NAM/dsp.cpp
-	../deps/NeuralAmpModelerCore/NAM/get_dsp.cpp
-	../deps/NeuralAmpModelerCore/NAM/util.cpp
-	../deps/NeuralAmpModelerCore/NAM/util.h
-	../deps/NeuralAmpModelerCore/NAM/wavenet.cpp
-	../deps/NeuralAmpModelerCore/NAM/wavenet.h
-	../deps/NeuralAmpModelerCore/NAM/convnet.cpp
-	../deps/NeuralAmpModelerCore/NAM/convnet.h)
+if(BUILD_NAMCORE)
+	set(NAM_SOURCES	../deps/NeuralAmpModelerCore/NAM/activations.h
+		../deps/NeuralAmpModelerCore/NAM/activations.cpp
+		../deps/NeuralAmpModelerCore/NAM/lstm.h
+		../deps/NeuralAmpModelerCore/NAM/lstm.cpp
+		../deps/NeuralAmpModelerCore/NAM/dsp.h
+		../deps/NeuralAmpModelerCore/NAM/dsp.cpp
+		../deps/NeuralAmpModelerCore/NAM/wavenet.cpp
+		../deps/NeuralAmpModelerCore/NAM/wavenet.h)
+endif()
 
 set(RTNEURAL_WN_SOURCES ../deps/RTNeural-NAM/wavenet/wavenet_layer.hpp
 	../deps/RTNeural-NAM/wavenet/wavenet_layer_array.hpp

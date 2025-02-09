@@ -1,6 +1,8 @@
 #include <list>
 #include "NeuralModel.h"
+#ifdef BUILD_NAMCORE
 #include "NAMModel.h"
+#endif
 #include "RTNeuralModel.h"
 #include "InternalModel.h"
 
@@ -8,8 +10,8 @@ namespace NeuralAudio
 {
 	static bool modelDefsAreLoaded;
 
-	static std::list<RTNeuralLSTMDefinitionBase*> lstmModelDefs;
-	static std::list<RTNeuralWaveNetDefinitionBase*> wavenetModelDefs;
+	static std::list<RTNeuralLSTMDefinitionBase*> rtNeuralLSTMModelDefs;
+	static std::list<RTNeuralWaveNetDefinitionBase*> rtNeuralWaveNetModelDefs;
 	static std::list<InternalWaveNetDefinitionBase*> internalWavenetModelDefs;
 	static std::list<InternalLSTMDefinitionBase*> internalLSTMModelDefs;
 
@@ -18,18 +20,18 @@ namespace NeuralAudio
 		if (!modelDefsAreLoaded)
 		{
 #ifdef BUILD_STATIC_RTNEURAL
-			lstmModelDefs.push_back(new RTNeuralLSTMDefinitionT<1, 8>);
-			lstmModelDefs.push_back(new RTNeuralLSTMDefinitionT<1, 12>);
-			lstmModelDefs.push_back(new RTNeuralLSTMDefinitionT<1, 16>);
-			lstmModelDefs.push_back(new RTNeuralLSTMDefinitionT<1, 24>);
-			lstmModelDefs.push_back(new RTNeuralLSTMDefinitionT<2, 8>);
-			lstmModelDefs.push_back(new RTNeuralLSTMDefinitionT<2, 12>);
-			lstmModelDefs.push_back(new RTNeuralLSTMDefinitionT<2, 16>);
+			rtNeuralLSTMModelDefs.push_back(new RTNeuralLSTMDefinitionT<1, 8>);
+			rtNeuralLSTMModelDefs.push_back(new RTNeuralLSTMDefinitionT<1, 12>);
+			rtNeuralLSTMModelDefs.push_back(new RTNeuralLSTMDefinitionT<1, 16>);
+			rtNeuralLSTMModelDefs.push_back(new RTNeuralLSTMDefinitionT<1, 24>);
+			rtNeuralLSTMModelDefs.push_back(new RTNeuralLSTMDefinitionT<2, 8>);
+			rtNeuralLSTMModelDefs.push_back(new RTNeuralLSTMDefinitionT<2, 12>);
+			rtNeuralLSTMModelDefs.push_back(new RTNeuralLSTMDefinitionT<2, 16>);
 
-			wavenetModelDefs.push_back(new RTNeuralWaveNetDefinitionT<16, 8>);	// Standard
-			wavenetModelDefs.push_back(new RTNeuralWaveNetDefinitionT<12, 6>);	// Lite
-			wavenetModelDefs.push_back(new RTNeuralWaveNetDefinitionT<8, 4>);	// Feather
-			wavenetModelDefs.push_back(new RTNeuralWaveNetDefinitionT<4, 2>);	// Nano
+			rtNeuralWaveNetModelDefs.push_back(new RTNeuralWaveNetDefinitionT<16, 8>);	// Standard
+			rtNeuralWaveNetModelDefs.push_back(new RTNeuralWaveNetDefinitionT<12, 6>);	// Lite
+			rtNeuralWaveNetModelDefs.push_back(new RTNeuralWaveNetDefinitionT<8, 4>);	// Feather
+			rtNeuralWaveNetModelDefs.push_back(new RTNeuralWaveNetDefinitionT<4, 2>);	// Nano
 #endif
 			internalWavenetModelDefs.push_back(new InternalWaveNetDefinitionT<16, 8>);	// Standard
 			internalWavenetModelDefs.push_back(new InternalWaveNetDefinitionT<12, 6>);	// Lite
@@ -48,9 +50,9 @@ namespace NeuralAudio
 		}
 	}
 
-	static RTNeuralLSTMDefinitionBase* FindLSTMDefinition(size_t numLayers, size_t hiddenSize)
+	static RTNeuralLSTMDefinitionBase* FindRTNeuralLSTMDefinition(size_t numLayers, size_t hiddenSize)
 	{
-		for (auto const& model : lstmModelDefs)
+		for (auto const& model : rtNeuralLSTMModelDefs)
 		{
 			if ((numLayers == model->GetNumLayers()) && (hiddenSize == model->GetHiddenSize()))
 				return model;
@@ -59,9 +61,9 @@ namespace NeuralAudio
 		return nullptr;
 	}
 
-	static RTNeuralWaveNetDefinitionBase* FindWaveNetDefinition(size_t numChannels, size_t headSize)
+	static RTNeuralWaveNetDefinitionBase* FindRTNeuralWaveNetDefinition(size_t numChannels, size_t headSize)
 	{
-		for (auto const& model : wavenetModelDefs)
+		for (auto const& model : rtNeuralWaveNetModelDefs)
 		{
 			if ((numChannels == model->GetNumChannels()) && (headSize == model->GetHeadSize()))
 				return model;
@@ -125,9 +127,20 @@ namespace NeuralAudio
 		{
 			std::string arch = modelJson["architecture"];
 
-			if (arch == "WaveNet") 
+#ifdef BUILD_NAMCORE
+			if (wavenetLoadMode == EModelLoadMode::NAMCore)
 			{
-				if (wavenetLoadMode != EModelLoadMode::NAMCore)
+				NAMModel* model = new NAMModel;
+
+				model->LoadFromJson(modelJson);
+
+				newModel = model;
+			}
+#endif
+
+			if (newModel == nullptr)
+			{
+				if (arch == "WaveNet")
 				{
 					nlohmann::json config = modelJson["config"];
 
@@ -157,9 +170,10 @@ namespace NeuralAudio
 
 							if (isOfficialArchitecture)
 							{
-								if (wavenetLoadMode == EModelLoadMode::Internal)
+#ifdef BUILD_STATIC_RTNEURAL
+								if (wavenetLoadMode == EModelLoadMode::RTNeural)
 								{
-									auto modelDef = FindInternalWaveNetDefinition(firstLayerConfig["channels"], firstLayerConfig["head_size"]);
+									auto modelDef = FindRTNeuralWaveNetDefinition(firstLayerConfig["channels"], firstLayerConfig["head_size"]);
 
 									if (modelDef != nullptr)
 									{
@@ -170,9 +184,11 @@ namespace NeuralAudio
 										newModel = model;
 									}
 								}
-								else
+#endif
+
+								if (newModel == nullptr)
 								{
-									auto modelDef = FindWaveNetDefinition(firstLayerConfig["channels"], firstLayerConfig["head_size"]);
+									auto modelDef = FindInternalWaveNetDefinition(firstLayerConfig["channels"], firstLayerConfig["head_size"]);
 
 									if (modelDef != nullptr)
 									{
@@ -198,14 +214,35 @@ namespace NeuralAudio
 						}
 					}
 				}
-			}
-			else if (arch == "LSTM")
-			{
-				if (lstmLoadMode != EModelLoadMode::NAMCore)
+				else if (arch == "LSTM")
 				{
 					nlohmann::json config = modelJson["config"];
 
-					if (lstmLoadMode == EModelLoadMode::Internal)
+#ifdef BUILD_STATIC_RTNEURAL
+					if (lstmLoadMode == EModelLoadMode::RTNeural)
+					{
+						auto modelDef = FindRTNeuralLSTMDefinition(config["num_layers"], config["hidden_size"]);
+
+						if (modelDef != nullptr)
+						{
+							RTNeuralModel* model = modelDef->CreateModel();
+							model->LoadFromNAMJson(modelJson);
+
+							newModel = model;
+						}
+
+						// If we didn't have a static model that matched, use RTNeural's dynamic model
+						if (newModel == nullptr)
+						{
+							RTNeuralModelDyn* model = new RTNeuralModelDyn;
+							model->LoadFromNAMJson(modelJson);
+
+							newModel = model;
+						}
+					}
+#endif
+
+					if (newModel == nullptr)
 					{
 						auto modelDef = FindInternalLSTMDefinition(config["num_layers"], config["hidden_size"]);
 
@@ -228,38 +265,7 @@ namespace NeuralAudio
 							}
 						}
 					}
-					else
-					{
-						auto modelDef = FindLSTMDefinition(config["num_layers"], config["hidden_size"]);
-
-						if (modelDef != nullptr)
-						{
-							RTNeuralModel* model = modelDef->CreateModel();
-							model->LoadFromNAMJson(modelJson);
-
-							newModel = model;
-						}
-
-						// If we didn't have a static model that matched, use RTNeural's dynamic model
-						if (newModel == nullptr)
-						{
-							RTNeuralModelDyn* model = new RTNeuralModelDyn;
-							model->LoadFromNAMJson(modelJson);
-
-							newModel = model;
-						}
-					}
 				}
-			}
-
-			// If we couldn't load the model using RTNeural, use NAM core
-			if (newModel == nullptr)
-			{
-				NAMModel* model = new NAMModel;
-
-				model->LoadFromJson(modelJson);
-
-				newModel = model;
 			}
 		}
 		else if ((modelPath.extension() == ".json") || (modelPath.extension() == ".aidax"))
@@ -271,7 +277,23 @@ namespace NeuralAudio
 
 			if (modelType == "lstm")
 			{
-				if (lstmLoadMode == EModelLoadMode::Internal)
+#ifdef BUILD_STATIC_RTNEURAL
+				if (lstmLoadMode == EModelLoadMode::RTNeural)
+				{
+					auto modelDef = FindRTNeuralLSTMDefinition(numLayers, hiddenSize);
+
+					if (modelDef != nullptr)
+					{
+						RTNeuralModel* model = modelDef->CreateModel();
+
+						model->LoadFromKerasJson(modelJson);
+
+						newModel = model;
+					}
+				}
+#endif
+
+				if (newModel == nullptr)
 				{
 					if (numLayers == 1)
 					{
@@ -297,20 +319,6 @@ namespace NeuralAudio
 						{
 							newModel = model;
 						}
-					}
-				}
-				
-				if (newModel == nullptr)
-				{
-					auto modelDef = FindLSTMDefinition(numLayers, hiddenSize);
-
-					if (modelDef != nullptr)
-					{
-						RTNeuralModel* model = modelDef->CreateModel();
-
-						model->LoadFromKerasJson(modelJson);
-
-						newModel = model;
 					}
 				}
 			}
