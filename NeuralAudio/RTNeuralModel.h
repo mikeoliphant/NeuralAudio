@@ -310,6 +310,15 @@ namespace NeuralAudio
 		ModelType* model = nullptr;
 	};
 
+	class RTNeuralModelDefinitionBase
+	{
+	public:
+		virtual RTNeuralModel* CreateModel()
+		{
+			return nullptr;
+		}
+	};
+
 	class RTNeuralLSTMDefinitionBase : public RTNeuralModelDefinitionBase
 	{
 	public:
@@ -318,12 +327,12 @@ namespace NeuralAudio
 			return nullptr;
 		}
 
-		virtual int GetNumLayers()
+		virtual size_t GetNumLayers()
 		{
 			return 0;
 		}
 
-		virtual int GetHiddenSize()
+		virtual size_t GetHiddenSize()
 		{
 			return 0;
 		}
@@ -338,12 +347,12 @@ namespace NeuralAudio
 			return new RTNeuralLSTMModelT<numLayers, hiddenSize>;
 		}
 
-		int GetNumLayers()
+		size_t GetNumLayers()
 		{
 			return numLayers;
 		}
 
-		int GetHiddenSize()
+		size_t GetHiddenSize()
 		{
 			return hiddenSize;
 		}
@@ -357,12 +366,12 @@ namespace NeuralAudio
 			return nullptr;
 		}
 
-		virtual int GetNumChannels()
+		virtual size_t GetNumChannels()
 		{
 			return 0;
 		}
 
-		virtual int GetHeadSize()
+		virtual size_t GetHeadSize()
 		{
 			return 0;
 		}
@@ -377,12 +386,12 @@ namespace NeuralAudio
 			return new RTNeuralWaveNetModelT<numChannels, headSize>;
 		}
 
-		virtual int GetNumChannels()
+		virtual size_t GetNumChannels()
 		{
 			return numChannels;
 		}
 
-		virtual int GetHeadSize()
+		virtual size_t GetHeadSize()
 		{
 			return headSize;
 		}
@@ -543,14 +552,5 @@ namespace NeuralAudio
 
 	private:
 		std::unique_ptr<RTNeural::Model<float>> model;
-	};
-
-	class RTNeuralModelDefinitionBase
-	{
-	public:
-		virtual RTNeuralModel* CreateModel()
-		{
-			return nullptr;
-		}
 	};
 }

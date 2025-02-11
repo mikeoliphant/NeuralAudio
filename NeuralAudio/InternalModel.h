@@ -287,7 +287,7 @@ namespace NeuralAudio
 		{
 			std::vector<float> vec;
 
-			for (auto i = 0; i < weights.size(); i++)
+			for (size_t i = 0; i < weights.size(); i++)
 			{
 				if (weights[i].is_array())
 				{
@@ -331,7 +331,7 @@ namespace NeuralAudio
 			lstmDef.HeadWeights = FlattenWeights(lastLayer["weights"][0]);
 			lstmDef.HeadBias = lastLayer["weights"][1][0];
 
-			for (int i = 0; i < (numLayers - 1); i++)
+			for (size_t i = 0; i < (numLayers - 1); i++)
 			{
 				auto layer = layers[i];
 
