@@ -69,7 +69,7 @@ namespace NeuralAudio
 					inputHiddenWeights(i, j) = *(it++);
 				}
 
-			assert(std::distance(def.InputWeights.begin(), it) == def.InputWeights.size());
+			assert(std::distance(def.InputWeights.begin(), it) == (long)def.InputWeights.size());
 
 			it = def.HiddenWeights.begin();
 
@@ -79,7 +79,7 @@ namespace NeuralAudio
 					inputHiddenWeights(i, j + inputSize) = *(it++);
 				}
 
-			assert(std::distance(def.HiddenWeights.begin(), it) == def.HiddenWeights.size());
+			assert(std::distance(def.HiddenWeights.begin(), it) == (long)def.HiddenWeights.size());
 
 			for (int i = 0; i < bias.rows(); i++)
 				bias[i] = def.BiasWeights[i];
@@ -107,8 +107,8 @@ namespace NeuralAudio
 	{
 	private:
 		int numLayers;
-		int hiddenSize;
 		int lastLayer;
+		int hiddenSize;
 		std::vector<LSTMLayer> layers;
 		Eigen::VectorXf headWeights;
 		float headBias;
@@ -142,7 +142,7 @@ namespace NeuralAudio
 
 			headBias = *(it++);
 
-			assert(std::distance(weights.begin(), it) == weights.size());
+			assert(std::distance(weights.begin(), it) == (long)weights.size());
 		}
 
 		void SetWeights(LSTMDef& def)

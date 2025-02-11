@@ -18,16 +18,16 @@ namespace NeuralAudio
 	class Conv1D
 	{
 	private:
-		int inChannels;
-		int outChannels;
-		int kernelSize;
-		int doBias;
-		int dilation;
+		size_t inChannels;
+		size_t outChannels;
+		size_t kernelSize;
+		bool doBias;
+		size_t dilation;
 		std::vector<Eigen::MatrixXf> weights;
 		Eigen::VectorXf bias;
 
 	public:
-		Conv1D(int inChannels, int outChannels, int kernelSize, bool doBias, int dilation) :
+		Conv1D(size_t inChannels, size_t outChannels, size_t kernelSize, bool doBias, size_t dilation) :
 			inChannels(inChannels),
 			outChannels(outChannels),
 			kernelSize(kernelSize),
@@ -50,14 +50,14 @@ namespace NeuralAudio
 		{
 			weights.resize(kernelSize);
 
-			for (auto i = 0; i < outChannels; i++)
-				for (auto j = 0; j < inChannels; j++)
+			for (size_t i = 0; i < outChannels; i++)
+				for (size_t j = 0; j < inChannels; j++)
 					for (size_t k = 0; k < kernelSize; k++)
 						weights[k](i, j) = *(inWeights++);
 
 			if (doBias)
 			{
-				for (long i = 0; i < outChannels; i++)
+				for (size_t i = 0; i < outChannels; i++)
 					bias(i) = *(inWeights++);
 			}
 		}
@@ -144,10 +144,10 @@ namespace NeuralAudio
 	class WaveNetLayer
 	{
 	private:
-		int conditionSize;
-		int channels;
-		int kernelSize;
-		int dilation;
+		size_t conditionSize;
+		size_t channels;
+		size_t kernelSize;
+		size_t dilation;
 		Conv1D conv1D;
 		DenseLayer inputMixin;
 		DenseLayer oneByOne;
@@ -158,7 +158,7 @@ namespace NeuralAudio
 		int ReceptiveFieldSize;
 		long bufferStart;
 
-		WaveNetLayer(int conditionSize, int channels, int kernelSize, int dilation) :
+		WaveNetLayer(size_t conditionSize, size_t channels, size_t kernelSize, size_t dilation) :
 			conditionSize(conditionSize),
 			channels(channels),
 			kernelSize(kernelSize),
@@ -197,6 +197,7 @@ namespace NeuralAudio
 
 		void SetMaxFrames(const long maxFrames)
 		{
+			(void)maxFrames;
 		}
 
 		void AdvanceFrames(const long numFrames)
@@ -247,21 +248,21 @@ namespace NeuralAudio
 	class WaveNetLayerArray
 	{
 	private:
-		int inputSize;
-		int conditionSize;
-		int headSize;
-		int channels;
-		int kernelSize;	
+		size_t inputSize;
+		size_t conditionSize;
+		size_t headSize;
+		size_t channels;
+		size_t kernelSize;
 		std::vector<WaveNetLayer> layers;
 		DenseLayer rechannel;
 		DenseLayer headRechannel;
-		int lastLayer;
+		size_t lastLayer;
 		Eigen::MatrixXf arrayOutputs;
 		Eigen::MatrixXf headOutputs;
 
 
 	public:
-		WaveNetLayerArray(int inputSize, int conditionSize, int headSize, int channels, int kernelSize, bool hasHeadBias, std::vector<int> dilations) :
+		WaveNetLayerArray(size_t inputSize, size_t conditionSize, size_t headSize, size_t channels, size_t kernelSize, bool hasHeadBias, std::vector<size_t> dilations) :
 			inputSize(inputSize),
 			conditionSize(conditionSize),
 			headSize(headSize),
@@ -329,7 +330,7 @@ namespace NeuralAudio
 		{
 			rechannel.Process(layerInputs,layers[0].GetLayerBuffer().middleCols(layers[0].bufferStart, numFrames));
 
-			for (auto layerIndex = 0; layerIndex < layers.size(); layerIndex++)
+			for (size_t layerIndex = 0; layerIndex < layers.size(); layerIndex++)
 			{
 				if (layerIndex == lastLayer)
 				{
@@ -349,10 +350,10 @@ namespace NeuralAudio
 	{
 	private:
 		std::vector<WaveNetLayerArray> layerArrays;
+		int lastLayerArray;
 		Eigen::MatrixXf headArray;
 		float headScale;
 		int maxFrames;
-		int lastLayerArray;
 
 	public:
 		WaveNetModel(std::vector<WaveNetLayerArray>& layerArrays) :
@@ -379,7 +380,7 @@ namespace NeuralAudio
 
 			headScale = *(it++);
 
-			assert(std::distance(weights.begin(), it) == weights.size());
+			assert(std::distance(weights.begin(), it) == (long)weights.size());
 		}
 
 		int GetMaxFrames()
@@ -406,7 +407,7 @@ namespace NeuralAudio
 
 			headArray.setZero();
 
-			for (auto layerArrayIndex = 0; layerArrayIndex < layerArrays.size(); layerArrayIndex++)
+			for (size_t layerArrayIndex = 0; layerArrayIndex < layerArrays.size(); layerArrayIndex++)
 			{
 				if (layerArrayIndex == 0)
 				{

@@ -2,7 +2,9 @@
 
 #include "NeuralModel.h"
 #include <RTNeural/RTNeural.h>
+#ifdef BUILD_STATIC_RTNEURAL
 #include "wavenet_model.hpp"
+#endif
 #include "TemplateHelper.h"
 
 namespace NeuralAudio
@@ -49,6 +51,8 @@ namespace NeuralAudio
 
 		virtual bool CreateModelFromKerasJson(nlohmann::json& modelJson)
 		{
+			(void)modelJson;
+
 			return false;
 		}
 
@@ -61,10 +65,13 @@ namespace NeuralAudio
 
 		virtual bool CreateModelFromNAMJson(nlohmann::json& modelJson)
 		{
+			(void)modelJson;
+
 			return false;
 		}
 	};
 
+#ifdef BUILD_STATIC_RTNEURAL
 	template <int numLayers, int hiddenSize>
 	class RTNeuralLSTMModelT : public RTNeuralModel
 	{
@@ -303,6 +310,85 @@ namespace NeuralAudio
 		ModelType* model = nullptr;
 	};
 
+	class RTNeuralLSTMDefinitionBase : public RTNeuralModelDefinitionBase
+	{
+	public:
+		virtual RTNeuralModel* CreateModel()
+		{
+			return nullptr;
+		}
+
+		virtual int GetNumLayers()
+		{
+			return 0;
+		}
+
+		virtual int GetHiddenSize()
+		{
+			return 0;
+		}
+	};
+
+	template <int numLayers, int hiddenSize>
+	class RTNeuralLSTMDefinitionT : public RTNeuralLSTMDefinitionBase
+	{
+	public:
+		RTNeuralModel* CreateModel()
+		{
+			return new RTNeuralLSTMModelT<numLayers, hiddenSize>;
+		}
+
+		int GetNumLayers()
+		{
+			return numLayers;
+		}
+
+		int GetHiddenSize()
+		{
+			return hiddenSize;
+		}
+	};
+
+	class RTNeuralWaveNetDefinitionBase : public RTNeuralModelDefinitionBase
+	{
+	public:
+		virtual RTNeuralModel* CreateModel()
+		{
+			return nullptr;
+		}
+
+		virtual int GetNumChannels()
+		{
+			return 0;
+		}
+
+		virtual int GetHeadSize()
+		{
+			return 0;
+		}
+	};
+
+	template <int numChannels, int headSize>
+	class RTNeuralWaveNetDefinitionT : public RTNeuralWaveNetDefinitionBase
+	{
+	public:
+		RTNeuralModel* CreateModel()
+		{
+			return new RTNeuralWaveNetModelT<numChannels, headSize>;
+		}
+
+		virtual int GetNumChannels()
+		{
+			return numChannels;
+		}
+
+		virtual int GetHeadSize()
+		{
+			return headSize;
+		}
+	};
+
+#endif
 
 	class RTNeuralModelDyn : public RTNeuralModel
 	{
@@ -336,21 +422,21 @@ namespace NeuralAudio
 
 			nlohmann::json config = modelJson["config"];
 
-			const int numLayers = config["num_layers"];
-			const int inputSize = config["input_size"];
-			const int hiddenSize = config["hidden_size"];
+			const size_t numLayers = config["num_layers"];
+			const size_t inputSize = config["input_size"];
+			const size_t hiddenSize = config["hidden_size"];
 
 			std::vector<float> weights = modelJson["weights"];
 
-			const int networkInputSize = inputSize;
-			const int networkOutputSize = inputSize;
-			const int gateSize = 4 * hiddenSize;
+			const size_t networkInputSize = inputSize;
+			const size_t networkOutputSize = inputSize;
+			const size_t gateSize = 4 * hiddenSize;
 
 			auto iter = weights.begin();
 
-			for (int layer = 0; layer < numLayers; layer++)
+			for (size_t layer = 0; layer < numLayers; layer++)
 			{
-				const int layerInputSize = (layer == 0) ? networkInputSize : hiddenSize;
+				const size_t layerInputSize = (layer == 0) ? networkInputSize : hiddenSize;
 
 				Eigen::MatrixXf inputPlusHidden = Eigen::Map<Eigen::MatrixXf>(&(*iter), layerInputSize + hiddenSize, gateSize);
 
@@ -465,85 +551,6 @@ namespace NeuralAudio
 		virtual RTNeuralModel* CreateModel()
 		{
 			return nullptr;
-		}
-	};
-
-
-	class RTNeuralLSTMDefinitionBase : public RTNeuralModelDefinitionBase
-	{
-	public:
-		virtual RTNeuralModel* CreateModel()
-		{
-			return nullptr;
-		}
-
-		virtual int GetNumLayers()
-		{
-			return 0;
-		}
-
-		virtual int GetHiddenSize()
-		{
-			return 0;
-		}
-	};
-
-	template <int numLayers, int hiddenSize>
-	class RTNeuralLSTMDefinitionT : public RTNeuralLSTMDefinitionBase
-	{
-	public:
-		RTNeuralModel* CreateModel()
-		{
-			return new RTNeuralLSTMModelT<numLayers, hiddenSize>;
-		}
-
-		int GetNumLayers()
-		{
-			return numLayers;
-		}
-
-		int GetHiddenSize()
-		{
-			return hiddenSize;
-		}
-	};
-
-	class RTNeuralWaveNetDefinitionBase : public RTNeuralModelDefinitionBase
-	{
-	public:
-		virtual RTNeuralModel* CreateModel()
-		{
-			return nullptr;
-		}
-
-		virtual int GetNumChannels()
-		{
-			return 0;
-		}
-
-		virtual int GetHeadSize()
-		{
-			return 0;
-		}
-	};
-
-	template <int numChannels, int headSize>
-	class RTNeuralWaveNetDefinitionT : public RTNeuralWaveNetDefinitionBase
-	{
-	public:
-		RTNeuralModel* CreateModel()
-		{
-			return new RTNeuralWaveNetModelT<numChannels, headSize>;
-		}
-
-		virtual int GetNumChannels()
-		{
-			return numChannels;
-		}
-
-		virtual int GetHeadSize()
-		{
-			return headSize;
 		}
 	};
 }

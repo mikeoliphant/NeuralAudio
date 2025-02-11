@@ -55,10 +55,12 @@ if(BUILD_NAMCORE)
 		../deps/NeuralAmpModelerCore/NAM/wavenet.h)
 endif()
 
+if(BUILD_STATIC_RTNEURAL)
 set(RTNEURAL_WN_SOURCES ../deps/RTNeural-NAM/wavenet/wavenet_layer.hpp
 	../deps/RTNeural-NAM/wavenet/wavenet_layer_array.hpp
 	../deps/RTNeural-NAM/wavenet/wavenet_model.hpp
 	../deps/RTNeural-NAM/wavenet/arena.hpp)
+endif()
 
 add_library(NeuralAudio STATIC ${SOURCES} ${NAM_SOURCES} ${RTNEURAL_WN_SOURCES})
 

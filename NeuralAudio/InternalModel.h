@@ -26,7 +26,9 @@ namespace NeuralAudio
 
 		virtual bool CreateModelFromKerasJson(nlohmann::json& modelJson)
 		{
-			return CreateModelFromKerasJson(modelJson);
+			(void)modelJson;
+
+			return false;
 		}
 
 		virtual bool LoadFromNAMJson(nlohmann::json& modelJson)
@@ -38,6 +40,8 @@ namespace NeuralAudio
 
 		virtual bool CreateModelFromNAMJson(nlohmann::json& modelJson)
 		{
+			(void)modelJson;
+
 			return false;
 		}
 	};
@@ -96,7 +100,7 @@ namespace NeuralAudio
 
 		void SetMaxAudioBufferSize(int maxSize)
 		{
-			model->SetMaxFrames(defaultMaxAudioBufferSize);
+			model->SetMaxFrames(maxSize);
 		}
 
 		void Process(float* input, float* output, int numSamples)
@@ -132,12 +136,12 @@ namespace NeuralAudio
 			return nullptr;
 		}
 
-		virtual int GetNumChannels()
+		virtual size_t GetNumChannels()
 		{
 			return 0;
 		}
 
-		virtual int GetHeadSize()
+		virtual size_t GetHeadSize()
 		{
 			return 0;
 		}
@@ -152,12 +156,12 @@ namespace NeuralAudio
 			return new InternalWaveNetModelT<numChannels, headSize>;
 		}
 
-		virtual int GetNumChannels()
+		virtual size_t GetNumChannels()
 		{
 			return numChannels;
 		}
 
-		virtual int GetHeadSize()
+		virtual size_t GetHeadSize()
 		{
 			return headSize;
 		}
@@ -209,7 +213,7 @@ namespace NeuralAudio
 
 		void SetMaxAudioBufferSize(int maxSize)
 		{
-			model->SetMaxFrames(defaultMaxAudioBufferSize);
+			model->SetMaxFrames(maxSize);
 		}
 
 		void Process(float* input, float* output, int numSamples)
@@ -350,7 +354,7 @@ namespace NeuralAudio
 
 		void SetMaxAudioBufferSize(int maxSize)
 		{
-			//model->prepare(maxSize);
+			(void)maxSize;
 		}
 
 		void Process(float* input, float* output, int numSamples)
@@ -376,12 +380,12 @@ namespace NeuralAudio
 			return nullptr;
 		}
 
-		virtual int GetNumLayers()
+		virtual size_t GetNumLayers()
 		{
 			return 0;
 		}
 
-		virtual int GetHiddenSize()
+		virtual size_t GetHiddenSize()
 		{
 			return 0;
 		}
@@ -396,12 +400,12 @@ namespace NeuralAudio
 			return new InternalLSTMModelT<NumLayers, HiddenSize>;
 		}
 
-		virtual int GetNumLayers()
+		virtual size_t GetNumLayers()
 		{
 			return NumLayers;
 		}
 
-		virtual int GetHiddenSize()
+		virtual size_t GetHiddenSize()
 		{
 			return HiddenSize;
 		}
@@ -447,7 +451,7 @@ namespace NeuralAudio
 		{
 			std::vector<float> vec;
 
-			for (auto i = 0; i < weights.size(); i++)
+			for (size_t i = 0; i < weights.size(); i++)
 			{
 				if (weights[i].is_array())
 				{
@@ -492,7 +496,7 @@ namespace NeuralAudio
 			lstmDef.HeadWeights = FlattenWeights(lastLayer["weights"][0]);
 			lstmDef.HeadBias = lastLayer["weights"][1][0];
 
-			for (int i = 0; i < (numLayers - 1); i++)
+			for (size_t i = 0; i < (numLayers - 1); i++)
 			{
 				auto layer = layers[i];
 
@@ -515,7 +519,7 @@ namespace NeuralAudio
 
 		void SetMaxAudioBufferSize(int maxSize)
 		{
-			//model->prepare(maxSize);
+			(void)maxSize;
 		}
 
 		void Process(float* input, float* output, int numSamples)

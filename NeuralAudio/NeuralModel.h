@@ -53,6 +53,7 @@ namespace NeuralAudio
 
 		virtual void SetMaxAudioBufferSize(int maxSize)
 		{
+			(void)maxSize;
 		}
 
 		virtual float GetRecommendedInputDBAdjustment()
@@ -72,6 +73,9 @@ namespace NeuralAudio
 
 		virtual void Process(float* input, float* output, int numSamples)
 		{
+			(void)input;
+			(void)output;
+			(void)numSamples;
 		}
 
 		virtual void Prewarm()

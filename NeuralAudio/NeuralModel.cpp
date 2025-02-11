@@ -10,8 +10,10 @@ namespace NeuralAudio
 {
 	static bool modelDefsAreLoaded;
 
+#ifdef BUILD_STATIC_RTNEURAL
 	static std::list<RTNeuralLSTMDefinitionBase*> rtNeuralLSTMModelDefs;
 	static std::list<RTNeuralWaveNetDefinitionBase*> rtNeuralWaveNetModelDefs;
+#endif
 	static std::list<InternalWaveNetDefinitionBase*> internalWavenetModelDefs;
 	static std::list<InternalLSTMDefinitionBase*> internalLSTMModelDefs;
 
@@ -50,6 +52,7 @@ namespace NeuralAudio
 		}
 	}
 
+#ifdef BUILD_STATIC_RTNEURAL
 	static RTNeuralLSTMDefinitionBase* FindRTNeuralLSTMDefinition(size_t numLayers, size_t hiddenSize)
 	{
 		for (auto const& model : rtNeuralLSTMModelDefs)
@@ -71,6 +74,7 @@ namespace NeuralAudio
 
 		return nullptr;
 	}
+#endif
 
 	static InternalWaveNetDefinitionBase* FindInternalWaveNetDefinition(size_t numChannels, size_t headSize)
 	{
@@ -103,7 +107,7 @@ namespace NeuralAudio
 		if (dilationJson.size() != checkDilations.size())
 			return false;
 
-		for (int i = 0; i < dilationJson.size(); i++)
+		for (size_t i = 0; i < dilationJson.size(); i++)
 		{
 			if (dilationJson[i] != checkDilations[i])
 				return false;

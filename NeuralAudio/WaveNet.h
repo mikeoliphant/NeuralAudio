@@ -145,6 +145,7 @@ namespace NeuralAudio
 
 		void SetMaxFrames(const long maxFrames)
 		{
+			(void)maxFrames;
 		}
 
 		void AdvanceFrames(const long numFrames)
@@ -317,7 +318,7 @@ namespace NeuralAudio
 
 			headScale = *(it++);
 
-			assert(std::distance(weights.begin(), it) == weights.size());
+			assert(std::distance(weights.begin(), it) == (long)weights.size());
 		}
 
 		int GetMaxFrames()
