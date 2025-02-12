@@ -71,7 +71,7 @@ namespace NeuralAudio
 			return sampleRate;
 		}
 
-		virtual void Process(float* input, float* output, int numSamples)
+		virtual void Process(float* input, float* output, size_t numSamples)
 		{
 			(void)input;
 			(void)output;
@@ -96,7 +96,7 @@ namespace NeuralAudio
 		inline static EModelLoadMode wavenetLoadMode = EModelLoadMode::Internal;
 		inline static int defaultMaxAudioBufferSize = 128;
 
-		void Prewarm(int numSamples, int blockSize)
+		void Prewarm(size_t numSamples, size_t blockSize)
 		{
 			std::vector<float> input;
 			input.resize(blockSize);
@@ -105,7 +105,7 @@ namespace NeuralAudio
 			std::vector<float> output;
 			output.resize(blockSize);
 
-			for (int block = 0; block < (numSamples / blockSize); block++)
+			for (size_t block = 0; block < (numSamples / blockSize); block++)
 			{
 				Process(input.data(), output.data(), blockSize);
 			}

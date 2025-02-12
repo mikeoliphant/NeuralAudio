@@ -479,7 +479,7 @@ namespace NeuralAudio
 
 			const auto layers = modelJson.at("layers");
 			const size_t numLayers = layers.size();
-			const int hiddenSize = layers.at(0).at("shape").back();
+			const size_t hiddenSize = layers.at(0).at("shape").back();
 
 			if (numLayers < 2)
 				return false;

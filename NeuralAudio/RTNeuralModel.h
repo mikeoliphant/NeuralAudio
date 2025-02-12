@@ -449,7 +449,7 @@ namespace NeuralAudio
 
 				Eigen::MatrixXf inputPlusHidden = Eigen::Map<Eigen::MatrixXf>(&(*iter), layerInputSize + hiddenSize, gateSize);
 
-				auto lstmLayer = new RTNeural::LSTMLayer<float>(layerInputSize, hiddenSize);
+				auto lstmLayer = new RTNeural::LSTMLayer<float>((int)layerInputSize, (int)hiddenSize);
 
 				model->addLayer(lstmLayer);
 
@@ -514,7 +514,7 @@ namespace NeuralAudio
 			}
 
 			// Dense layer weights
-			auto denseLayer = new RTNeural::Dense<float>(hiddenSize, networkOutputSize);
+			auto denseLayer = new RTNeural::Dense<float>((int)hiddenSize, (int)networkOutputSize);
 			model->addLayer(denseLayer);
 
 			std::vector<std::vector<float>> denseWeights;

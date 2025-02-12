@@ -62,11 +62,11 @@ namespace NeuralAudio
 			}
 		}
 
-		inline void Process(const Eigen::Ref<const Eigen::MatrixXf>& input, Eigen::Ref<Eigen::MatrixXf> output, const long iStart, const long nCols) const
+		inline void Process(const Eigen::Ref<const Eigen::MatrixXf>& input, Eigen::Ref<Eigen::MatrixXf> output, const size_t iStart, const size_t nCols) const
 		{
 			for (size_t k = 0; k < kernelSize; k++)
 			{
-				auto offset = dilation * ((int)k + 1 - kernelSize);
+				size_t offset = dilation * (k + 1 - kernelSize);
 
 				auto& inBlock = input.middleCols(iStart + offset, nCols);
 
@@ -84,14 +84,14 @@ namespace NeuralAudio
 	class DenseLayer
 	{
 	private:
-		int inSize;
-		int outSize;
+		size_t inSize;
+		size_t outSize;
 		bool doBias;
 		Eigen::MatrixXf weights;
 		Eigen::VectorXf bias;
 
 	public:
-		DenseLayer(int inSize, int outSize, bool doBias) :
+		DenseLayer(size_t inSize, size_t outSize, bool doBias) :
 			inSize(inSize),
 			outSize(outSize),
 			doBias(doBias),
@@ -155,8 +155,8 @@ namespace NeuralAudio
 		Eigen::MatrixXf layerBuffer;
 
 	public:
-		int ReceptiveFieldSize;
-		long bufferStart;
+		size_t ReceptiveFieldSize;
+		size_t bufferStart;
 
 		WaveNetLayer(size_t conditionSize, size_t channels, size_t kernelSize, size_t dilation) :
 			conditionSize(conditionSize),
@@ -177,9 +177,9 @@ namespace NeuralAudio
 			return layerBuffer;
 		}
 
-		void AllocBuffer(int allocNum)
+		void AllocBuffer(size_t allocNum)
 		{
-			long size = ReceptiveFieldSize + LAYER_ARRAY_BUFFER_SIZE;
+			size_t size = ReceptiveFieldSize + LAYER_ARRAY_BUFFER_SIZE;
 
 			layerBuffer.resize(channels, size);
 			layerBuffer.setZero();
@@ -195,29 +195,29 @@ namespace NeuralAudio
 			oneByOne.SetWeights(weights);
 		}
 
-		void SetMaxFrames(const long maxFrames)
+		void SetMaxFrames(const size_t maxFrames)
 		{
 			(void)maxFrames;
 		}
 
-		void AdvanceFrames(const long numFrames)
+		void AdvanceFrames(const size_t numFrames)
 		{
 			bufferStart += numFrames;
 
-			if ((bufferStart + WAVENET_MAX_NUM_FRAMES) > layerBuffer.cols())
+			if ((int)(bufferStart + WAVENET_MAX_NUM_FRAMES) > layerBuffer.cols())
 				RewindBuffer();
 		}
 
 		void RewindBuffer()
 		{
-			long start = ReceptiveFieldSize;
+			size_t start = ReceptiveFieldSize;
 
 			layerBuffer.middleCols(start - ReceptiveFieldSize, ReceptiveFieldSize) = layerBuffer.middleCols(bufferStart - ReceptiveFieldSize, ReceptiveFieldSize);
 
 			bufferStart = start;
 		}
 
-		void Process(const Eigen::Ref<const Eigen::MatrixXf>& condition, Eigen::Ref<Eigen::MatrixXf> headInput, Eigen::Ref<Eigen::MatrixXf> output, const long iStart, const long jStart, const int numFrames)
+		void Process(const Eigen::Ref<const Eigen::MatrixXf>& condition, Eigen::Ref<Eigen::MatrixXf> headInput, Eigen::Ref<Eigen::MatrixXf> output, const size_t iStart, const size_t jStart, const size_t numFrames)
 		{
 			auto block = state.leftCols(numFrames);
 
@@ -291,12 +291,12 @@ namespace NeuralAudio
 			return headOutputs;
 		}
 
-		int GetNumChannels()
+		size_t GetNumChannels()
 		{
 			return channels;
 		}
 
-		int AllocBuffers(int allocNum)
+		size_t AllocBuffers(size_t allocNum)
 		{
 			for (auto& layer : layers)
 			{
@@ -326,7 +326,7 @@ namespace NeuralAudio
 			headRechannel.SetWeights(weights);
 		}
 
-		void Process(const Eigen::MatrixXf& layerInputs, const Eigen::MatrixXf& condition, Eigen::Ref<Eigen::MatrixXf> headInputs, const int numFrames)
+		void Process(const Eigen::MatrixXf& layerInputs, const Eigen::MatrixXf& condition, Eigen::Ref<Eigen::MatrixXf> headInputs, const size_t numFrames)
 		{
 			rechannel.Process(layerInputs,layers[0].GetLayerBuffer().middleCols(layers[0].bufferStart, numFrames));
 
@@ -350,7 +350,7 @@ namespace NeuralAudio
 	{
 	private:
 		std::vector<WaveNetLayerArray> layerArrays;
-		int lastLayerArray;
+		size_t lastLayerArray;
 		Eigen::MatrixXf headArray;
 		float headScale;
 		int maxFrames;
@@ -361,7 +361,7 @@ namespace NeuralAudio
 			lastLayerArray(layerArrays.size() - 1),
 			headArray(layerArrays[0].GetNumChannels(), WAVENET_MAX_NUM_FRAMES)
 		{
-			int allocNum = 1;
+			size_t allocNum = 1;
 
 			for (auto& layerArray : this->layerArrays)
 			{
@@ -401,7 +401,7 @@ namespace NeuralAudio
 			}
 		}
 
-		void Process(const float* input, float* output, const int numFrames)
+		void Process(const float* input, float* output, const size_t numFrames)
 		{
 			auto condition = Eigen::Map<const Eigen::MatrixXf>(input, 1, numFrames);
 

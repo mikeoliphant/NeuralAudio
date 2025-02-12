@@ -160,9 +160,9 @@ namespace NeuralAudio
 				});
 		}
 
-		void Process(const float* input, float* output, const int numSamples)
+		void Process(const float* input, float* output, const size_t numSamples)
 		{
-			for (auto i = 0; i < numSamples; i++)
+			for (size_t i = 0; i < numSamples; i++)
 			{
 				firstLayer.Process(input + i);
 
