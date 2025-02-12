@@ -3,6 +3,7 @@
 project(NeuralAudio VERSION 0.0.1)
 
 add_subdirectory(NeuralAudio)
+add_subdirectory(NeuralAudioCAPI)
 
 option(BUILD_UTILS "Build NeuralAudio utils" OFF)
 if(BUILD_UTILS)
