@@ -100,7 +100,7 @@ namespace NeuralAudio
 		{
 			std::vector<float> input;
 			input.resize(blockSize);
-			std::fill(input.begin(), input.end(), 0);
+			std::fill(input.begin(), input.end(), 0.0f);
 
 			std::vector<float> output;
 			output.resize(blockSize);

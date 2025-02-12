@@ -79,7 +79,7 @@ static double ComputeError(NeuralAudio::NeuralModel* model1, NeuralAudio::Neural
 	{
 		for (int i = 0; i < blockSize; i++)
 		{
-			inData[i] = sin(pos++ * 0.01);
+			inData[i] = (float)sin(pos++ * 0.01);
 		}
 
 		model1->Process(inData.data(), outData.data(), blockSize);

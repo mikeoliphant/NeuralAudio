@@ -27,20 +27,20 @@ namespace NeuralAudio
 		{
 			weights.resize(KernelSize);
 
-			for (auto i = 0; i < OutChannels; i++)
-				for (auto j = 0; j < InChannels; j++)
+			for (size_t i = 0; i < OutChannels; i++)
+				for (size_t j = 0; j < InChannels; j++)
 					for (size_t k = 0; k < KernelSize; k++)
 						weights[k](i, j) = *(inWeights++);
 
 			if (DoBias)
 			{
-				for (long i = 0; i < OutChannels; i++)
+				for (size_t i = 0; i < OutChannels; i++)
 					bias(i) = *(inWeights++);
 			}
 		}
 
 		template<typename Derived, typename Derived2>
-		inline void Process(const Eigen::MatrixBase<Derived>& input, Eigen::MatrixBase<Derived2> const & output, const long iStart, const long nCols) const
+		inline void Process(const Eigen::MatrixBase<Derived>& input, Eigen::MatrixBase<Derived2> const & output, const size_t iStart, const size_t nCols) const
 		{
 			for (size_t k = 0; k < KernelSize; k++)
 			{
@@ -69,13 +69,13 @@ namespace NeuralAudio
 	public:
 		void SetWeights(std::vector<float>::iterator& inWeights)
 		{
-			for (auto i = 0; i < OutSize; i++)
-				for (auto j = 0; j < InSize; j++)
+			for (size_t i = 0; i < OutSize; i++)
+				for (size_t j = 0; j < InSize; j++)
 					weights(i, j) = *(inWeights++);
 
 			if constexpr (DoBias)
 			{
-				for (auto i = 0; i < OutSize; i++)
+				for (size_t i = 0; i < OutSize; i++)
 					bias(i) = *(inWeights++);
 			}
 		}
@@ -118,7 +118,7 @@ namespace NeuralAudio
 		static constexpr auto ReceptiveFieldSize = (KernelSize - 1) * Dilation;
 
 		Eigen::Matrix<float, Channels, -1> layerBuffer;
-		long bufferStart;
+		size_t bufferStart;
 
 		WaveNetLayerT()
 		{
@@ -143,16 +143,16 @@ namespace NeuralAudio
 			oneByOne.SetWeights(weights);
 		}
 
-		void SetMaxFrames(const long maxFrames)
+		void SetMaxFrames(const size_t maxFrames)
 		{
 			(void)maxFrames;
 		}
 
-		void AdvanceFrames(const long numFrames)
+		void AdvanceFrames(const size_t numFrames)
 		{
 			bufferStart += numFrames;
 
-			if ((bufferStart + WAVENET_MAX_NUM_FRAMES) > layerBuffer.cols())
+			if ((bufferStart + WAVENET_MAX_NUM_FRAMES) > (size_t)layerBuffer.cols())
 				RewindBuffer();
 		}
 
@@ -160,7 +160,7 @@ namespace NeuralAudio
 		{
 			//numRewinds++;
 
-			long start = ReceptiveFieldSize;
+			size_t start = ReceptiveFieldSize;
 
 			layerBuffer.middleCols(start - ReceptiveFieldSize, ReceptiveFieldSize) = layerBuffer.middleCols(bufferStart - ReceptiveFieldSize, ReceptiveFieldSize);
 
@@ -168,7 +168,7 @@ namespace NeuralAudio
 		}
 
 		template<typename Derived, typename Derived2, typename Derived3>
-		void Process(const Eigen::MatrixBase<Derived>& condition, Eigen::MatrixBase<Derived2> const& headInput, Eigen::MatrixBase<Derived3> const& output, const long iStart, const long jStart, const int numFrames)
+		void Process(const Eigen::MatrixBase<Derived>& condition, Eigen::MatrixBase<Derived2> const& headInput, Eigen::MatrixBase<Derived3> const& output, const size_t iStart, const size_t jStart, const size_t numFrames)
 		{
 			auto block = state.leftCols(numFrames);
 
@@ -179,9 +179,9 @@ namespace NeuralAudio
 			//block = block.array().tanh();
 
 			float* data = block.data();
-			auto size = block.rows() * block.cols();
+			size_t size = block.rows() * block.cols();
 
-			for (auto pos = 0; pos < size; pos++)
+			for (size_t pos = 0; pos < size; pos++)
 			{
 				data[pos] = FastTanh(data[pos]);
 			}
@@ -251,7 +251,7 @@ namespace NeuralAudio
 			return allocNum;
 		}
 
-		void SetMaxFrames(const long maxFrames)
+		void SetMaxFrames(const size_t maxFrames)
 		{
 			ForEachIndex<numLayers>([&](auto layerIndex)
 				{
@@ -272,7 +272,7 @@ namespace NeuralAudio
 		}
 
 		template<typename Derived, typename Derived2, typename Derived3>
-		void Process(const Eigen::MatrixBase<Derived>& layerInputs, const Eigen::MatrixBase<Derived2>& condition, Eigen::MatrixBase<Derived3> const& headInputs, const int numFrames)
+		void Process(const Eigen::MatrixBase<Derived>& layerInputs, const Eigen::MatrixBase<Derived2>& condition, Eigen::MatrixBase<Derived3> const& headInputs, const size_t numFrames)
 		{
 			rechannel.Process(layerInputs, std::get<0>(layers).layerBuffer.middleCols(std::get<0>(layers).bufferStart, numFrames));
 
@@ -321,12 +321,12 @@ namespace NeuralAudio
 			assert(std::distance(weights.begin(), it) == (long)weights.size());
 		}
 
-		int GetMaxFrames()
+		size_t GetMaxFrames()
 		{
 			return maxFrames;
 		}
 
-		void SetMaxFrames(const long maxFrames)
+		void SetMaxFrames(const size_t maxFrames)
 		{
 			this->maxFrames = maxFrames;
 
@@ -339,7 +339,7 @@ namespace NeuralAudio
 				});
 		}
 
-		void Process(const float* input, float* output, const int numFrames)
+		void Process(const float* input, float* output, const size_t numFrames)
 		{
 			//numRewinds = 0;
 
@@ -379,6 +379,6 @@ namespace NeuralAudio
 		std::tuple<LayerArrays...> layerArrays;
 		Eigen::Matrix<float, headLayerChannels, WAVENET_MAX_NUM_FRAMES> headArray;
 		float headScale;
-		int maxFrames;
+		size_t maxFrames;
 	};
 }

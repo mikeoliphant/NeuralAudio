@@ -215,9 +215,9 @@ namespace NeuralAudio
 			return true;
 		}
 
-		void Process(float* input, float* output, int numSamples)
+		void Process(float* input, float* output, size_t numSamples)
 		{
-			for (int i = 0; i < numSamples; i++)
+			for (size_t i = 0; i < numSamples; i++)
 				output[i] = model->forward(input + i);
 		}
 
@@ -225,7 +225,7 @@ namespace NeuralAudio
 		{
 			float sample = 0;
 
-			for (int i = 0; i < 2048; i++)
+			for (size_t i = 0; i < 2048; i++)
 				model->forward(&sample);
 		}
 
@@ -293,16 +293,16 @@ namespace NeuralAudio
 			model->prepare(maxSize);
 		}
 
-		void Process(float* input, float* output, int numSamples)
+		void Process(float* input, float* output, size_t numSamples)
 		{
-			model->forward(input, output, numSamples);
+			model->forward(input, output, (int)numSamples);
 		}
 
 		void Prewarm()
 		{
 			float sample = 0;
 
-			for (int i = 0; i < 2048; i++)
+			for (size_t i = 0; i < 2048; i++)
 				model->forward(sample);
 		}
 
@@ -536,9 +536,9 @@ namespace NeuralAudio
 			return true;
 		}
 
-		void Process(float* input, float* output, int numSamples)
+		void Process(float* input, float* output, size_t numSamples)
 		{
-			for (int i = 0; i < numSamples; i++)
+			for (size_t i = 0; i < numSamples; i++)
 				output[i] = model->forward(input + i);
 		}
 
@@ -546,7 +546,7 @@ namespace NeuralAudio
 		{
 			float sample = 0;
 
-			for (int i = 0; i < 2048; i++)
+			for (size_t i = 0; i < 2048; i++)
 				model->forward(&sample);
 		}
 

@@ -103,13 +103,13 @@ namespace NeuralAudio
 			model->SetMaxFrames(maxSize);
 		}
 
-		void Process(float* input, float* output, int numSamples)
+		void Process(float* input, float* output, size_t numSamples)
 		{
-			int offset = 0;
+			size_t offset = 0;
 
 			while (numSamples > 0)
 			{
-				int toProcess = std::min(numSamples, model->GetMaxFrames());
+				size_t toProcess = std::min(numSamples, model->GetMaxFrames());
 
 				model->Process(input + offset, output + offset, toProcess);
 
@@ -216,13 +216,13 @@ namespace NeuralAudio
 			model->SetMaxFrames(maxSize);
 		}
 
-		void Process(float* input, float* output, int numSamples)
+		void Process(float* input, float* output, size_t numSamples)
 		{
-			int offset = 0;
+			size_t offset = 0;
 
 			while (numSamples > 0)
 			{
-				int toProcess = std::min(numSamples, model->GetMaxFrames());
+				size_t toProcess = std::min(numSamples, model->GetMaxFrames());
 
 				model->Process(input + offset, output + offset, toProcess);
 
@@ -357,7 +357,7 @@ namespace NeuralAudio
 			(void)maxSize;
 		}
 
-		void Process(float* input, float* output, int numSamples)
+		void Process(float* input, float* output, size_t numSamples)
 		{
 			model->Process(input, output, numSamples);
 		}
@@ -522,7 +522,7 @@ namespace NeuralAudio
 			(void)maxSize;
 		}
 
-		void Process(float* input, float* output, int numSamples)
+		void Process(float* input, float* output, size_t numSamples)
 		{
 			model->Process(input, output, numSamples);
 		}

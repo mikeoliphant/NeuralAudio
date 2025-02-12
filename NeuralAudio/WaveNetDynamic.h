@@ -306,7 +306,7 @@ namespace NeuralAudio
 			return allocNum;
 		}
 
-		void SetMaxFrames(const long maxFrames)
+		void SetMaxFrames(const size_t maxFrames)
 		{
 			for (auto& layer : layers)
 			{
@@ -353,7 +353,7 @@ namespace NeuralAudio
 		size_t lastLayerArray;
 		Eigen::MatrixXf headArray;
 		float headScale;
-		int maxFrames;
+		size_t maxFrames;
 
 	public:
 		WaveNetModel(std::vector<WaveNetLayerArray>& layerArrays) :
@@ -383,12 +383,12 @@ namespace NeuralAudio
 			assert(std::distance(weights.begin(), it) == (long)weights.size());
 		}
 
-		int GetMaxFrames()
+		size_t GetMaxFrames()
 		{
 			return maxFrames;
 		}
 
-		void SetMaxFrames(const long maxFrames)
+		void SetMaxFrames(const size_t maxFrames)
 		{
 			this->maxFrames = maxFrames;
 

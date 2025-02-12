@@ -71,9 +71,9 @@ namespace NeuralAudio
 			return true;
 		}
 
-		void Process(float* input, float* output, int numSamples)
+		void Process(float* input, float* output, size_t numSamples)
 		{
-			namModel->process(input, output, numSamples);
+			namModel->process(input, output, (int)numSamples);
 		}
 
 		void Prewarm()
