@@ -1,6 +1,6 @@
 set(CMAKE_CXX_STANDARD 20)
 
-set(SOURCES NeuralAudioCAPI.h NeuralAudioCAPI.cpp)
+set(SOURCES NeuralAudioCApi.h NeuralAudioCApi.cpp)
 	
 add_library(NeuralAudioCAPI SHARED ${SOURCES})
 
