@@ -168,9 +168,9 @@ namespace NeuralAudio
 			{
 				layers[0].Process(input + i);
 
-				for (int i = 1; i < numLayers; i++)
+				for (size_t layer = 1; layer < numLayers; layer++)
 				{
-					layers[i].Process(layers[i - 1].GetHiddenState().data());
+					layers[layer].Process(layers[i - 1].GetHiddenState().data());
 				}
 
 				output[i] = headWeights.dot(layers[lastLayer].GetHiddenState()) + headBias;

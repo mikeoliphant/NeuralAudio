@@ -19,8 +19,6 @@ else()
     message(STATUS "NOT Building NAM Core implementation")
 endif()
 
-
-
 set(WAVENET_FRAMES "64" CACHE STRING "WaveNet frame size")
 
 add_definitions(-DWAVENET_MAX_NUM_FRAMES=${WAVENET_FRAMES})
@@ -65,12 +63,12 @@ endif()
 add_library(NeuralAudio STATIC ${SOURCES} ${NAM_SOURCES} ${RTNEURAL_WN_SOURCES})
 
 target_include_directories(NeuralAudio PUBLIC ..)
-target_include_directories(NeuralAudio PUBLIC ../deps/NeuralAmpModelerCore)
-target_include_directories(NeuralAudio PUBLIC ../deps/RTNeural)
-target_include_directories(NeuralAudio PUBLIC ../deps/math_approx)
-target_include_directories(NeuralAudio PUBLIC ../deps/RTNeural-NAM/wavenet)
-target_include_directories(NeuralAudio PUBLIC ../deps/RTNeural/modules/Eigen)
-target_include_directories(NeuralAudio PUBLIC ../deps/RTNeural/modules/json)
+target_include_directories(NeuralAudio SYSTEM PUBLIC ../deps/NeuralAmpModelerCore)
+target_include_directories(NeuralAudio SYSTEM PUBLIC ../deps/RTNeural)
+target_include_directories(NeuralAudio SYSTEM PUBLIC ../deps/math_approx)
+target_include_directories(NeuralAudio SYSTEM PUBLIC ../deps/RTNeural-NAM/wavenet)
+target_include_directories(NeuralAudio SYSTEM PUBLIC ../deps/RTNeural/modules/Eigen)
+target_include_directories(NeuralAudio SYSTEM PUBLIC ../deps/RTNeural/modules/json)
 
 set_property(TARGET NeuralAudio PROPERTY POSITION_INDEPENDENT_CODE ON)
 

@@ -326,9 +326,9 @@ namespace NeuralAudio
 			return maxFrames;
 		}
 
-		void SetMaxFrames(const size_t maxFrames)
+		void SetMaxFrames(const size_t frames)
 		{
-			this->maxFrames = maxFrames;
+			this->maxFrames = frames;
 
 			if (this->maxFrames > WAVENET_MAX_NUM_FRAMES)
 				this->maxFrames = WAVENET_MAX_NUM_FRAMES;
