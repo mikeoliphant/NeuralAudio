@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\..\..\Utils\Models\BossWN-standard.nam" Link="BossWN-standard.nam">
+    <None Include="..\..\Utils\Models\BossWN-standard.nam" Link="BossWN-standard.nam">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

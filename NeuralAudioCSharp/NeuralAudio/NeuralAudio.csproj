@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\..\..\build\NeuralAudioCAPI\Release\NeuralAudioCAPI.dll" Link="NeuralAudioCAPI.dll">
+    <None Include="..\..\build\NeuralAudioCAPI\Release\NeuralAudioCAPI.dll" Link="NeuralAudioCAPI.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
