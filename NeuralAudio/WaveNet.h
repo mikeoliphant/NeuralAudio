@@ -143,11 +143,6 @@ namespace NeuralAudio
 			oneByOne.SetWeights(weights);
 		}
 
-		void SetMaxFrames(const size_t maxFrames)
-		{
-			(void)maxFrames;
-		}
-
 		void AdvanceFrames(const size_t numFrames)
 		{
 			bufferStart += numFrames;
@@ -251,14 +246,6 @@ namespace NeuralAudio
 			return allocNum;
 		}
 
-		void SetMaxFrames(const size_t maxFrames)
-		{
-			ForEachIndex<numLayers>([&](auto layerIndex)
-				{
-					std::get<layerIndex>(layers).SetMaxFrames(maxFrames);
-				});
-		}
-
 		void SetWeights(std::vector<float>::iterator& weights)
 		{
 			rechannel.SetWeights(weights);
@@ -323,20 +310,7 @@ namespace NeuralAudio
 
 		size_t GetMaxFrames()
 		{
-			return maxFrames;
-		}
-
-		void SetMaxFrames(const size_t frames)
-		{
-			this->maxFrames = frames;
-
-			if (this->maxFrames > WAVENET_MAX_NUM_FRAMES)
-				this->maxFrames = WAVENET_MAX_NUM_FRAMES;
-
-			ForEachIndex<sizeof...(LayerArrays)>([&](auto layerIndex)
-				{
-					std::get<layerIndex>(layerArrays).SetMaxFrames(this->maxFrames);
-				});
+			return WAVENET_MAX_NUM_FRAMES;
 		}
 
 		void Process(const float* input, float* output, const size_t numFrames)
@@ -379,6 +353,5 @@ namespace NeuralAudio
 		std::tuple<LayerArrays...> layerArrays;
 		Eigen::Matrix<float, headLayerChannels, WAVENET_MAX_NUM_FRAMES> headArray;
 		float headScale;
-		size_t maxFrames;
 	};
 }
