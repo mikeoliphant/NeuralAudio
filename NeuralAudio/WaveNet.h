@@ -161,7 +161,14 @@ namespace NeuralAudio
 			//	bufferStart = size - offset;
 			//}
 
-			bufferStart = size - (WAVENET_MAX_NUM_FRAMES * (allocNum % LAYER_ARRAY_BUFFER_PADDING));	// Do the modulo to handle cases where LAYER_ARRAY_BUFFER_PADDING is not big enough to handle offset
+			if (LAYER_ARRAY_BUFFER_PADDING == 0)
+			{
+				bufferStart = ReceptiveFieldSize;
+			}
+			else
+			{
+				bufferStart = size - (WAVENET_MAX_NUM_FRAMES * (allocNum % LAYER_ARRAY_BUFFER_PADDING));	// Do the modulo to handle cases where LAYER_ARRAY_BUFFER_PADDING is not big enough to handle offset
+			}
 		}
 
 		void SetWeights(std::vector<float>::iterator& weights)
