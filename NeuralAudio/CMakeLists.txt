@@ -63,12 +63,12 @@ endif()
 add_library(NeuralAudio STATIC ${SOURCES} ${NAM_SOURCES} ${RTNEURAL_WN_SOURCES})
 
 target_include_directories(NeuralAudio PUBLIC ..)
-target_include_directories(NeuralAudio SYSTEM PUBLIC ../deps/NeuralAmpModelerCore)
-target_include_directories(NeuralAudio SYSTEM PUBLIC ../deps/RTNeural)
-target_include_directories(NeuralAudio SYSTEM PUBLIC ../deps/math_approx)
-target_include_directories(NeuralAudio SYSTEM PUBLIC ../deps/RTNeural-NAM/wavenet)
-target_include_directories(NeuralAudio SYSTEM PUBLIC ../deps/RTNeural/modules/Eigen)
-target_include_directories(NeuralAudio SYSTEM PUBLIC ../deps/RTNeural/modules/json)
+target_include_directories(NeuralAudio SYSTEM PRIVATE ../deps/NeuralAmpModelerCore)
+target_include_directories(NeuralAudio SYSTEM PRIVATE ../deps/RTNeural)
+target_include_directories(NeuralAudio SYSTEM PRIVATE ../deps/math_approx)
+target_include_directories(NeuralAudio SYSTEM PRIVATE ../deps/RTNeural-NAM/wavenet)
+target_include_directories(NeuralAudio SYSTEM PRIVATE ../deps/RTNeural/modules/Eigen)
+target_include_directories(NeuralAudio SYSTEM PRIVATE ../deps/RTNeural/modules/json)
 
 set_property(TARGET NeuralAudio PROPERTY POSITION_INDEPENDENT_CODE ON)
 
