@@ -12,7 +12,10 @@
 #ifndef WAVENET_MAX_NUM_FRAMES
 #define WAVENET_MAX_NUM_FRAMES 64
 #endif
-#define LAYER_ARRAY_BUFFER_SIZE 4096
+
+#ifndef LAYER_ARRAY_BUFFER_PADDING
+#define LAYER_ARRAY_BUFFER_PADDING 24
+#endif
 
 namespace NeuralAudio
 {
@@ -114,10 +117,23 @@ namespace NeuralAudio
 	template <int ConditionSize, int Channels, int KernelSize, int Dilation>
 	class WaveNetLayerT
 	{
+	private:
+		Conv1DT<Channels, Channels, KernelSize, true, Dilation> conv1D;
+		DenseLayerT<ConditionSize, Channels, false> inputMixin;
+		DenseLayerT<Channels, Channels, true> oneByOne;
+		Eigen::Matrix<float, Channels, WAVENET_MAX_NUM_FRAMES> state;
+
 	public:
 		static constexpr auto ReceptiveFieldSize = (KernelSize - 1) * Dilation;
+		static constexpr auto BufferSize = ReceptiveFieldSize + ((LAYER_ARRAY_BUFFER_PADDING + 1) * WAVENET_MAX_NUM_FRAMES);
+		static constexpr bool TooBigForStatic = ((Channels * BufferSize) * 4) > EIGEN_STACK_ALLOCATION_LIMIT;
 
-		Eigen::Matrix<float, Channels, -1> layerBuffer;
+		using LayerBufferType = typename std::conditional<TooBigForStatic,
+			Eigen::Matrix<float, Channels, -1>,
+			Eigen::Matrix<float, Channels, BufferSize>>::type;
+
+		LayerBufferType layerBuffer;
+		//Eigen::Matrix<float, Channels, -1> layerBuffer;
 		size_t bufferStart;
 
 		WaveNetLayerT()
@@ -127,13 +143,25 @@ namespace NeuralAudio
 
 		void AllocBuffer(int allocNum)
 		{
-			long size = ReceptiveFieldSize + LAYER_ARRAY_BUFFER_SIZE;
+			long size = BufferSize;
 
-			layerBuffer.resize(Channels, size);
+			if constexpr (TooBigForStatic)
+			{
+				layerBuffer.resize(Channels, size);
+			}
+
 			layerBuffer.setZero();
 
-			// offset prevents buffer rewinds of various layers from happening at the same time
-			bufferStart = size - (WAVENET_MAX_NUM_FRAMES * allocNum);
+			//if (offset > (size - (ReceptiveFieldSize + WAVENET_MAX_NUM_FRAMES)))
+			//{
+			//	bufferStart = ReceptiveFieldSize;
+			//}
+			//else
+			//{
+			//	bufferStart = size - offset;
+			//}
+
+			bufferStart = size - (WAVENET_MAX_NUM_FRAMES * (allocNum % LAYER_ARRAY_BUFFER_PADDING));	// Do the modulo to handle cases where LAYER_ARRAY_BUFFER_PADDING is not big enough to handle offset
 		}
 
 		void SetWeights(std::vector<float>::iterator& weights)
@@ -189,12 +217,6 @@ namespace NeuralAudio
 
 			AdvanceFrames(numFrames);
 		}
-
-	private:
-		Conv1DT<Channels, Channels, KernelSize, true, Dilation> conv1D;
-		DenseLayerT<ConditionSize, Channels, false> inputMixin;
-		DenseLayerT<Channels, Channels, true> oneByOne;
-		Eigen::Matrix<float, Channels, WAVENET_MAX_NUM_FRAMES> state;
 	};
 
 	template <int... values>

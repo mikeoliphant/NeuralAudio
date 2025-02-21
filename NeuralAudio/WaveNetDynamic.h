@@ -11,7 +11,9 @@
 #ifndef WAVENET_MAX_NUM_FRAMES
 #define WAVENET_MAX_NUM_FRAMES 64
 #endif
+#ifndef LAYER_ARRAY_BUFFER_SIZE
 #define LAYER_ARRAY_BUFFER_SIZE 4096
+#endif
 
 namespace NeuralAudio
 {
