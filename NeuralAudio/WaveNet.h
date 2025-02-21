@@ -145,7 +145,7 @@ namespace NeuralAudio
 		{
 			long size = BufferSize;
 
-			if constexpr (TooBigForStatic)
+			if constexpr(TooBigForStatic)
 			{
 				layerBuffer.resize(Channels, size);
 			}
@@ -161,7 +161,7 @@ namespace NeuralAudio
 			//	bufferStart = size - offset;
 			//}
 
-			if (LAYER_ARRAY_BUFFER_PADDING == 0)
+			if constexpr(LAYER_ARRAY_BUFFER_PADDING == 0)
 			{
 				bufferStart = ReceptiveFieldSize;
 			}
