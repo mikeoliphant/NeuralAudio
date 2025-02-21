@@ -128,7 +128,7 @@ Note - you'll have to change the Visual Studio version if you are using a differ
 
 ```-DWAVENET_FRAMES=XXX```: Sample buffer size for the internal WaveNet implementation. Defaults to **64**. If you know you are going to be using a fixed sample buffer smaller or larger than this, use that instead. Note that the model will still be able to process any buffer size - it is just optimized for this size.
 
-```-DBUFFER_PADDING=xxx```: Amount of padding to convolution layer buffers. This allows ring buffer resets to be staggered accross layers to improve performance. It also uses a significant amount of memory. It is set to **24** by default. It can be set all the way down to 0 to reduce memory usage.
+```-DBUFFER_PADDING=XXX```: Amount of padding to convolution layer buffers. This allows ring buffer resets to be staggered accross layers to improve performance. It also uses a significant amount of memory. It is set to **24** by default. It can be set all the way down to 0 to reduce memory usage.
 
 ```-DBUILD_UTILS=ON```: Build performance/accuracy testing tools (located in the "Utils" folder).
 
