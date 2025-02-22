@@ -40,7 +40,7 @@ namespace NeuralAudio
 			return EModelLoadMode::RTNeural;
 		}
 
-		bool LoadFromKerasJson(nlohmann::json& modelJson)
+		bool LoadFromKerasJson(const nlohmann::json& modelJson)
 		{
 			ReadKerasConfig(modelJson);
 
@@ -49,21 +49,21 @@ namespace NeuralAudio
 			return true;
 		}
 
-		virtual bool CreateModelFromKerasJson(nlohmann::json& modelJson)
+		virtual bool CreateModelFromKerasJson(const nlohmann::json& modelJson)
 		{
 			(void)modelJson;
 
 			return false;
 		}
 
-		virtual bool LoadFromNAMJson(nlohmann::json& modelJson)
+		virtual bool LoadFromNAMJson(const nlohmann::json& modelJson)
 		{
 			ReadNAMConfig(modelJson);
 
 			return CreateModelFromNAMJson(modelJson);
 		}
 
-		virtual bool CreateModelFromNAMJson(nlohmann::json& modelJson)
+		virtual bool CreateModelFromNAMJson(const nlohmann::json& modelJson)
 		{
 			(void)modelJson;
 
@@ -101,7 +101,7 @@ namespace NeuralAudio
 			return true;
 		}
 
-		bool CreateModelFromKerasJson(nlohmann::json& modelJson)
+		bool CreateModelFromKerasJson(const nlohmann::json& modelJson)
 		{
 			if (model != nullptr)
 			{
@@ -117,7 +117,7 @@ namespace NeuralAudio
 			return true;
 		}
 
-		bool CreateModelFromNAMJson(nlohmann::json& modelJson)
+		bool CreateModelFromNAMJson(const nlohmann::json& modelJson)
 		{
 			if (model != nullptr)
 			{
@@ -269,7 +269,7 @@ namespace NeuralAudio
 			return true;
 		}
 
-		bool CreateModelFromNAMJson(nlohmann::json& modelJson)
+		bool CreateModelFromNAMJson(const nlohmann::json& modelJson)
 		{
 			if (model != nullptr)
 			{
@@ -417,7 +417,7 @@ namespace NeuralAudio
 			return EModelLoadMode::RTNeural;
 		}
 
-		bool CreateModelFromKerasJson(nlohmann::json& modelJson)
+		bool CreateModelFromKerasJson(const nlohmann::json& modelJson)
 		{
 			model = RTNeural::json_parser::parseJson<float, FastMathsProvider>(modelJson, false);
 			model->reset();
@@ -425,7 +425,7 @@ namespace NeuralAudio
 			return true;
 		}
 
-		bool CreateModelFromNAMJson(nlohmann::json& modelJson)
+		bool CreateModelFromNAMJson(const nlohmann::json& modelJson)
 		{
 			model = std::make_unique<RTNeural::Model<float>>(1);
 

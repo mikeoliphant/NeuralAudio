@@ -83,8 +83,8 @@ namespace NeuralAudio
 		}
 
 	protected:
-		void ReadNAMConfig(nlohmann::json& modelJson);
-		void ReadKerasConfig(nlohmann::json& modelJson);
+		void ReadNAMConfig(const nlohmann::json& modelJson);
+		void ReadKerasConfig(const nlohmann::json& modelJson);
 
 		float modelInputLevelDBu = 12;
 		float modelOutputLevelDBu = 12;

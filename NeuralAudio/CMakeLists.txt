@@ -40,6 +40,8 @@ set(SOURCES
 	NeuralModel.cpp
 	NAMModel.h
 	RTNeuralModel.h
+	RTNeuralLoader.cpp
+	RTNeuralLoader.h
 	Activation.h
 	WaveNet.h
 	WaveNetDynamic.h
