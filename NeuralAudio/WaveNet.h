@@ -194,12 +194,20 @@ namespace NeuralAudio
 			bufferStart = start;
 		}
 
+		void CopyBuffer()
+		{
+			for (size_t offset = 1; offset < ReceptiveFieldSize + 1; offset++)
+			{
+				layerBuffer.col(bufferStart - offset) = layerBuffer.col(bufferStart);
+			}
+		}
+
 		template<typename Derived, typename Derived2, typename Derived3>
-		void Process(const Eigen::MatrixBase<Derived>& condition, Eigen::MatrixBase<Derived2> const& headInput, Eigen::MatrixBase<Derived3> const& output, const size_t iStart, const size_t jStart, const size_t numFrames)
+		void Process(const Eigen::MatrixBase<Derived>& condition, Eigen::MatrixBase<Derived2> const& headInput, Eigen::MatrixBase<Derived3> const& output, const size_t outputStart, const size_t numFrames)
 		{
 			auto block = state.leftCols(numFrames);
 
-			conv1D.Process(layerBuffer, block, iStart, numFrames);
+			conv1D.Process(layerBuffer, block, bufferStart, numFrames);
 
 			inputMixin.ProcessAcc(condition, block);
 
@@ -215,11 +223,9 @@ namespace NeuralAudio
 
 			const_cast<Eigen::MatrixBase<Derived2>&>(headInput).noalias() += block.topRows(Channels);
 
-			oneByOne.Process(block.topRows(Channels), const_cast<Eigen::MatrixBase<Derived3>&>(output).middleCols(jStart, numFrames));
+			oneByOne.Process(block.topRows(Channels), const_cast<Eigen::MatrixBase<Derived3>&>(output).middleCols(outputStart, numFrames));
 
-			const_cast<Eigen::MatrixBase<Derived3>&>(output).middleCols(jStart, numFrames).noalias() += layerBuffer.middleCols(iStart, numFrames);
-
-			AdvanceFrames(numFrames);
+			const_cast<Eigen::MatrixBase<Derived3>&>(output).middleCols(outputStart, numFrames).noalias() += layerBuffer.middleCols(bufferStart, numFrames);
 		}
 	};
 
@@ -285,6 +291,28 @@ namespace NeuralAudio
 		}
 
 		template<typename Derived, typename Derived2, typename Derived3>
+		void Prewarm(const Eigen::MatrixBase<Derived>& layerInputs, const Eigen::MatrixBase<Derived2>& condition, Eigen::MatrixBase<Derived3> const& headInputs)
+		{
+			rechannel.Process(layerInputs, std::get<0>(layers).layerBuffer.middleCols(std::get<0>(layers).bufferStart, 1));
+
+			ForEachIndex<numLayers>([&](auto layerIndex)
+				{
+					std::get<layerIndex>(layers).CopyBuffer();
+
+					if constexpr (layerIndex == lastLayer)
+					{
+						std::get<layerIndex>(layers).Process(condition, headInputs, arrayOutputs, 0, 1);
+					}
+					else
+					{
+						std::get<layerIndex>(layers).Process(condition, headInputs, std::get<layerIndex + 1>(layers).layerBuffer, std::get<layerIndex + 1>(layers).bufferStart, 1);
+					}
+				});
+
+			headRechannel.Process(headInputs, headOutputs.leftCols(1));
+		}
+
+		template<typename Derived, typename Derived2, typename Derived3>
 		void Process(const Eigen::MatrixBase<Derived>& layerInputs, const Eigen::MatrixBase<Derived2>& condition, Eigen::MatrixBase<Derived3> const& headInputs, const size_t numFrames)
 		{
 			rechannel.Process(layerInputs, std::get<0>(layers).layerBuffer.middleCols(std::get<0>(layers).bufferStart, numFrames));
@@ -293,12 +321,14 @@ namespace NeuralAudio
 				{
 					if constexpr (layerIndex == lastLayer)
 					{
-						std::get<layerIndex>(layers).Process(condition, headInputs, arrayOutputs, std::get<layerIndex>(layers).bufferStart, 0, numFrames);
+						std::get<layerIndex>(layers).Process(condition, headInputs, arrayOutputs, 0, numFrames);
 					}
 					else
 					{
-						std::get<layerIndex>(layers).Process(condition, headInputs,	std::get<layerIndex + 1>(layers).layerBuffer, std::get<layerIndex>(layers).bufferStart, std::get<layerIndex + 1>(layers).bufferStart, numFrames);
+						std::get<layerIndex>(layers).Process(condition, headInputs,	std::get<layerIndex + 1>(layers).layerBuffer, std::get<layerIndex + 1>(layers).bufferStart, numFrames);
 					}
+
+					std::get<layerIndex>(layers).AdvanceFrames(numFrames);
 				});
 
 			headRechannel.Process(headInputs, headOutputs.leftCols(numFrames));
@@ -337,6 +367,25 @@ namespace NeuralAudio
 		size_t GetMaxFrames()
 		{
 			return WAVENET_MAX_NUM_FRAMES;
+		}
+
+		void Prewarm()
+		{
+			float input = 0;
+
+			auto condition = Eigen::Map<const Eigen::Matrix<float, 1, -1>>(&input, 1, 1);
+
+			ForEachIndex<sizeof...(LayerArrays)>([&](auto layerIndex)
+				{
+					if constexpr (layerIndex == 0)
+					{
+						std::get<layerIndex>(layerArrays).Prewarm(condition, condition, headArray.leftCols(1));
+					}
+					else
+					{
+						std::get<layerIndex>(layerArrays).Prewarm(std::get<layerIndex - 1>(layerArrays).arrayOutputs.leftCols(1), condition, std::get<layerIndex - 1>(layerArrays).headOutputs.leftCols(1));
+					}
+				});
 		}
 
 		void Process(const float* input, float* output, const size_t numFrames)

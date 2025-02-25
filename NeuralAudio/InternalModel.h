@@ -119,7 +119,8 @@ namespace NeuralAudio
 
 		void Prewarm()
 		{
-			NeuralModel::Prewarm(4096, model->GetMaxFrames());
+			//NeuralModel::Prewarm(4096, model->GetMaxFrames());
+			model->Prewarm();
 		}
 
 	private:
