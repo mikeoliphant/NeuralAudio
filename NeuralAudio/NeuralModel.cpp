@@ -227,7 +227,7 @@ namespace NeuralAudio
 				}
 #endif
 
-				if (newModel == nullptr)
+				if (newModel == nullptr && lstmLoadMode == EModelLoadMode::Internal)
 				{
 					if (numLayers == 1)
 					{
