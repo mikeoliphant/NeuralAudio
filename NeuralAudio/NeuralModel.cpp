@@ -83,16 +83,21 @@ namespace NeuralAudio
 
 	NeuralModel* NeuralModel::CreateFromFile(std::filesystem::path modelPath)
 	{
-		EnsureModelDefsAreLoaded();
-
 		std::ifstream jsonStream(modelPath, std::ifstream::binary);
+
+		return CreateFromStream(jsonStream, modelPath.extension());
+	}
+
+	NeuralModel* NeuralModel::CreateFromStream(std::basic_istream<char>& jsonStream, std::filesystem::path extension)
+	{
+		EnsureModelDefsAreLoaded();
 
 		nlohmann::json modelJson;
 		jsonStream >> modelJson;
 
 		NeuralModel* newModel = nullptr;
 
-		if (modelPath.extension() == ".nam")
+		if (extension == ".nam")
 		{
 			std::string arch = modelJson["architecture"];
 
@@ -211,7 +216,7 @@ namespace NeuralAudio
 				}
 			}
 		}
-		else if ((modelPath.extension() == ".json") || (modelPath.extension() == ".aidax"))
+		else if ((extension == ".json") || (extension == ".aidax"))
 		{
 			const auto layers = modelJson.at("layers");
 			const size_t numLayers = layers.size() - 1;
