@@ -277,12 +277,12 @@ namespace NeuralAudio
 
 	void NeuralModel::ReadNAMConfig(const nlohmann::json& modelJson)
 	{
-		if (modelJson.contains("samplerate"))
+		if (modelJson.contains("samplerate") && modelJson["samplerate"].is_number_float())
 		{
 			sampleRate = modelJson["samplerate"];
 		}
 
-		if (modelJson.contains("sample_rate"))
+		if (modelJson.contains("sample_rate") && modelJson["sample_rate"].is_number_float())
 		{
 			sampleRate = modelJson["sample_rate"];
 		}
@@ -310,7 +310,7 @@ namespace NeuralAudio
 
 	void NeuralModel::ReadKerasConfig(const nlohmann::json& modelJson)
 	{
-		if (modelJson.contains("samplerate"))
+		if (modelJson.contains("samplerate") && modelJson["samplerate"].is_number_float())
 		{
 			sampleRate = modelJson["samplerate"];
 		}
