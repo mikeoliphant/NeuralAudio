@@ -1,6 +1,7 @@
 #pragma once
 
 #include <filesystem>
+#include <istream>
 #include "json.hpp"
 
 namespace NeuralAudio
@@ -16,6 +17,7 @@ namespace NeuralAudio
 	{
 	public:
 		static NeuralModel* CreateFromFile(std::filesystem::path modelPath);
+		static NeuralModel* CreateFromStream(std::basic_istream<char>& stream, std::filesystem::path extension);
 
 		virtual ~NeuralModel()
 		{
