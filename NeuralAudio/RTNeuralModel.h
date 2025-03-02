@@ -127,9 +127,9 @@ namespace NeuralAudio
 
 			model = new ModelType;
 
-			nlohmann::json config = modelJson["config"];
+			nlohmann::json config = modelJson.at("config");
 
-			std::vector<float> weights = modelJson["weights"];
+			std::vector<float> weights = modelJson.at("weights");
 
 			const int networkInputSize = 1;
 			const int networkOutputSize = 1;
@@ -279,7 +279,7 @@ namespace NeuralAudio
 
 			model = new ModelType;
 
-			nlohmann::json config = modelJson["config"];
+			nlohmann::json config = modelJson.at("config");
 
 			model->load_weights(modelJson);
 
@@ -429,13 +429,13 @@ namespace NeuralAudio
 		{
 			model = std::make_unique<RTNeural::Model<float>>(1);
 
-			nlohmann::json config = modelJson["config"];
+			nlohmann::json config = modelJson.at("config");
 
-			const size_t numLayers = config["num_layers"];
-			const size_t inputSize = config["input_size"];
-			const size_t hiddenSize = config["hidden_size"];
+			const size_t numLayers = config.at("num_layers");
+			const size_t inputSize = config.at("input_size");
+			const size_t hiddenSize = config.at("hidden_size");
 
-			std::vector<float> weights = modelJson["weights"];
+			std::vector<float> weights = modelJson.at("weights");
 
 			const size_t networkInputSize = inputSize;
 			const size_t networkOutputSize = inputSize;

@@ -89,9 +89,9 @@ namespace NeuralAudio
 
 			model = new ModelType;
 
-			nlohmann::json config = modelJson["config"];
+			nlohmann::json config = modelJson.at("config");
 
-			model->SetWeights(modelJson["weights"]);
+			model->SetWeights(modelJson.at("weights"));
 
 			SetMaxAudioBufferSize(defaultMaxAudioBufferSize);
 
@@ -189,21 +189,21 @@ namespace NeuralAudio
 
 		bool CreateModelFromNAMJson(const nlohmann::json& modelJson)
 		{
-			nlohmann::json config = modelJson["config"];
+			nlohmann::json config = modelJson.at("config");
 
 			std::vector<WaveNetLayerArray> layerArrays;
 
-			for (size_t i = 0; i < config["layers"].size(); i++)
+			for (size_t i = 0; i < config.at("layers").size(); i++)
 			{
-				nlohmann::json layerConfig = config["layers"][i];
+				nlohmann::json layerConfig = config.at("layers").at(i);
 
-				layerArrays.push_back(WaveNetLayerArray(layerConfig["input_size"], layerConfig["condition_size"], layerConfig["head_size"],
-					layerConfig["channels"], layerConfig["kernel_size"], layerConfig["head_bias"], layerConfig["dilations"]));
+				layerArrays.push_back(WaveNetLayerArray(layerConfig.at("input_size"), layerConfig.at("condition_size"), layerConfig.at("head_size"),
+					layerConfig.at("channels"), layerConfig.at("kernel_size"), layerConfig.at("head_bias"), layerConfig.at("dilations")));
 			}
 
 			model = new WaveNetModel(layerArrays);
 
-			model->SetWeights(modelJson["weights"]);
+			model->SetWeights(modelJson.at("weights"));
 
 			SetMaxAudioBufferSize(defaultMaxAudioBufferSize);
 
@@ -273,9 +273,9 @@ namespace NeuralAudio
 
 			model = new LSTMModelT<NumLayers, HiddenSize>;
 
-			nlohmann::json config = modelJson["config"];
+			nlohmann::json config = modelJson.at("config");
 
-			model->SetNAMWeights(modelJson["weights"]);
+			model->SetNAMWeights(modelJson.at("weights"));
 
 			SetMaxAudioBufferSize(defaultMaxAudioBufferSize);
 
@@ -312,7 +312,7 @@ namespace NeuralAudio
 
 			model = new LSTMModelT<NumLayers, HiddenSize>;
 
-			nlohmann::json config = modelJson["config"];
+			nlohmann::json config = modelJson.at("config");
 
 			const auto layers = modelJson.at("layers");
 			const size_t numLayers = layers.size();
@@ -322,26 +322,26 @@ namespace NeuralAudio
 
 			auto lastLayer = layers[numLayers - 1];
 
-			if (lastLayer["type"] != "dense")
+			if (lastLayer.at("type") != "dense")
 				return false;
 
 			LSTMDef lstmDef;
 
-			lstmDef.HeadWeights = FlattenWeights(lastLayer["weights"][0]);
-			lstmDef.HeadBias = lastLayer["weights"][1][0];
+			lstmDef.HeadWeights = FlattenWeights(lastLayer.at("weights").at(0));
+			lstmDef.HeadBias = lastLayer.at("weights").at(1).at(0);
 
 			for (size_t i = 0; i < (numLayers - 1); i++)
 			{
 				auto layer = layers[i];
 
-				if (layer["type"] != "lstm")
+				if (layer.at("type") != "lstm")
 					return false;
 
 				LSTMLayerDef layerDef;
 
-				layerDef.InputWeights = FlattenWeights(layer["weights"][0]);
-				layerDef.HiddenWeights = FlattenWeights(layer["weights"][1]);
-				layerDef.BiasWeights = FlattenWeights(layer["weights"][2]);
+				layerDef.InputWeights = FlattenWeights(layer.at("weights").at(0));
+				layerDef.HiddenWeights = FlattenWeights(layer.at("weights").at(1));
+				layerDef.BiasWeights = FlattenWeights(layer.at("weights").at(2));
 
 				lstmDef.Layers.push_back(layerDef);
 			}
@@ -435,11 +435,11 @@ namespace NeuralAudio
 				model = nullptr;
 			}
 
-			nlohmann::json config = modelJson["config"];
+			nlohmann::json config = modelJson.at("config");
 
-			model = new LSTMModel(config["num_layers"], config["hidden_size"]);
+			model = new LSTMModel(config.at("num_layers"), config.at("hidden_size"));
 
-			model->SetNAMWeights(modelJson["weights"]);
+			model->SetNAMWeights(modelJson.at("weights"));
 
 			SetMaxAudioBufferSize(defaultMaxAudioBufferSize);
 
@@ -474,7 +474,7 @@ namespace NeuralAudio
 				model = nullptr;
 			}
 
-			nlohmann::json config = modelJson["config"];
+			nlohmann::json config = modelJson.at("config");
 
 			const auto layers = modelJson.at("layers");
 			const size_t numLayers = layers.size();
@@ -485,28 +485,28 @@ namespace NeuralAudio
 
 			auto lastLayer = layers[numLayers - 1];
 
-			if (lastLayer["type"] != "dense")
+			if (lastLayer.at("type") != "dense")
 				return false;
 
 			model = new LSTMModel(numLayers, hiddenSize);
 
 			LSTMDef lstmDef;
 
-			lstmDef.HeadWeights = FlattenWeights(lastLayer["weights"][0]);
-			lstmDef.HeadBias = lastLayer["weights"][1][0];
+			lstmDef.HeadWeights = FlattenWeights(lastLayer.at("weights").at(0));
+			lstmDef.HeadBias = lastLayer.at("weights").at(1).at(0);
 
 			for (size_t i = 0; i < (numLayers - 1); i++)
 			{
 				auto layer = layers[i];
 
-				if (layer["type"] != "lstm")
+				if (layer.at("type") != "lstm")
 					return false;
 
 				LSTMLayerDef layerDef;
 
-				layerDef.InputWeights = FlattenWeights(layer["weights"][0]);
-				layerDef.HiddenWeights = FlattenWeights(layer["weights"][1]);
-				layerDef.BiasWeights = FlattenWeights(layer["weights"][2]);
+				layerDef.InputWeights = FlattenWeights(layer.at("weights").at(0));
+				layerDef.HiddenWeights = FlattenWeights(layer.at("weights").at(1));
+				layerDef.BiasWeights = FlattenWeights(layer.at("weights").at(2));
 
 				lstmDef.Layers.push_back(layerDef);
 			}

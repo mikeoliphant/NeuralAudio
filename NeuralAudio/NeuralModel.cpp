@@ -99,7 +99,7 @@ namespace NeuralAudio
 
 		if (extension == ".nam")
 		{
-			std::string arch = modelJson["architecture"];
+			std::string arch = modelJson.at("architecture");
 
 #ifdef BUILD_NAMCORE
 			if (wavenetLoadMode == EModelLoadMode::NAMCore)
@@ -116,27 +116,27 @@ namespace NeuralAudio
 			{
 				if (arch == "WaveNet")
 				{
-					nlohmann::json config = modelJson["config"];
+					nlohmann::json config = modelJson.at("config");
 
-					if (config["layers"].size() == 2)
+					if (config.at("layers").size() == 2)
 					{
-						nlohmann::json firstLayerConfig = config["layers"][0];
-						nlohmann::json secondLayerConfig = config["layers"][1];
+						nlohmann::json firstLayerConfig = config.at("layers").at(0);
+						nlohmann::json secondLayerConfig = config.at("layers").at(1);
 
-						if (!firstLayerConfig["gated"] && !secondLayerConfig["gated"] && !firstLayerConfig["head_bias"] && secondLayerConfig["head_bias"])
+						if (!firstLayerConfig.at("gated") && !secondLayerConfig.at("gated") && !firstLayerConfig.at("head_bias") && secondLayerConfig.at("head_bias"))
 						{
 							bool isOfficialArchitecture = false;
 
-							if (firstLayerConfig["channels"] == 16)
+							if (firstLayerConfig.at("channels") == 16)
 							{
-								if (CheckDilations(firstLayerConfig["dilations"], stdDilations) && CheckDilations(secondLayerConfig["dilations"], stdDilations))
+								if (CheckDilations(firstLayerConfig.at("dilations"), stdDilations) && CheckDilations(secondLayerConfig.at("dilations"), stdDilations))
 								{
 									isOfficialArchitecture = true;
 								}
 							}
 							else
 							{
-								if (CheckDilations(firstLayerConfig["dilations"], liteDilations) && CheckDilations(secondLayerConfig["dilations"], liteDilations2))
+								if (CheckDilations(firstLayerConfig.at("dilations"), liteDilations) && CheckDilations(secondLayerConfig.at("dilations"), liteDilations2))
 								{
 									isOfficialArchitecture = true;
 								}
@@ -153,7 +153,7 @@ namespace NeuralAudio
 
 								if (newModel == nullptr)
 								{
-									auto modelDef = FindInternalWaveNetDefinition(firstLayerConfig["channels"], firstLayerConfig["head_size"]);
+									auto modelDef = FindInternalWaveNetDefinition(firstLayerConfig.at("channels"), firstLayerConfig.at("head_size"));
 
 									if (modelDef != nullptr)
 									{
@@ -181,7 +181,7 @@ namespace NeuralAudio
 				}
 				else if (arch == "LSTM")
 				{
-					nlohmann::json config = modelJson["config"];
+					nlohmann::json config = modelJson.at("config");
 
 #ifdef BUILD_STATIC_RTNEURAL
 					if (lstmLoadMode == EModelLoadMode::RTNeural)
@@ -192,7 +192,7 @@ namespace NeuralAudio
 
 					if (newModel == nullptr)
 					{
-						auto modelDef = FindInternalLSTMDefinition(config["num_layers"], config["hidden_size"]);
+						auto modelDef = FindInternalLSTMDefinition(config.at("num_layers"), config.at("hidden_size"));
 
 						if (modelDef != nullptr)
 						{
@@ -282,52 +282,52 @@ namespace NeuralAudio
 
 	void NeuralModel::ReadNAMConfig(const nlohmann::json& modelJson)
 	{
-		if (modelJson.contains("samplerate") && modelJson["samplerate"].is_number_float())
+		if (modelJson.contains("samplerate") && modelJson.at("samplerate").is_number_float())
 		{
-			sampleRate = modelJson["samplerate"];
+			sampleRate = modelJson.at("samplerate");
 		}
 
-		if (modelJson.contains("sample_rate") && modelJson["sample_rate"].is_number_float())
+		if (modelJson.contains("sample_rate") && modelJson.at("sample_rate").is_number_float())
 		{
-			sampleRate = modelJson["sample_rate"];
+			sampleRate = modelJson.at("sample_rate");
 		}
 
 		if (modelJson.contains("metadata"))
 		{
-			nlohmann::json metaData = modelJson["metadata"];
+			nlohmann::json metaData = modelJson.at("metadata");
 
-			if (metaData.contains("loudness") && metaData["loudness"].is_number_float())
+			if (metaData.contains("loudness") && metaData.at("loudness").is_number_float())
 			{
-				modelLoudnessDB = (float)metaData["loudness"];
+				modelLoudnessDB = (float)metaData.at("loudness");
 			}
 
-			if (metaData.contains("input_level_dbu") && metaData["input_level_dbu"].is_number_float())
+			if (metaData.contains("input_level_dbu") && metaData.at("input_level_dbu").is_number_float())
 			{
-				modelInputLevelDBu = metaData["input_level_dbu"];
+				modelInputLevelDBu = metaData.at("input_level_dbu");
 			}
 
-			if (metaData.contains("output_level_dbu") && metaData["output_level_dbu"].is_number_float())
+			if (metaData.contains("output_level_dbu") && metaData.at("output_level_dbu").is_number_float())
 			{
-				modelOutputLevelDBu = metaData["output_level_dbu"];
+				modelOutputLevelDBu = metaData.at("output_level_dbu");
 			}
 		}
 	}
 
 	void NeuralModel::ReadKerasConfig(const nlohmann::json& modelJson)
 	{
-		if (modelJson.contains("samplerate") && modelJson["samplerate"].is_number_float())
+		if (modelJson.contains("samplerate") && modelJson.at("samplerate").is_number_float())
 		{
-			sampleRate = modelJson["samplerate"];
+			sampleRate = modelJson.at("samplerate");
 		}
 
-		if (modelJson.contains("in_gain") && modelJson["in_gain"].is_number_float())
+		if (modelJson.contains("in_gain") && modelJson.at("in_gain").is_number_float())
 		{
-			modelInputLevelDBu = modelJson["in_gain"];
+			modelInputLevelDBu = modelJson.at("in_gain");
 		}
 
-		if (modelJson.contains("out_gain") && modelJson["out_gain"].is_number_float())
+		if (modelJson.contains("out_gain") && modelJson.at("out_gain").is_number_float())
 		{
-			modelLoudnessDB = -18 - (float)modelJson["out_gain"];
+			modelLoudnessDB = -18 - (float)modelJson.at("out_gain");
 		}
 	}
 }

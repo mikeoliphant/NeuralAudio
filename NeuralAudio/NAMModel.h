@@ -34,36 +34,36 @@ namespace NeuralAudio
 
 			ReadNAMConfig(modelJson);
 
-			std::string arch = modelJson["architecture"];
+			std::string arch = modelJson.at("architecture");
 
-			nlohmann::json config = modelJson["config"];
+			nlohmann::json config = modelJson.at("config");
 
-			std::vector<float> weights = modelJson["weights"];
+			std::vector<float> weights = modelJson.at("weights");
 
 			if (arch == "WaveNet")
 			{
 				std::vector<nam::wavenet::LayerArrayParams> layer_array_params;
 
-				for (size_t i = 0; i < config["layers"].size(); i++)
+				for (size_t i = 0; i < config.at("layers").size(); i++)
 				{
-					nlohmann::json layer_config = config["layers"][i];
+					nlohmann::json layerConfig = config.at("layers").at(i);
 
 					layer_array_params.push_back(
-						nam::wavenet::LayerArrayParams(layer_config["input_size"], layer_config["condition_size"], layer_config["head_size"],
-							layer_config["channels"], layer_config["kernel_size"], layer_config["dilations"],
-							layer_config["activation"], layer_config["gated"], layer_config["head_bias"]));
+						nam::wavenet::LayerArrayParams(layerConfig.at("input_size"), layerConfig.at("condition_size"), layerConfig.at("head_size"),
+							layerConfig.at("channels"), layerConfig.at("kernel_size"), layerConfig.at("dilations"),
+							layerConfig.at("activation"), layerConfig.at("gated"), layerConfig.at("head_bias")));
 				}
 
-				const bool with_head = !config["head"].is_null();
-				const float head_scale = config["head_scale"];
+				const bool with_head = !config.at("head").is_null();
+				const float head_scale = config.at("head_scale");
 
 				namModel = std::make_unique<nam::wavenet::WaveNet>(layer_array_params, head_scale, with_head, weights, sampleRate);
 			}
 			else if (arch == "LSTM")
 			{
-				const int num_layers = config["num_layers"];
-				const int input_size = config["input_size"];
-				const int hidden_size = config["hidden_size"];
+				const int num_layers = config.at("num_layers");
+				const int input_size = config.at("input_size");
+				const int hidden_size = config.at("hidden_size");
 
 				namModel = std::make_unique<nam::lstm::LSTM>(num_layers, input_size, hidden_size, weights, sampleRate);
 			}

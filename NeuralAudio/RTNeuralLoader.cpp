@@ -47,12 +47,12 @@ namespace NeuralAudio
 
 		NeuralModel* RTNeuralLoadNAMWaveNet(const nlohmann::json& modelJson)
 		{
-			nlohmann::json config = modelJson["config"];
+			nlohmann::json config = modelJson.at("config");
 
-			nlohmann::json firstLayerConfig = config["layers"][0];
-			nlohmann::json secondLayerConfig = config["layers"][1];
+			nlohmann::json firstLayerConfig = config.at("layers").at(0);
+			nlohmann::json secondLayerConfig = config.at("layers").at(1);
 			
-			auto modelDef = FindRTNeuralWaveNetDefinition(firstLayerConfig["channels"], firstLayerConfig["head_size"]);
+			auto modelDef = FindRTNeuralWaveNetDefinition(firstLayerConfig.at("channels"), firstLayerConfig.at("head_size"));
 
 			if (modelDef != nullptr)
 			{
@@ -68,9 +68,9 @@ namespace NeuralAudio
 
 		NeuralModel* RTNeuralLoadNAMLSTM(const nlohmann::json& modelJson)
 		{
-			nlohmann::json config = modelJson["config"];
+			nlohmann::json config = modelJson.at("config");
 
-			auto modelDef = FindRTNeuralLSTMDefinition(config["num_layers"], config["hidden_size"]);
+			auto modelDef = FindRTNeuralLSTMDefinition(config.at("num_layers"), config.at("hidden_size"));
 
 			if (modelDef != nullptr)
 			{
