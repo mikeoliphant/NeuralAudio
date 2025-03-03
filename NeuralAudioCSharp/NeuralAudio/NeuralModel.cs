@@ -14,17 +14,17 @@ namespace NeuralAudio
 
         IntPtr nativeModel;
 
-        static void SetLSTMModelLoadMode(EModelLoadMode mode)
+        public static void SetLSTMModelLoadMode(EModelLoadMode mode)
         {
             NativeApi.SetLSTMLoadMode((int)mode);
         }
 
-        static void SetWaveNetModelLoadMode(EModelLoadMode mode)
+        public static void SetWaveNetModelLoadMode(EModelLoadMode mode)
         {
             NativeApi.SetWaveNetLoadMode((int)mode);
         }
-        
-        static void SetDefaultMaxAudioBufferSize(int bufferSize)
+
+        public static void SetDefaultMaxAudioBufferSize(int bufferSize)
         {
             NativeApi.SetDefaultMaxAudioBufferSize(bufferSize);
         }

@@ -6,6 +6,8 @@
     {
         static void Main(string[] args)
         {
+            NeuralModel.SetWaveNetModelLoadMode(NeuralModel.EModelLoadMode.Internal);
+
             NeuralModel model = NeuralModel.FromFile("BossWN-standard.nam");
 
             var input = new float[1024];
