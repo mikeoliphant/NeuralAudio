@@ -15,7 +15,7 @@ By default, NeuralAudio uses its own implementation of WaveNet and LSTM network 
 
 It can also load models using the [NAM Core implementation](https://github.com/sdatkinson/NeuralAmpModelerCore) and [RTNeural](https://github.com/jatinchowdhury18/RTNeural).
 
-The internal NeuralAudio implmentation currently outperforms the other implementations on all tested platforms (Windows x64, Linux x64/Arm64).
+The internal NeuralAudio implmentation currently outperforms the other implementations on all tested platforms (Windows x64, Linux x64/Arm64). It also uses significantly less memory than the NAM Core WaveNet implementation (which, for example, uses about 10x as much memory for a "standard" WaveNet model).
 
 For WaveNet, the internal implmeentation supports optimized static models of the offical NAM network architectures:  "Standard", "Lite", "Feather", "Nano".
 
