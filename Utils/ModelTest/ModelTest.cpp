@@ -96,14 +96,13 @@ static double ComputeError(NeuralAudio::NeuralModel* model1, NeuralAudio::Neural
 	return sqrt(totErr / (double)(blockSize * numBlocks));
 }
 
-void RunNAMTests(std::filesystem::path modelPath)
+void RunNAMTests(std::filesystem::path modelPath, int blockSize)
 {
 	std::cout << "Model: " << modelPath << std::endl;
 	std::cout << std::endl;
 
 	int dataSize = 4096 * 64;
 
-	int blockSize = 64;
 	int numBlocks = dataSize / blockSize;
 
 	NeuralAudio::NeuralModel::SetDefaultMaxAudioBufferSize(blockSize);
@@ -132,13 +131,12 @@ void RunNAMTests(std::filesystem::path modelPath)
 	std::cout << std::endl;
 }
 
-void RunKerasTests(std::filesystem::path modelPath)
+void RunKerasTests(std::filesystem::path modelPath, int blockSize)
 {
 	std::cout << "Model: " << modelPath << std::endl;
 
 	int dataSize = 4096 * 64;
 
-	int blockSize = 64;
 	int numBlocks = dataSize / blockSize;
 
 	NeuralAudio::NeuralModel::SetDefaultMaxAudioBufferSize(blockSize);
@@ -160,7 +158,7 @@ void RunKerasTests(std::filesystem::path modelPath)
 	std::cout << std::endl;
 }
 
-int RunDefaultTests()
+int RunDefaultTests(int blockSize)
 {
 	std::filesystem::path modelPath = std::filesystem::current_path();
 
@@ -182,32 +180,52 @@ int RunDefaultTests()
 	std::cout << "Loading models from: " << modelPath << std::endl;
 
 	std::cout << "WaveNet (Standard) Test" << std::endl;
-	RunNAMTests(modelPath / "BossWN-standard.nam");
+	RunNAMTests(modelPath / "BossWN-standard.nam", blockSize);
 
 	std::cout << "LSTM (1x16) Test" << std::endl;
-	RunNAMTests(modelPath / "BossLSTM-1x16.nam");
+	RunNAMTests(modelPath / "BossLSTM-1x16.nam", blockSize);
 
 	return 0;
 }
 
 int main(int argc, char* argv[])
 {
-	if (argc > 1)
-	{
-		std::filesystem::path modelPath = argv[1];
+	int blockSize = 64;
+	
+	std::filesystem::path modelPath;
 
-		if (modelPath.extension() == ".nam")
+	for (int arg = 1; arg < argc; arg++)
+	{
+		char* end;
+
+		long val = strtol(argv[arg], &end, 10);
+
+		if (val != 0)
 		{
-			RunNAMTests(modelPath);
+			blockSize = (int)val;
 		}
 		else
 		{
-			RunKerasTests(modelPath);
+			modelPath.assign(argv[arg]);
+		}
+	}
+
+	std::cout << "Block size: " << blockSize << std::endl;
+
+	if (!modelPath.empty())
+	{
+		if (modelPath.extension() == ".nam")
+		{
+			RunNAMTests(modelPath, blockSize);
+		}
+		else
+		{
+			RunKerasTests(modelPath, blockSize);
 		}
 	}
 	else
 	{
-		if (RunDefaultTests() < 0)
+		if (RunDefaultTests(blockSize) < 0)
 			return -1;
 	}
 
