@@ -312,8 +312,6 @@ namespace NeuralAudio
 
 			model = new LSTMModelT<NumLayers, HiddenSize>;
 
-			nlohmann::json config = modelJson.at("config");
-
 			const auto layers = modelJson.at("layers");
 			const size_t numLayers = layers.size();
 
