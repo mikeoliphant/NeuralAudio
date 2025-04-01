@@ -68,7 +68,7 @@ namespace NeuralAudio
 			std::vector<float>::iterator it = def.InputWeights.begin();
 
 			for (size_t j = 0; j < inputSize; j++)
-				for (size_t i = 0; i < inputHiddenSize; i++)
+				for (size_t i = 0; i < gateSize; i++)
 				{
 					inputHiddenWeights(i, j) = *(it++);
 				}

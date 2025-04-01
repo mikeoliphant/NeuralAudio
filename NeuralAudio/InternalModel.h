@@ -472,8 +472,6 @@ namespace NeuralAudio
 				model = nullptr;
 			}
 
-			nlohmann::json config = modelJson.at("config");
-
 			const auto layers = modelJson.at("layers");
 			const size_t numLayers = layers.size();
 			const size_t hiddenSize = layers.at(0).at("shape").back();
@@ -486,7 +484,7 @@ namespace NeuralAudio
 			if (lastLayer.at("type") != "dense")
 				return false;
 
-			model = new LSTMModel(numLayers, hiddenSize);
+			model = new LSTMModel(numLayers - 1, hiddenSize);
 
 			LSTMDef lstmDef;
 
