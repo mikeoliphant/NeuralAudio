@@ -83,6 +83,9 @@ namespace NeuralAudio
 
 	NeuralModel* NeuralModel::CreateFromFile(std::filesystem::path modelPath)
 	{
+		if (!std::filesystem::exists(modelPath))
+			return nullptr;
+
 		std::ifstream jsonStream(modelPath, std::ifstream::binary);
 
 		return CreateFromStream(jsonStream, modelPath.extension());

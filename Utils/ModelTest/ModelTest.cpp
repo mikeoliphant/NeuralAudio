@@ -11,6 +11,13 @@ NeuralAudio::NeuralModel* LoadModel(std::filesystem::path modelPath, NeuralAudio
 
 	auto model = NeuralAudio::NeuralModel::CreateFromFile(modelPath);
 
+	if (model == nullptr)
+	{
+		std::cout << "Unable to load model from: " << modelPath << std::endl;
+
+		return nullptr;
+	}
+
 	if (model->GetLoadMode() != loadMode)
 	{
 		std::cout << "**Warning: Tried to load " << LoadModes[loadMode] << " but got " << LoadModes[model->GetLoadMode()] << std::endl;
