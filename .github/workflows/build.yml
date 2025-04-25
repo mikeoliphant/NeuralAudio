@@ -25,7 +25,7 @@ jobs:
       working-directory: ${{github.workspace}}/build/Utils/ModelTest/Release
       run: |
         ./ModelTest.exe
-        ./ModelTest.exe ..\Models\tw40_blues_deluxe_deerinkstudios.json
+        ./ModelTest.exe ..\..\Models\tw40_blues_deluxe_deerinkstudios.json
 
     - name: Upload binary
       uses: actions/upload-artifact@v4
