@@ -247,7 +247,7 @@ namespace NeuralAudio
 
 			for (auto pos = 0; pos < size; pos++)
 			{
-				data[pos] = FastTanh(data[pos]);
+				data[pos] = WAVENET_MATH::Tanh(data[pos]);
 			}
 
 			headInput.noalias() += block.topRows(channels);

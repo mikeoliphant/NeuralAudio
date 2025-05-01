@@ -19,6 +19,14 @@ else()
     message(STATUS "NOT Building NAM Core implementation")
 endif()
 
+set(LSTM_MATH "FastMath" CACHE STRING "LSTM math functions")
+add_definitions(-DLSTM_MATH=${LSTM_MATH})
+message(STATUS "LSTM math is: ${LSTM_MATH}")
+
+set(WAVENET_MATH "FastMath" CACHE STRING "WaveNet math functions")
+add_definitions(-DWAVENET_MATH=${WAVENET_MATH})
+message(STATUS "WaveNet math is: ${WAVENET_MATH}")
+
 set(WAVENET_FRAMES "64" CACHE STRING "WaveNet frame size")
 
 add_definitions(-DWAVENET_MAX_NUM_FRAMES=${WAVENET_FRAMES})
