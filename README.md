@@ -130,6 +130,13 @@ Note - you'll have to change the Visual Studio version if you are using a differ
 
 ```-DBUFFER_PADDING=XXX```: Amount of padding to convolution layer buffers. This allows ring buffer resets to be staggered accross layers to improve performance. It also uses a significant amount of memory. It is set to **24** by default. It can be set all the way down to 0 to reduce memory usage.
 
+```-DWAVENET_MATH=XXX```
+```-DLSTM_MATH=XXX```: Which math approximations (tanh and sigmoid) to use for WaveNet and LSTM models. Options are:
+
+  - ```FastMath``` (the default): Use the same approximations as NAM Core.
+  - ```EigenMath```: Use Eigen's builtin tanh approximation. Somewhat slower, but more accurate.
+  - ```StdMath```: Use standard math functions. No approxmation used - much slower.
+
 ```-DBUILD_UTILS=ON```: Build performance/accuracy testing tools (located in the "Utils" folder).
 
 # Software Using NeuralAudio
