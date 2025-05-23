@@ -211,15 +211,17 @@ namespace NeuralAudio
 
 			inputMixin.ProcessAcc(condition, block);
 
+			block = WAVENET_MATH::Tanh(block);
+
 			//block = block.array().tanh();
 
-			float* data = block.data();
-			size_t size = block.rows() * block.cols();
+			//float* data = block.data();
+			//size_t size = block.rows() * block.cols();
 
-			for (size_t pos = 0; pos < size; pos++)
-			{
-				data[pos] = FastTanh(data[pos]);
-			}
+			//for (size_t pos = 0; pos < size; pos++)
+			//{
+			//	data[pos] = WAVENET_MATH::Tanh(data[pos]);
+			//}
 
 			const_cast<Eigen::MatrixBase<Derived2>&>(headInput).noalias() += block.topRows(Channels);
 
