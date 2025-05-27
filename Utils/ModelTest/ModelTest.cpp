@@ -9,29 +9,38 @@ NeuralAudio::NeuralModel* LoadModel(std::filesystem::path modelPath, NeuralAudio
 	NeuralAudio::NeuralModel::SetWaveNetLoadMode(loadMode);
 	NeuralAudio::NeuralModel::SetLSTMLoadMode(loadMode);
 
-	auto model = NeuralAudio::NeuralModel::CreateFromFile(modelPath);
-
-	if (model == nullptr)
+	try
 	{
-		std::cout << "Unable to load model from: " << modelPath << std::endl;
+		auto model = NeuralAudio::NeuralModel::CreateFromFile(modelPath);
 
-		return nullptr;
-	}
-
-	if (model->GetLoadMode() != loadMode)
-	{
-		std::cout << "**Warning: Tried to load " << LoadModes[loadMode] << " but got " << LoadModes[model->GetLoadMode()] << std::endl;
-	}
-
-	if (model->GetLoadMode() != NeuralAudio::EModelLoadMode::NAMCore)
-	{
-		if (!model->IsStatic())
+		if (model == nullptr)
 		{
-			std::cout << "**Warning: " << LoadModes[model->GetLoadMode()] << " model is not using a static architecture" << std::endl;
+			std::cout << "Unable to load model from: " << modelPath << std::endl;
+
+			return nullptr;
 		}
+
+		if (model->GetLoadMode() != loadMode)
+		{
+			std::cout << "**Warning: Tried to load " << LoadModes[loadMode] << " but got " << LoadModes[model->GetLoadMode()] << std::endl;
+		}
+
+		if (model->GetLoadMode() != NeuralAudio::EModelLoadMode::NAMCore)
+		{
+			if (!model->IsStatic())
+			{
+				std::cout << "**Warning: " << LoadModes[model->GetLoadMode()] << " model is not using a static architecture" << std::endl;
+			}
+		}
+
+		return model;
+	}
+	catch (...)
+	{
+		std::cout << "Error loading model" << std::endl;
 	}
 
-	return model;
+	return nullptr;
 }
 
 static std::tuple<double, double> BenchModel(NeuralAudio::NeuralModel* model, int blockSize, int numBlocks)
@@ -136,6 +145,8 @@ void RunNAMTests(std::filesystem::path modelPath, int blockSize)
 	std::cout << "Internal is: " << (std::get<0>(nam) / std::get<0>(internal)) << "x NAM" << std::endl;
 
 	std::cout << std::endl;
+
+	std::cout << "***here" << std::endl;
 }
 
 void RunKerasTests(std::filesystem::path modelPath, int blockSize)
@@ -198,7 +209,7 @@ int RunDefaultTests(int blockSize)
 int main(int argc, char* argv[])
 {
 	int blockSize = 64;
-	
+
 	std::filesystem::path modelPath;
 
 	for (int arg = 1; arg < argc; arg++)
