@@ -164,7 +164,7 @@ namespace NeuralAudio
 #if (LAYER_ARRAY_BUFFER_PADDING == 0)
 				bufferStart = ReceptiveFieldSize;
 #else
-				bufferStart = size - (WAVENET_MAX_NUM_FRAMES * (allocNum % LAYER_ARRAY_BUFFER_PADDING));	// Do the modulo to handle cases where LAYER_ARRAY_BUFFER_PADDING is not big enough to handle offset
+				bufferStart = size - (WAVENET_MAX_NUM_FRAMES * ((allocNum % LAYER_ARRAY_BUFFER_PADDING) + 1));	// Do the modulo to handle cases where LAYER_ARRAY_BUFFER_PADDING is not big enough to handle offset
 #endif
 		}
 
@@ -343,7 +343,7 @@ namespace NeuralAudio
 	public:
 		WaveNetModelT()
 		{
-			int allocNum = 1;
+			int allocNum = 0;
 
 			ForEachIndex<sizeof...(LayerArrays)>([&](auto layerIndex)
 				{

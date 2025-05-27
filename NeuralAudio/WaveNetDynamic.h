@@ -191,7 +191,7 @@ namespace NeuralAudio
 #if (LAYER_ARRAY_BUFFER_PADDING == 0)
 			bufferStart = ReceptiveFieldSize;
 #else
-			bufferStart = size - (WAVENET_MAX_NUM_FRAMES * (allocNum % LAYER_ARRAY_BUFFER_PADDING));	// Do the modulo to handle cases where LAYER_ARRAY_BUFFER_PADDING is not big enough to handle offset
+			bufferStart = size - (WAVENET_MAX_NUM_FRAMES * ((allocNum % LAYER_ARRAY_BUFFER_PADDING) + 1));	// Do the modulo to handle cases where LAYER_ARRAY_BUFFER_PADDING is not big enough to handle offset
 #endif
 		}
 
@@ -238,7 +238,7 @@ namespace NeuralAudio
 
 			conv1D.Process(layerBuffer, block, bufferStart, numFrames);
 
-			inputMixin.ProcessAcc(condition, state);
+			inputMixin.ProcessAcc(condition, block);
 
 			//block = block.array().tanh();
 
@@ -347,16 +347,16 @@ namespace NeuralAudio
 
 			for (size_t layerIndex = 0; layerIndex < layers.size(); layerIndex++)
 			{
-					layers[layerIndex].CopyBuffer();
+				layers[layerIndex].CopyBuffer();
 
-					if (layerIndex == lastLayer)
-					{
-						layers[layerIndex].Process(condition, headInputs, arrayOutputs, 0, 1);
-					}
-					else
-					{
-						layers[layerIndex].Process(condition, headInputs, layers[layerIndex + 1].GetLayerBuffer(), layers[layerIndex + 1].bufferStart, 1);
-					}
+				if (layerIndex == lastLayer)
+				{
+					layers[layerIndex].Process(condition, headInputs, arrayOutputs, 0, 1);
+				}
+				else
+				{
+					layers[layerIndex].Process(condition, headInputs, layers[layerIndex + 1].GetLayerBuffer(), layers[layerIndex + 1].bufferStart, 1);
+				}
 			}
 
 			headRechannel.Process(headInputs, headOutputs.leftCols(1));
@@ -397,7 +397,7 @@ namespace NeuralAudio
 			lastLayerArray(layerArrays.size() - 1),
 			headArray(layerArrays[0].GetNumChannels(), WAVENET_MAX_NUM_FRAMES)
 		{
-			size_t allocNum = 1;
+			size_t allocNum = 0;
 
 			for (auto& layerArray : this->layerArrays)
 			{
