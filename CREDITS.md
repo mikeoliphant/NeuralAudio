@@ -1,3 +1,5 @@
+[GitHub contributers](https://github.com/mikeoliphant/NeuralAudio/graphs/contributors)
+
 Depending on how it is compiled, this repository uses code from a number of sources. Please see the individual repositories for license information.
 
 https://github.com/sdatkinson/NeuralAmpModelerCore
