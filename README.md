@@ -139,10 +139,11 @@ Note - you'll have to change the Visual Studio version if you are using a differ
 
 ```-DBUILD_UTILS=ON```: Build performance/accuracy testing tools (located in the "Utils" folder).
 
-# Software Using NeuralAudio
+# Software/Hardware Using NeuralAudio
 
-The following applications are using the NeuralAudio library for model processing:
+The following applications and devices are using the NeuralAudio library for model processing:
 
 - [neural-amp-modeler-lv2](https://github.com/mikeoliphant/neural-amp-modeler-lv2): LV2 plugin for using neural network machine learning amp models.
 - [stompbox](https://github.com/mikeoliphant/stompbox): Guitar amplification and effects pedalboard simulation.
 - [NeuralRack](https://github.com/brummer10/NeuralRack): Neural Model and Impulse Response File loader for Linux/Windows.
+- [Darkglass Anagram](https://www.darkglass.com/creation/anagram): Bass guitar effects unit.
