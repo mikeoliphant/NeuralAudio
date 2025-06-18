@@ -100,6 +100,7 @@ namespace NeuralAudio
 
 		void SetMaxAudioBufferSize(int maxSize)
 		{
+			(void)maxSize;
 		}
 
 		void Process(float* input, float* output, size_t numSamples)

@@ -81,6 +81,37 @@ namespace NeuralAudio
 		return true;
 	}
 
+	bool NeuralModel::SupportsWaveNetLoadMode(EModelLoadMode mode)
+	{
+		if (mode == EModelLoadMode::NAMCore)
+#ifdef BUILD_NAMCORE
+			return true;
+#else
+			return false;
+#endif
+
+		if (mode == EModelLoadMode::RTNeural)
+#ifdef BUILD_STATIC_RTNEURAL
+			return true;
+#else
+			return false;
+#endif
+
+		return true;
+	}
+
+	bool NeuralModel::SupportsLSTMLoadMode(EModelLoadMode mode)
+	{
+		if (mode == EModelLoadMode::NAMCore)
+#ifdef BUILD_NAMCORE
+			return true;
+#else
+			return false;
+#endif
+
+		return true;
+	}
+
 	NeuralModel* NeuralModel::CreateFromFile(std::filesystem::path modelPath)
 	{
 		if (!std::filesystem::exists(modelPath))

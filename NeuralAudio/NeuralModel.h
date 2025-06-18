@@ -23,15 +23,28 @@ namespace NeuralAudio
 		{
 		}
 
-		static void SetLSTMLoadMode(EModelLoadMode val)
+		static bool SetLSTMLoadMode(EModelLoadMode val)
 		{
+			if (!SupportsLSTMLoadMode(val))
+				return false;
+
 			lstmLoadMode = val;
+
+			return true;
 		}
 
-		static void SetWaveNetLoadMode(EModelLoadMode val)
+		static bool SetWaveNetLoadMode(EModelLoadMode val)
 		{
+			if (!SupportsWaveNetLoadMode(val))
+				return false;
+
 			wavenetLoadMode = val;
+
+			return true;
 		}
+
+		static bool SupportsWaveNetLoadMode(EModelLoadMode mode);
+		static bool SupportsLSTMLoadMode(EModelLoadMode mode);
 
 		static void SetAudioInputLevelDBu(float audioDBu)
 		{

@@ -2,12 +2,14 @@
 #include <iostream>
 #include <NeuralAudio/NeuralModel.h>
 
+using namespace NeuralAudio;
+
 static std::string LoadModes[] = { "Internal", "RTNeural", "NAMCore" };
 
-NeuralAudio::NeuralModel* LoadModel(std::filesystem::path modelPath, NeuralAudio::EModelLoadMode loadMode)
+NeuralModel* LoadModel(std::filesystem::path modelPath, EModelLoadMode loadMode)
 {
-	NeuralAudio::NeuralModel::SetWaveNetLoadMode(loadMode);
-	NeuralAudio::NeuralModel::SetLSTMLoadMode(loadMode);
+	NeuralModel::SetWaveNetLoadMode(loadMode);
+	NeuralModel::SetLSTMLoadMode(loadMode);
 
 	try
 	{
@@ -22,7 +24,9 @@ NeuralAudio::NeuralModel* LoadModel(std::filesystem::path modelPath, NeuralAudio
 
 		if (model->GetLoadMode() != loadMode)
 		{
-			std::cout << "**Warning: Tried to load " << LoadModes[loadMode] << " but got " << LoadModes[model->GetLoadMode()] << std::endl;
+			delete model;
+
+			return nullptr;
 		}
 
 		if (model->GetLoadMode() != NeuralAudio::EModelLoadMode::NAMCore)
@@ -43,7 +47,7 @@ NeuralAudio::NeuralModel* LoadModel(std::filesystem::path modelPath, NeuralAudio
 	return nullptr;
 }
 
-static std::tuple<double, double> BenchModel(NeuralAudio::NeuralModel* model, int blockSize, int numBlocks)
+static std::tuple<double, double> BenchModel(NeuralModel* model, int blockSize, int numBlocks)
 {
 	std::vector<float> inData;
 	inData.resize(blockSize);
@@ -73,7 +77,7 @@ static std::tuple<double, double> BenchModel(NeuralAudio::NeuralModel* model, in
 	return std::tie(tot, maxBlock);
 }
 
-static double ComputeError(NeuralAudio::NeuralModel* model1, NeuralAudio::NeuralModel* model2, int blockSize, int numBlocks)
+static double ComputeError(NeuralModel* model1, NeuralModel* model2, int blockSize, int numBlocks)
 {
 	std::vector<float> inData;
 	inData.resize(blockSize);
@@ -121,32 +125,56 @@ void RunNAMTests(std::filesystem::path modelPath, int blockSize)
 
 	int numBlocks = dataSize / blockSize;
 
-	NeuralAudio::NeuralModel::SetDefaultMaxAudioBufferSize(blockSize);
+	NeuralModel::SetDefaultMaxAudioBufferSize(blockSize);
 
-	auto rtNeuralModel = LoadModel(modelPath, NeuralAudio::EModelLoadMode::RTNeural);
-	auto namCoreModel = LoadModel(modelPath, NeuralAudio::EModelLoadMode::NAMCore);
-	auto internalModel = LoadModel(modelPath, NeuralAudio::EModelLoadMode::Internal);
+	NeuralModel* rtNeuralModel = LoadModel(modelPath, EModelLoadMode::RTNeural);
+	NeuralModel* namCoreModel = LoadModel(modelPath, EModelLoadMode::NAMCore);
+	NeuralModel* internalModel = LoadModel(modelPath, EModelLoadMode::Internal);
 
-	double rms = ComputeError(namCoreModel, internalModel, blockSize, numBlocks);
-	std::cout << "NAM vs Internal RMS err: " << rms << std::endl;
+	double rms;
 
-	rms = ComputeError(namCoreModel, rtNeuralModel, blockSize, numBlocks);
-	std::cout << "NAM vs RTNeural RMS err: " << rms << std::endl;
-	std::cout << std::endl;
+	if (namCoreModel != nullptr)
+	{
+	}
 
-	auto internal = BenchModel(internalModel, blockSize, numBlocks);
-	auto rt = BenchModel(rtNeuralModel, blockSize, numBlocks);
-	auto nam = BenchModel(namCoreModel, blockSize, numBlocks);
+	std::tuple<double, double> internal;
+	std::tuple<double, double> rtNeural;
+	std::tuple<double, double> namCore;
 
-	std::cout << "NAM Core: " << std::get<0>(nam) << " (" << std::get<1>(nam) << ")" << std::endl;
-	std::cout << "RTNeural: " << std::get<0>(rt) << " (" << std::get<1>(rt) << ")" << std::endl;
+	internal = BenchModel(internalModel, blockSize, numBlocks);
+
 	std::cout << "Internal: " << std::get<0>(internal) << " (" << std::get<1>(internal) << ")" << std::endl;
-	std::cout << "RTNeural is: " << (std::get<0>(nam) / std::get<0>(rt)) << "x NAM" << std::endl;
-	std::cout << "Internal is: " << (std::get<0>(nam) / std::get<0>(internal)) << "x NAM" << std::endl;
+
+	if (namCoreModel != nullptr)
+	{
+		std::cout << std::endl;
+
+		namCore = BenchModel(namCoreModel, blockSize, numBlocks);
+
+		rms = ComputeError(namCoreModel, internalModel, blockSize, numBlocks);
+
+		std::cout << "NAM Core: " << std::get<0>(namCore) << " (" << std::get<1>(namCore) << ")" << std::endl;
+		std::cout << "NAM vs Internal RMS err: " << rms << std::endl;
+		std::cout << "Internal is: " << (std::get<0>(namCore) / std::get<0>(internal)) << "x NAM" << std::endl;
+	}
+
+	if (rtNeuralModel != nullptr)
+	{
+		std::cout << std::endl;
+
+		rtNeural = BenchModel(rtNeuralModel, blockSize, numBlocks);
+
+		std::cout << "RTNeural: " << std::get<0>(rtNeural) << " (" << std::get<1>(rtNeural) << ")" << std::endl;
+		rms = ComputeError(namCoreModel, rtNeuralModel, blockSize, numBlocks);
+		std::cout << "NAM vs RTNeural RMS err: " << rms << std::endl;
+
+		if (namCoreModel != nullptr)
+		{
+			std::cout << "RTNeural is: " << (std::get<0>(namCore) / std::get<0>(rtNeural)) << "x NAM" << std::endl;
+		}
+	}
 
 	std::cout << std::endl;
-
-	std::cout << "***here" << std::endl;
 }
 
 void RunKerasTests(std::filesystem::path modelPath, int blockSize)
@@ -159,8 +187,8 @@ void RunKerasTests(std::filesystem::path modelPath, int blockSize)
 
 	NeuralAudio::NeuralModel::SetDefaultMaxAudioBufferSize(blockSize);
 
-	auto internalModel = LoadModel(modelPath, NeuralAudio::EModelLoadMode::Internal);
-	auto rtNeuralModel = LoadModel(modelPath, NeuralAudio::EModelLoadMode::RTNeural);
+	auto internalModel = LoadModel(modelPath, EModelLoadMode::Internal);
+	auto rtNeuralModel = LoadModel(modelPath, EModelLoadMode::RTNeural);
 
 	double rms = ComputeError(rtNeuralModel, internalModel, blockSize, numBlocks);
 	std::cout << "Internal vs RTNeural RMS err: " << rms << std::endl;
@@ -195,10 +223,12 @@ int RunDefaultTests(int blockSize)
 
 	modelPath = modelPath / "Models";
 
-	std::cout << "Loading models from: " << modelPath << std::endl;
+	std::cout << "Loading models from: " << modelPath << std::endl << std::endl;
 
 	std::cout << "WaveNet (Standard) Test" << std::endl;
 	RunNAMTests(modelPath / "BossWN-standard.nam", blockSize);
+
+	std::cout << std::endl;
 
 	std::cout << "LSTM (1x16) Test" << std::endl;
 	RunNAMTests(modelPath / "BossLSTM-1x16.nam", blockSize);
@@ -208,6 +238,8 @@ int RunDefaultTests(int blockSize)
 
 int main(int argc, char* argv[])
 {
+	std::cout << std::endl;
+
 	int blockSize = 64;
 
 	std::filesystem::path modelPath;
