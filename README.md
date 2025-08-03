@@ -11,7 +11,7 @@ NeuralAudio currently supports the following model types:
 
 # Underlying Libraries and Performance
 
-By default, NeuralAudio uses its own implementation of WaveNet a)nd LSTM network models. This implementation has been designed to produce **exactly** the same output as the [NAM Core library](https://github.com/sdatkinson/NeuralAmpModelerCore), but with increased performance and reduced memory usage.
+By default, NeuralAudio uses its own implementation of WaveNet and LSTM network models. This implementation has been designed to produce **exactly** the same output as the [NAM Core library](https://github.com/sdatkinson/NeuralAmpModelerCore), but with increased performance and reduced memory usage.
 
 For completeness, and to facilitate accuracy and performance benchmarking, it can also load models using the [NAM Core implementation](https://github.com/sdatkinson/NeuralAmpModelerCore) and [RTNeural](https://github.com/jatinchowdhury18/RTNeural).
 
