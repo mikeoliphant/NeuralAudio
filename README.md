@@ -19,15 +19,7 @@ The internal NeuralAudio implmentation currently outperforms the other implement
 
 For WaveNet, the internal implmeentation supports optimized static models of the offical NAM network architectures:  "Standard", "Lite", "Feather", "Nano".
 
-For LSTM, the internal implementation supports optimized static models architectures:
-
-- LSTM 1x8
-- LSTM 1x12
-- LSTM 1x16
-- LSTM 1x24
-- LSTM 2x8
-- LSTM 2x12
-- LSTM 2x16
+For LSTM, the internal implementation supports optimized static models architectures for 1x8, 1x12, 1x16, 1x24, 2x8, 2x12, and 2x16 models.
 
 All NAM files with WaveNet and LSTM architectures not supported internally will fall back on a less performant dynamic implementation (although still faster than NAM Core).
 
