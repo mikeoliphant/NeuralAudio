@@ -103,6 +103,11 @@ namespace NeuralAudio
 			(void)maxSize;
 		}
 
+		int GetReceptiveFieldSize()
+		{
+			return model->ReceptiveFieldSize;
+		}
+
 		void Process(float* input, float* output, size_t numSamples)
 		{
 			size_t offset = 0;

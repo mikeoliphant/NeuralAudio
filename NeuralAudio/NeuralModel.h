@@ -86,6 +86,11 @@ namespace NeuralAudio
 			return sampleRate;
 		}
 
+		virtual int GetReceptiveFieldSize()
+		{
+			return -1;	// No fixed receptive field size (ie: for LSTM)
+		}
+
 		virtual void Process(float* input, float* output, size_t numSamples)
 		{
 			(void)input;

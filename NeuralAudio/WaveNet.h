@@ -259,15 +259,19 @@ namespace NeuralAudio
 		static constexpr auto lastLayer = numLayers - 1;
 
 	public:
-		static constexpr auto ReceptiveFieldSize = std::tuple_element_t<numLayers - 1, Layers>::ReceptiveFieldSize;
 		static constexpr auto NumChannelsP = Channels;
 		static constexpr auto HeadSizeP = HeadSize;
 
 		Eigen::Matrix<float, Channels, WAVENET_MAX_NUM_FRAMES> arrayOutputs;
 		Eigen::Matrix<float, HeadSize, WAVENET_MAX_NUM_FRAMES> headOutputs;
+		int ReceptiveFieldSize = 0;	// This should be a static constexpr, but I haven't sorted out the right template magic
 
 		WaveNetLayerArrayT()
 		{
+			ForEachIndex<numLayers>([&](auto layerIndex)
+				{
+					ReceptiveFieldSize += std::get<layerIndex>(layers).ReceptiveFieldSize;
+				});
 		}
 
 		int AllocBuffers(int allocNum)
@@ -341,12 +345,16 @@ namespace NeuralAudio
 	class WaveNetModelT
 	{
 	public:
+		int ReceptiveFieldSize = 0;	// This should be a static constexpr, but I haven't sorted out the right template magic
+
 		WaveNetModelT()
 		{
 			int allocNum = 0;
 
 			ForEachIndex<sizeof...(LayerArrays)>([&](auto layerIndex)
 				{
+					ReceptiveFieldSize += std::get<layerIndex>(layerArrays).ReceptiveFieldSize;
+
 					allocNum = std::get<layerIndex>(layerArrays).AllocBuffers(allocNum);
 				});
 
