@@ -88,6 +88,20 @@ You can check which implementation was actually used to load the model with ```m
 
 **NOTE:** Because of compile time and executable size considerations, only the internal and dynamic RTNeural implementations are built by default. If you want to use RTNeural, it is recommended that you add ```-DBUILD_STATIC_RTNEURAL=ON``` to your cmake commandline. This will create static model implmentations for the same sets of WaveNet and LSTM models as the internal implmentation, and results in increased performance. If you want to use NAM Core, add ```DBUILD_NAMCORE=ON``` to your cmake commandline.
 
+## Getting the model receptive field size
+
+WaveNet models have a fixed receptive field size (ie: size of the input that the output depends on).
+
+To get this value, do:
+
+```
+int receptiveFieldSamples = model->GetReceptiveFieldSize();
+```
+
+Note that this can return -1, which means that the receptive field size is unknown, or not fixed (ie: LSTM models technically have an infinite tail because of their internal feedback loop).
+
+This method is only supported for "internal" models. If you are using NAM Core or RTNeural it will always return -1.
+
 # Building
 
 First clone the repository:
