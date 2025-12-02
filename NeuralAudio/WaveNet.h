@@ -125,7 +125,7 @@ namespace NeuralAudio
 
 	public:
 		static constexpr auto ReceptiveFieldSize = (KernelSize - 1) * Dilation;
-		static constexpr auto BufferSize = ReceptiveFieldSize + ((LAYER_ARRAY_BUFFER_PADDING + 1) * WAVENET_MAX_NUM_FRAMES);
+		static constexpr auto BufferSize = (ReceptiveFieldSize * 2) + WAVENET_MAX_NUM_FRAMES;
 		static constexpr bool TooBigForStatic = ((Channels * BufferSize) * 4) > EIGEN_STACK_ALLOCATION_LIMIT;
 
 		using LayerBufferType = typename std::conditional<TooBigForStatic,
@@ -161,11 +161,13 @@ namespace NeuralAudio
 			//	bufferStart = size - offset;
 			//}
 
-#if (LAYER_ARRAY_BUFFER_PADDING == 0)
-				bufferStart = ReceptiveFieldSize;
-#else
-				bufferStart = size - (WAVENET_MAX_NUM_FRAMES * ((allocNum % LAYER_ARRAY_BUFFER_PADDING) + 1));	// Do the modulo to handle cases where LAYER_ARRAY_BUFFER_PADDING is not big enough to handle offset
-#endif
+			bufferStart = ReceptiveFieldSize;
+
+//#if (LAYER_ARRAY_BUFFER_PADDING == 0)
+//				bufferStart = ReceptiveFieldSize;
+//#else
+//				bufferStart = size - (WAVENET_MAX_NUM_FRAMES * ((allocNum % LAYER_ARRAY_BUFFER_PADDING) + 1));	// Do the modulo to handle cases where LAYER_ARRAY_BUFFER_PADDING is not big enough to handle offset
+//#endif
 		}
 
 		void SetWeights(std::vector<float>::iterator& weights)
@@ -177,22 +179,31 @@ namespace NeuralAudio
 
 		void AdvanceFrames(const size_t numFrames)
 		{
-			bufferStart += numFrames;
+			if constexpr (ReceptiveFieldSize <= WAVENET_MAX_NUM_FRAMES)
+			{
+				layerBuffer.middleCols(0, ReceptiveFieldSize) = layerBuffer.middleCols(WAVENET_MAX_NUM_FRAMES, ReceptiveFieldSize);
+			}
+			else
+			{
+				layerBuffer.middleCols(bufferStart - ReceptiveFieldSize, numFrames) = layerBuffer.middleCols(bufferStart, numFrames);
 
-			if ((bufferStart + WAVENET_MAX_NUM_FRAMES) > (size_t)layerBuffer.cols())
-				RewindBuffer();
+				bufferStart += numFrames;
+
+				if (bufferStart > (BufferSize - WAVENET_MAX_NUM_FRAMES))
+					bufferStart -= ReceptiveFieldSize;
+			}
 		}
 
-		void RewindBuffer()
-		{
-			//numRewinds++;
+		//void RewindBuffer()
+		//{
+		//	//numRewinds++;
 
-			size_t start = ReceptiveFieldSize;
+		//	size_t start = ReceptiveFieldSize;
 
-			layerBuffer.middleCols(start - ReceptiveFieldSize, ReceptiveFieldSize) = layerBuffer.middleCols(bufferStart - ReceptiveFieldSize, ReceptiveFieldSize);
+		//	layerBuffer.middleCols(start - ReceptiveFieldSize, ReceptiveFieldSize) = layerBuffer.middleCols(bufferStart - ReceptiveFieldSize, ReceptiveFieldSize);
 
-			bufferStart = start;
-		}
+		//	bufferStart = start;
+		//}
 
 		void CopyBuffer()
 		{
