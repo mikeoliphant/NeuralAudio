@@ -20,11 +20,14 @@ namespace NeuralAudio
 	{
 		if (!modelDefsAreLoaded)
 		{
+#ifdef BUILD_INTERNAL_STATIC_WAVENET
 			internalWavenetModelDefs.push_back(new InternalWaveNetDefinitionT<16, 8>);	// Standard
 			internalWavenetModelDefs.push_back(new InternalWaveNetDefinitionT<12, 6>);	// Lite
 			internalWavenetModelDefs.push_back(new InternalWaveNetDefinitionT<8, 4>);	// Feather
 			internalWavenetModelDefs.push_back(new InternalWaveNetDefinitionT<4, 2>);	// Nano
+#endif
 
+#ifdef BUILD_INTERNAL_STATIC_LSTM
 			internalLSTMModelDefs.push_back(new InternalLSTMDefinitionT<1, 8>);
 			internalLSTMModelDefs.push_back(new InternalLSTMDefinitionT<1, 12>);
 			internalLSTMModelDefs.push_back(new InternalLSTMDefinitionT<1, 16>);
@@ -32,6 +35,7 @@ namespace NeuralAudio
 			internalLSTMModelDefs.push_back(new InternalLSTMDefinitionT<2, 8>);
 			internalLSTMModelDefs.push_back(new InternalLSTMDefinitionT<2, 12>);
 			internalLSTMModelDefs.push_back(new InternalLSTMDefinitionT<2, 16>);
+#endif
 
 #ifdef BUILD_STATIC_RTNEURAL
 			EnsureRTNeuralModelDefsAreLoaded();
