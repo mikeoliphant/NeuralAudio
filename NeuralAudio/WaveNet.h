@@ -13,10 +13,6 @@
 #define WAVENET_MAX_NUM_FRAMES 64
 #endif
 
-#ifndef LAYER_ARRAY_BUFFER_PADDING
-#define LAYER_ARRAY_BUFFER_PADDING 24
-#endif
-
 namespace NeuralAudio
 {
 	//int numRewinds = 0;

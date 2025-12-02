@@ -49,12 +49,6 @@ add_definitions(-DWAVENET_MAX_NUM_FRAMES=${WAVENET_FRAMES})
 
 message(STATUS "WaveNet frame size is: ${WAVENET_FRAMES}")
 
-set(BUFFER_PADDING "24" CACHE STRING "Convoluation buffer padding size")
-
-add_definitions(-DLAYER_ARRAY_BUFFER_PADDING=${BUFFER_PADDING})
-
-message(STATUS "Convoluation buffer padding size: ${BUFFER_PADDING}")
-
 if (MSVC)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
 endif()
