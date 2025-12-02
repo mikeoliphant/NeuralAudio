@@ -128,9 +128,13 @@ Note - you'll have to change the Visual Studio version if you are using a differ
 
 ## CMake Options
 
-```-DBUILD_NAMCORE=ON```: Support loading models using the NAM Core implemenations.
+```-DBUILD_NAMCORE=ON|OFF```: Support loading models using the NAM Core implemenations.
 
-```-DBUILD_STATIC_RTNEURAL=ON```: Build static RTNeural model architectures (slower compile, larger size - only use if you plan on forcing RTNeural model loading).
+```-DBUILD_STATIC_RTNEURAL=ON|OFF```: Build static RTNeural model architectures (slower compile, larger size - only use if you plan on forcing RTNeural model loading).
+
+```-DBUILD_INTERNAL_STATIC_WAVENET=ON|OFF```: Build internal static WaveNet model architectures (faster internal WaveNet, but slower compile, larger size).
+
+```-DBUILD_INTERNAL_STATIC_LSTM=ON|OFF```: Build internal static LSTM model architectures (faster internal LSTM, but slower compile, larger size).
 
 ```-DWAVENET_FRAMES=XXX```: Sample buffer size for the internal WaveNet implementation. Defaults to **64**. If you know you are going to be using a fixed sample buffer smaller or larger than this, use that instead. Note that the model will still be able to process any buffer size - it is just optimized for this size.
 
@@ -141,7 +145,7 @@ Note - you'll have to change the Visual Studio version if you are using a differ
   - ```EigenMath```: Use Eigen's builtin tanh approximation. Somewhat slower, but more accurate.
   - ```StdMath```: Use standard math functions. No approxmation used - much slower.
 
-```-DBUILD_UTILS=ON```: Build performance/accuracy testing tools (located in the "Utils" folder).
+```-DBUILD_UTILS=ON|OFF```: Build performance/accuracy testing tools (located in the "Utils" folder).
 
 # Software/Hardware Using NeuralAudio
 
