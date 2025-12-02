@@ -179,7 +179,7 @@ namespace NeuralAudio
 
 		void AdvanceFrames(const size_t numFrames)
 		{
-			if (ReceptiveFieldSize <= WAVENET_MAX_NUM_FRAMES)
+			if constexpr (ReceptiveFieldSize <= WAVENET_MAX_NUM_FRAMES)
 			{
 				layerBuffer.middleCols(0, ReceptiveFieldSize) = layerBuffer.middleCols(WAVENET_MAX_NUM_FRAMES, ReceptiveFieldSize);
 			}
