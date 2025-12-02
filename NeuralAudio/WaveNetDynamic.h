@@ -12,10 +12,6 @@
 #define WAVENET_MAX_NUM_FRAMES 64
 #endif
 
-#ifndef LAYER_ARRAY_BUFFER_PADDING
-#define LAYER_ARRAY_BUFFER_PADDING 24
-#endif
-
 namespace NeuralAudio
 {
 	class Conv1D
@@ -159,6 +155,7 @@ namespace NeuralAudio
 
 	public:
 		size_t ReceptiveFieldSize;
+		size_t BufferSize;
 		size_t bufferStart;
 
 		WaveNetLayer(size_t conditionSize, size_t channels, size_t kernelSize, size_t dilation) :
@@ -170,7 +167,8 @@ namespace NeuralAudio
 			inputMixin(conditionSize, channels, false),
 			oneByOne(channels, channels, true),
 			state(channels, WAVENET_MAX_NUM_FRAMES),
-			ReceptiveFieldSize((kernelSize - 1) * dilation)
+			ReceptiveFieldSize((kernelSize - 1) * dilation),
+			BufferSize((ReceptiveFieldSize * 2) + WAVENET_MAX_NUM_FRAMES)
 		{
 			state.setZero();
 		}
@@ -182,17 +180,12 @@ namespace NeuralAudio
 
 		void AllocBuffer(size_t allocNum)
 		{
-			size_t size = ReceptiveFieldSize + ((LAYER_ARRAY_BUFFER_PADDING + 1) * WAVENET_MAX_NUM_FRAMES);
+			size_t size = BufferSize;
 
 			layerBuffer.resize(channels, size);
 			layerBuffer.setZero();
 
-			// offset prevents buffer rewinds of various layers from happening at the same time
-#if (LAYER_ARRAY_BUFFER_PADDING == 0)
 			bufferStart = ReceptiveFieldSize;
-#else
-			bufferStart = size - (WAVENET_MAX_NUM_FRAMES * ((allocNum % LAYER_ARRAY_BUFFER_PADDING) + 1));	// Do the modulo to handle cases where LAYER_ARRAY_BUFFER_PADDING is not big enough to handle offset
-#endif
 		}
 
 		void SetWeights(std::vector<float>::iterator& weights)
@@ -209,19 +202,19 @@ namespace NeuralAudio
 
 		void AdvanceFrames(const size_t numFrames)
 		{
-			bufferStart += numFrames;
+			if (ReceptiveFieldSize <= WAVENET_MAX_NUM_FRAMES)
+			{
+				layerBuffer.middleCols(0, ReceptiveFieldSize) = layerBuffer.middleCols(WAVENET_MAX_NUM_FRAMES, ReceptiveFieldSize);
+			}
+			else
+			{
+				layerBuffer.middleCols(bufferStart - ReceptiveFieldSize, numFrames) = layerBuffer.middleCols(bufferStart, numFrames);
 
-			if ((int)(bufferStart + WAVENET_MAX_NUM_FRAMES) > layerBuffer.cols())
-				RewindBuffer();
-		}
+				bufferStart += numFrames;
 
-		void RewindBuffer()
-		{
-			size_t start = ReceptiveFieldSize;
-
-			layerBuffer.middleCols(start - ReceptiveFieldSize, ReceptiveFieldSize) = layerBuffer.middleCols(bufferStart - ReceptiveFieldSize, ReceptiveFieldSize);
-
-			bufferStart = start;
+				if (bufferStart > (BufferSize - WAVENET_MAX_NUM_FRAMES))
+					bufferStart -= ReceptiveFieldSize;
+			}
 		}
 
 		void CopyBuffer()
