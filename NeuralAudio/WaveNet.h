@@ -177,7 +177,7 @@ namespace NeuralAudio
 		{
 			if constexpr (ReceptiveFieldSize <= WAVENET_MAX_NUM_FRAMES)
 			{
-				layerBuffer.middleCols(0, ReceptiveFieldSize) = layerBuffer.middleCols(WAVENET_MAX_NUM_FRAMES, ReceptiveFieldSize);
+				layerBuffer.middleCols(0, ReceptiveFieldSize) = layerBuffer.middleCols(numFrames, ReceptiveFieldSize);
 			}
 			else
 			{

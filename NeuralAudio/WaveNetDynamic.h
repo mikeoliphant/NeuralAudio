@@ -204,7 +204,7 @@ namespace NeuralAudio
 		{
 			if (ReceptiveFieldSize <= WAVENET_MAX_NUM_FRAMES)
 			{
-				layerBuffer.middleCols(0, ReceptiveFieldSize) = layerBuffer.middleCols(WAVENET_MAX_NUM_FRAMES, ReceptiveFieldSize);
+				layerBuffer.middleCols(0, ReceptiveFieldSize) = layerBuffer.middleCols(numFrames, ReceptiveFieldSize);
 			}
 			else
 			{
@@ -248,8 +248,6 @@ namespace NeuralAudio
 			oneByOne.Process(block.topRows(channels), output.middleCols(outputStart, numFrames));
 
 			output.middleCols(outputStart, numFrames).noalias() += layerBuffer.middleCols(bufferStart, numFrames);
-
-			AdvanceFrames(numFrames);
 		}
 	};
 
@@ -369,6 +367,8 @@ namespace NeuralAudio
 				{
 					layers[layerIndex].Process(condition, headInputs, layers[layerIndex + 1].GetLayerBuffer(), layers[layerIndex + 1].bufferStart, numFrames);
 				}
+
+				layers[layerIndex].AdvanceFrames(numFrames);
 			}
 
 			headRechannel.Process(headInputs, headOutputs.leftCols(numFrames));

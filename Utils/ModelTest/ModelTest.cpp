@@ -155,7 +155,7 @@ void RunNAMTests(std::filesystem::path modelPath, int blockSize)
 
 		std::cout << "NAM Core: " << std::get<0>(namCore) << " (" << std::get<1>(namCore) << ")" << std::endl;
 		std::cout << "NAM vs Internal RMS err: " << rms << std::endl;
-		std::cout << "Internal is: " << (std::get<0>(namCore) / std::get<0>(internal)) << "x NAM" << std::endl;
+		std::cout << "Internal is: " << (std::get<0>(namCore) / std::get<0>(internal)) << "x NAM (" << (std::get<1>(namCore) / std::get<1>(internal)) << "x worst case)" << std::endl;
 	}
 
 	if (rtNeuralModel != nullptr)
@@ -170,7 +170,7 @@ void RunNAMTests(std::filesystem::path modelPath, int blockSize)
 
 		if (namCoreModel != nullptr)
 		{
-			std::cout << "RTNeural is: " << (std::get<0>(namCore) / std::get<0>(rtNeural)) << "x NAM" << std::endl;
+			std::cout << "RTNeural is: " << (std::get<0>(namCore) / std::get<0>(rtNeural)) << "x NAM (" << (std::get<1>(namCore) / std::get<1>(rtNeural)) << "x worst case)" << std::endl;
 		}
 	}
 
