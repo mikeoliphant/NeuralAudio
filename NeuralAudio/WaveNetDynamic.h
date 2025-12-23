@@ -204,11 +204,11 @@ namespace NeuralAudio
 		{
 			if (ReceptiveFieldSize <= WAVENET_MAX_NUM_FRAMES)
 			{
-				layerBuffer.middleCols(0, ReceptiveFieldSize) = layerBuffer.middleCols(numFrames, ReceptiveFieldSize);
+				layerBuffer.middleCols(0, ReceptiveFieldSize).noalias() = layerBuffer.middleCols(numFrames, ReceptiveFieldSize);
 			}
 			else
 			{
-				layerBuffer.middleCols(bufferStart - ReceptiveFieldSize, numFrames) = layerBuffer.middleCols(bufferStart, numFrames);
+				layerBuffer.middleCols(bufferStart - ReceptiveFieldSize, numFrames).noalias() = layerBuffer.middleCols(bufferStart, numFrames);
 
 				bufferStart += numFrames;
 
@@ -221,7 +221,7 @@ namespace NeuralAudio
 		{
 			for (size_t offset = 1; offset < ReceptiveFieldSize + 1; offset++)
 			{
-				layerBuffer.col(bufferStart - offset) = layerBuffer.col(bufferStart);
+				layerBuffer.col(bufferStart - offset).noalias() = layerBuffer.col(bufferStart);
 			}
 		}
 
