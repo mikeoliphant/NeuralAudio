@@ -118,6 +118,7 @@ namespace NeuralAudio
 		DenseLayerT<ConditionSize, Channels, false> inputMixin;
 		DenseLayerT<Channels, Channels, true> oneByOne;
 		Eigen::Matrix<float, Channels, WAVENET_MAX_NUM_FRAMES> state;
+		bool isLast;
 
 	public:
 		static constexpr auto ReceptiveFieldSize = (KernelSize - 1) * Dilation;
@@ -132,9 +133,15 @@ namespace NeuralAudio
 		//Eigen::Matrix<float, Channels, -1> layerBuffer;
 		size_t bufferStart;
 
-		WaveNetLayerT()
+		WaveNetLayerT() :
+			isLast(false)
 		{
 			state.setZero();
+		}
+
+		void SetLast()
+		{
+			isLast = true;
 		}
 
 		void AllocBuffer(int allocNum)
@@ -232,9 +239,12 @@ namespace NeuralAudio
 
 			const_cast<Eigen::MatrixBase<Derived2>&>(headInput).noalias() += block.topRows(Channels);
 
-			oneByOne.Process(block.topRows(Channels), const_cast<Eigen::MatrixBase<Derived3>&>(output).middleCols(outputStart, numFrames));
+			if (!isLast)
+			{
+				oneByOne.Process(block.topRows(Channels), const_cast<Eigen::MatrixBase<Derived3>&>(output).middleCols(outputStart, numFrames));
 
-			const_cast<Eigen::MatrixBase<Derived3>&>(output).middleCols(outputStart, numFrames).noalias() += layerBuffer.middleCols(bufferStart, numFrames);
+				const_cast<Eigen::MatrixBase<Derived3>&>(output).middleCols(outputStart, numFrames).noalias() += layerBuffer.middleCols(bufferStart, numFrames);
+			}
 		}
 	};
 
@@ -289,6 +299,11 @@ namespace NeuralAudio
 				});
 
 			return allocNum;
+		}
+
+		void SetLast()
+		{
+			std::get<lastLayer>(layers).SetLast();
 		}
 
 		void SetWeights(std::vector<float>::iterator& weights)
@@ -365,6 +380,7 @@ namespace NeuralAudio
 					allocNum = std::get<layerIndex>(layerArrays).AllocBuffers(allocNum);
 				});
 
+			std::get<sizeof...(LayerArrays)-1>(layerArrays).SetLast();
 		}
 
 		void SetWeights(std::vector<float> weights)
