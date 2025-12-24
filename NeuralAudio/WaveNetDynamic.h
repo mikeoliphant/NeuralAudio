@@ -14,6 +14,65 @@
 
 namespace NeuralAudio
 {
+	class ChannelHistory
+	{
+		public:
+			size_t bufferStart;
+
+			ChannelHistory(size_t channels, size_t historySize, size_t blockSize) :
+				blockSize(blockSize),
+				bufferSize((size_t)std::ceil((float)(historySize * 2) / (float)(blockSize * 2)) * blockSize * 2),
+				wrapSize(bufferSize / 2),
+				buffer(channels, bufferSize)
+			{
+				bufferStart = wrapSize;
+				buffer.setZero();
+			}
+
+			Eigen::MatrixXf& GetWriteBuffer()
+			{
+				return buffer;
+			}
+
+			const Eigen::Block<Eigen::MatrixXf,-1, -1, true> GetHistory(int historyOffset, size_t blockSize)
+			{
+				return buffer.middleCols(bufferStart + historyOffset, blockSize);
+			}
+
+			void AdvanceFrames(size_t numFrames)
+			{
+				if (bufferSize <= blockSize)
+				{
+					buffer.middleCols(0, wrapSize).noalias() = buffer.middleCols(numFrames, wrapSize);
+				}
+				else
+				{
+					buffer.middleCols(bufferStart - wrapSize, numFrames).noalias() = buffer.middleCols(bufferStart, numFrames);
+
+					bufferStart += numFrames;
+
+					if (bufferStart == bufferSize)
+					{
+						bufferStart -= wrapSize;
+					}
+				}
+			}
+
+			void CopyBuffer()
+			{
+				for (auto i = 0; i < buffer.cols(); i++)
+				{
+					buffer.col(i).noalias() = buffer.col(bufferStart);
+				}
+			}
+
+		private:
+			size_t blockSize;
+			size_t bufferSize;
+			size_t wrapSize;
+			Eigen::MatrixXf buffer;
+	};
+
 	class Conv1D
 	{
 	private:
@@ -61,13 +120,13 @@ namespace NeuralAudio
 			}
 		}
 
-		inline void Process(const Eigen::Ref<const Eigen::MatrixXf>& input, Eigen::Ref<Eigen::MatrixXf> output, const size_t iStart, const size_t nCols) const
+		inline void Process(ChannelHistory& history, Eigen::Ref<Eigen::MatrixXf> output, const size_t nCols) const
 		{
 			for (size_t k = 0; k < kernelSize; k++)
 			{
-				size_t offset = dilation * (k + 1 - kernelSize);
+				int offset = (int)(dilation * (k + 1 - kernelSize));
 
-				auto& inBlock = input.middleCols(iStart + offset, nCols);
+				auto& inBlock = history.GetHistory(offset, nCols);
 
 				if (k == 0)
 					output.noalias() = weights[k] * inBlock;
@@ -151,12 +210,10 @@ namespace NeuralAudio
 		DenseLayer inputMixin;
 		DenseLayer oneByOne;
 		Eigen::MatrixXf state;
-		Eigen::MatrixXf layerBuffer;
+		ChannelHistory historyBuffer;
 
 	public:
 		size_t ReceptiveFieldSize;
-		size_t BufferSize;
-		size_t bufferStart;
 
 		WaveNetLayer(size_t conditionSize, size_t channels, size_t kernelSize, size_t dilation) :
 			conditionSize(conditionSize),
@@ -168,24 +225,14 @@ namespace NeuralAudio
 			oneByOne(channels, channels, true),
 			state(channels, WAVENET_MAX_NUM_FRAMES),
 			ReceptiveFieldSize((kernelSize - 1) * dilation),
-			BufferSize((ReceptiveFieldSize * 2) + WAVENET_MAX_NUM_FRAMES)
+			historyBuffer(channels, (kernelSize - 1) * dilation, WAVENET_MAX_NUM_FRAMES)
 		{
 			state.setZero();
 		}
 
-		Eigen::MatrixXf& GetLayerBuffer()
+		ChannelHistory& GetHistory()
 		{
-			return layerBuffer;
-		}
-
-		void AllocBuffer(size_t allocNum)
-		{
-			size_t size = BufferSize;
-
-			layerBuffer.resize(channels, size);
-			layerBuffer.setZero();
-
-			bufferStart = ReceptiveFieldSize;
+			return historyBuffer;
 		}
 
 		void SetWeights(std::vector<float>::iterator& weights)
@@ -200,36 +247,11 @@ namespace NeuralAudio
 			(void)maxFrames;
 		}
 
-		void AdvanceFrames(const size_t numFrames)
-		{
-			if (ReceptiveFieldSize <= WAVENET_MAX_NUM_FRAMES)
-			{
-				layerBuffer.middleCols(0, ReceptiveFieldSize).noalias() = layerBuffer.middleCols(numFrames, ReceptiveFieldSize);
-			}
-			else
-			{
-				layerBuffer.middleCols(bufferStart - ReceptiveFieldSize, numFrames).noalias() = layerBuffer.middleCols(bufferStart, numFrames);
-
-				bufferStart += numFrames;
-
-				if (bufferStart > (BufferSize - WAVENET_MAX_NUM_FRAMES))
-					bufferStart -= ReceptiveFieldSize;
-			}
-		}
-
-		void CopyBuffer()
-		{
-			for (size_t offset = 1; offset < ReceptiveFieldSize + 1; offset++)
-			{
-				layerBuffer.col(bufferStart - offset).noalias() = layerBuffer.col(bufferStart);
-			}
-		}
-
 		void Process(const Eigen::Ref<const Eigen::MatrixXf>& condition, Eigen::Ref<Eigen::MatrixXf> headInput, Eigen::Ref<Eigen::MatrixXf> output, const size_t outputStart, const size_t numFrames)
 		{
 			auto block = state.leftCols(numFrames);
 
-			conv1D.Process(layerBuffer, block, bufferStart, numFrames);
+			conv1D.Process(historyBuffer, block, numFrames);
 
 			inputMixin.ProcessAcc(condition, block);
 
@@ -247,7 +269,7 @@ namespace NeuralAudio
 
 			oneByOne.Process(block.topRows(channels), output.middleCols(outputStart, numFrames));
 
-			output.middleCols(outputStart, numFrames).noalias() += layerBuffer.middleCols(bufferStart, numFrames);
+			output.middleCols(outputStart, numFrames).noalias() += historyBuffer.GetHistory(0, numFrames);
 		}
 	};
 
@@ -302,16 +324,6 @@ namespace NeuralAudio
 			return channels;
 		}
 
-		size_t AllocBuffers(size_t allocNum)
-		{
-			for (auto& layer : layers)
-			{
-				layer.AllocBuffer(allocNum++);
-			}
-
-			return allocNum;
-		}
-
 		void SetMaxFrames(const size_t maxFrames)
 		{
 			for (auto& layer : layers)
@@ -334,11 +346,11 @@ namespace NeuralAudio
 
 		void Prewarm(const Eigen::MatrixXf& layerInputs, const Eigen::MatrixXf& condition, Eigen::Ref<Eigen::MatrixXf> const& headInputs)
 		{
-			rechannel.Process(layerInputs, layers[0].GetLayerBuffer().middleCols(layers[0].bufferStart, 1));
+			rechannel.Process(layerInputs, layers[0].GetHistory().GetWriteBuffer().middleCols(layers[0].GetHistory().bufferStart, 1));
 
 			for (size_t layerIndex = 0; layerIndex < layers.size(); layerIndex++)
 			{
-				layers[layerIndex].CopyBuffer();
+				layers[layerIndex].GetHistory().CopyBuffer();
 
 				if (layerIndex == lastLayer)
 				{
@@ -346,7 +358,7 @@ namespace NeuralAudio
 				}
 				else
 				{
-					layers[layerIndex].Process(condition, headInputs, layers[layerIndex + 1].GetLayerBuffer(), layers[layerIndex + 1].bufferStart, 1);
+					layers[layerIndex].Process(condition, headInputs, layers[layerIndex + 1].GetHistory().GetWriteBuffer(), layers[layerIndex + 1].GetHistory().bufferStart, 1);
 				}
 			}
 
@@ -355,7 +367,7 @@ namespace NeuralAudio
 
 		void Process(const Eigen::MatrixXf& layerInputs, const Eigen::MatrixXf& condition, Eigen::Ref<Eigen::MatrixXf> headInputs, const size_t numFrames)
 		{
-			rechannel.Process(layerInputs,layers[0].GetLayerBuffer().middleCols(layers[0].bufferStart, numFrames));
+			rechannel.Process(layerInputs,layers[0].GetHistory().GetWriteBuffer().middleCols(layers[0].GetHistory().bufferStart, numFrames));
 
 			for (size_t layerIndex = 0; layerIndex < layers.size(); layerIndex++)
 			{
@@ -365,10 +377,10 @@ namespace NeuralAudio
 				}
 				else
 				{
-					layers[layerIndex].Process(condition, headInputs, layers[layerIndex + 1].GetLayerBuffer(), layers[layerIndex + 1].bufferStart, numFrames);
+					layers[layerIndex].Process(condition, headInputs, layers[layerIndex + 1].GetHistory().GetWriteBuffer(), layers[layerIndex + 1].GetHistory().bufferStart, numFrames);
 				}
 
-				layers[layerIndex].AdvanceFrames(numFrames);
+				layers[layerIndex].GetHistory().AdvanceFrames(numFrames);
 			}
 
 			headRechannel.Process(headInputs, headOutputs.leftCols(numFrames));
@@ -390,12 +402,6 @@ namespace NeuralAudio
 			lastLayerArray(layerArrays.size() - 1),
 			headArray(layerArrays[0].GetNumChannels(), WAVENET_MAX_NUM_FRAMES)
 		{
-			size_t allocNum = 0;
-
-			for (auto& layerArray : this->layerArrays)
-			{
-				allocNum = layerArray.AllocBuffers(allocNum);
-			}
 		}
 
 		void SetWeights(std::vector<float> weights)
