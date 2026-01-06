@@ -39,9 +39,9 @@ NeuralModel* LoadModel(std::filesystem::path modelPath, EModelLoadMode loadMode)
 
 		return model;
 	}
-	catch (...)
+	catch (const std::exception& e)
 	{
-		std::cout << "Error loading model" << std::endl;
+		std::cout << "Error loading model: " << e.what() << std::endl;
 	}
 
 	return nullptr;
