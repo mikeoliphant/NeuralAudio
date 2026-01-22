@@ -122,6 +122,17 @@ namespace NeuralAudio
 		return CreateFromStream(jsonStream, modelPath.extension());
 	}
 
+	bool NAMIsA2(std::string version)
+	{
+		int major = 0, minor = 0, patch = 0;
+		char dot;
+		std::stringstream ss(version);
+
+		ss >> major >> dot >> minor >> dot >> patch;
+
+		return (major > 0) || (minor > 5) || ((minor == 5) && (patch > 4));
+	}
+
 	NeuralModel* NeuralModel::CreateFromStream(std::basic_istream<char>& jsonStream, std::filesystem::path extension)
 	{
 		EnsureModelDefsAreLoaded();
@@ -133,10 +144,10 @@ namespace NeuralAudio
 
 		if (extension == ".nam")
 		{
-			std::string arch = modelJson.at("architecture");
-
 #ifdef BUILD_NAMCORE
-			if (wavenetLoadMode == EModelLoadMode::NAMCore)
+			std::string version = modelJson.at("version");
+
+			if ((wavenetLoadMode == EModelLoadMode::NAMCore) || NAMIsA2(version))
 			{
 				NAMModel* model = new NAMModel;
 
@@ -146,12 +157,13 @@ namespace NeuralAudio
 			}
 #endif
 
+			std::string arch = modelJson.at("architecture");
+			nlohmann::json config = modelJson.at("config");
+
 			if (newModel == nullptr)
 			{
 				if (arch == "WaveNet")
 				{
-					nlohmann::json config = modelJson.at("config");
-
 					if (config.at("layers").size() == 2)
 					{
 						nlohmann::json firstLayerConfig = config.at("layers").at(0);
@@ -215,8 +227,6 @@ namespace NeuralAudio
 				}
 				else if (arch == "LSTM")
 				{
-					nlohmann::json config = modelJson.at("config");
-
 #ifdef BUILD_STATIC_RTNEURAL
 					if (lstmLoadMode == EModelLoadMode::RTNeural)
 					{
