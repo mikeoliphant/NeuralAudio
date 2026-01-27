@@ -11,6 +11,13 @@ NeuralModel* LoadModel(std::filesystem::path modelPath, EModelLoadMode loadMode)
 	NeuralModel::SetWaveNetLoadMode(loadMode);
 	NeuralModel::SetLSTMLoadMode(loadMode);
 
+	if (!std::filesystem::exists(modelPath))
+	{
+		std::cout << "Model file does not exist: " << modelPath << std::endl;
+
+		return nullptr;
+	}
+
 	try
 	{
 		auto model = NeuralAudio::NeuralModel::CreateFromFile(modelPath);
@@ -133,17 +140,20 @@ void RunNAMTests(std::filesystem::path modelPath, int blockSize)
 
 	double rms;
 
-	if (namCoreModel != nullptr)
-	{
-	}
-
 	std::tuple<double, double> internal;
 	std::tuple<double, double> rtNeural;
 	std::tuple<double, double> namCore;
 
-	internal = BenchModel(internalModel, blockSize, numBlocks);
+	if (internalModel != nullptr)
+	{
+		internal = BenchModel(internalModel, blockSize, numBlocks);
 
-	std::cout << "Internal: " << std::get<0>(internal) << " (" << std::get<1>(internal) << ")" << std::endl;
+		std::cout << "Internal: " << std::get<0>(internal) << " (" << std::get<1>(internal) << ")" << std::endl;
+	}
+	else
+	{
+		std::cout << "Model can't be loaded as internal model" << std::endl;
+	}
 
 	if (namCoreModel != nullptr)
 	{
@@ -151,11 +161,15 @@ void RunNAMTests(std::filesystem::path modelPath, int blockSize)
 
 		namCore = BenchModel(namCoreModel, blockSize, numBlocks);
 
-		rms = ComputeError(namCoreModel, internalModel, blockSize, numBlocks);
-
 		std::cout << "NAM Core: " << std::get<0>(namCore) << " (" << std::get<1>(namCore) << ")" << std::endl;
-		std::cout << "NAM vs Internal RMS err: " << rms << std::endl;
-		std::cout << "Internal is: " << (std::get<0>(namCore) / std::get<0>(internal)) << "x NAM" << std::endl;
+
+		if (internalModel != nullptr)
+		{
+			rms = ComputeError(namCoreModel, internalModel, blockSize, numBlocks);
+
+			std::cout << "NAM vs Internal RMS err: " << rms << std::endl;
+			std::cout << "Internal is: " << (std::get<0>(namCore) / std::get<0>(internal)) << "x NAM" << std::endl;
+		}
 	}
 
 	if (rtNeuralModel != nullptr)
@@ -165,12 +179,16 @@ void RunNAMTests(std::filesystem::path modelPath, int blockSize)
 		rtNeural = BenchModel(rtNeuralModel, blockSize, numBlocks);
 
 		std::cout << "RTNeural: " << std::get<0>(rtNeural) << " (" << std::get<1>(rtNeural) << ")" << std::endl;
-		rms = ComputeError(namCoreModel, rtNeuralModel, blockSize, numBlocks);
-		std::cout << "NAM vs RTNeural RMS err: " << rms << std::endl;
 
 		if (namCoreModel != nullptr)
 		{
-			std::cout << "RTNeural is: " << (std::get<0>(namCore) / std::get<0>(rtNeural)) << "x NAM" << std::endl;
+			rms = ComputeError(namCoreModel, rtNeuralModel, blockSize, numBlocks);
+			std::cout << "NAM vs RTNeural RMS err: " << rms << std::endl;
+
+			if (namCoreModel != nullptr)
+			{
+				std::cout << "RTNeural is: " << (std::get<0>(namCore) / std::get<0>(rtNeural)) << "x NAM" << std::endl;
+			}
 		}
 	}
 
