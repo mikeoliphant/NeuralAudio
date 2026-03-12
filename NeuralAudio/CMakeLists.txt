@@ -11,7 +11,7 @@ else()
     message(STATUS "NOT Building static RTNeural models")
 endif()
 
-option(BUILD_NAMCORE "Build NAM Core" OFF)
+option(BUILD_NAMCORE "Build NAM Core" ON)
 if(BUILD_NAMCORE)
     message(STATUS "Building NAM Core implementation")
     add_definitions(-DBUILD_NAMCORE)
