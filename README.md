@@ -130,6 +130,8 @@ Note - you'll have to change the Visual Studio version if you are using a differ
 
 ```-DBUILD_NAMCORE=ON```: Support loading models using the NAM Core implemenations.
 
+```-DNAM_USE_INLINE_GEMM=ON```: Enable use of inline matrix multiplication in NAM Core.
+
 ```-DBUILD_STATIC_RTNEURAL=ON```: Build static RTNeural model architectures (slower compile, larger size - only use if you plan on forcing RTNeural model loading).
 
 ```-DWAVENET_FRAMES=XXX```: Sample buffer size for the internal WaveNet implementation. Defaults to **64**. If you know you are going to be using a fixed sample buffer smaller or larger than this, use that instead. Note that the model will still be able to process any buffer size - it is just optimized for this size.
