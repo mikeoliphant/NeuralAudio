@@ -1,5 +1,6 @@
 #include <filesystem>
 #include <iostream>
+#include "argparse.hpp"
 #include <NeuralAudio/NeuralModel.h>
 
 using namespace NeuralAudio;
@@ -238,27 +239,34 @@ int RunDefaultTests(int blockSize)
 
 int main(int argc, char* argv[])
 {
+	argparse::ArgumentParser program("ModelTest", "1.0.0");
+
+	program.add_argument("model_file")
+		.default_value("")
+        .help("Specify a specific model for testing");
+
+	program.add_argument("-b", "--block_size")
+		.default_value(64)
+        .help("Specify the number of iterations")
+        .scan<'i', int>();
+		
+    try
+	{
+        program.parse_args(argc, argv);
+    }
+	catch (const std::runtime_error& err) {
+        std::cerr << err.what() << std::endl;
+        std::cerr << program;
+        return 1;
+    }
+
 	std::cout << std::endl;
 
 	int blockSize = 64;
 
-	std::filesystem::path modelPath;
+	std::filesystem::path modelPath = program.get("model_file");
 
-	for (int arg = 1; arg < argc; arg++)
-	{
-		char* end;
-
-		long val = strtol(argv[arg], &end, 10);
-
-		if (val != 0)
-		{
-			blockSize = (int)val;
-		}
-		else
-		{
-			modelPath.assign(argv[arg]);
-		}
-	}
+	blockSize = program.get<int>("--block_size");
 
 	std::cout << "Block size: " << blockSize << std::endl;
 
