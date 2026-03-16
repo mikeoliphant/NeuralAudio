@@ -243,10 +243,13 @@ int main(int argc, char* argv[])
 
 	program.add_argument("model_file")
 		.default_value("")
+		.nargs(1)
         .help("Specify a specific model for testing");
 
 	program.add_argument("-b", "--block_size")
 		.default_value(64)
+		.nargs(1)
+		.required()
         .help("Specify the number of iterations")
         .scan<'i', int>();
 		
