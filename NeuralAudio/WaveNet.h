@@ -394,11 +394,11 @@ namespace NeuralAudio
 				{
 					if constexpr (layerIndex == 0)
 					{
-						std::get<layerIndex>(layerArrays).Prewarm(condition, condition, headArray.leftCols(1));
+						std::get<layerIndex>(layerArrays).Prewarm(condition, condition, headArray);
 					}
 					else
 					{
-						std::get<layerIndex>(layerArrays).Prewarm(std::get<layerIndex - 1>(layerArrays).arrayOutputs.leftCols(1), condition, std::get<layerIndex - 1>(layerArrays).headOutputs.leftCols(1));
+						std::get<layerIndex>(layerArrays).Prewarm(std::get<layerIndex - 1>(layerArrays).arrayOutputs, condition, std::get<layerIndex - 1>(layerArrays).headOutputs);
 					}
 				});
 		}
@@ -415,11 +415,11 @@ namespace NeuralAudio
 				{
 					if constexpr (layerIndex == 0)
 					{
-						std::get<layerIndex>(layerArrays).Process(condition, condition, headArray.leftCols(numFrames), numFrames);
+						std::get<layerIndex>(layerArrays).Process(condition, condition, headArray, numFrames);
 					}
 					else
 					{
-						std::get<layerIndex>(layerArrays).Process(std::get<layerIndex - 1>(layerArrays).arrayOutputs.leftCols(numFrames), condition, std::get<layerIndex - 1>(layerArrays).headOutputs.leftCols(numFrames), numFrames);
+						std::get<layerIndex>(layerArrays).Process(std::get<layerIndex - 1>(layerArrays).arrayOutputs, condition, std::get<layerIndex - 1>(layerArrays).headOutputs, numFrames);
 					}
 				});
 
