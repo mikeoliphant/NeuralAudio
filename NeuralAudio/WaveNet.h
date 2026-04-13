@@ -223,9 +223,9 @@ namespace NeuralAudio
 			//	data[pos] = WAVENET_MATH::Tanh(data[pos]);
 			//}
 
-			const_cast<Eigen::MatrixBase<Derived2>&>(headInput).noalias() += block.topRows(Channels);
+			const_cast<Eigen::MatrixBase<Derived2>&>(headInput).leftCols(numFrames).noalias() += block;
 
-			oneByOne.Process(block.topRows(Channels), const_cast<Eigen::MatrixBase<Derived3>&>(output).middleCols(outputStart, numFrames));
+			oneByOne.Process(block, const_cast<Eigen::MatrixBase<Derived3>&>(output).middleCols(outputStart, numFrames));
 
 			const_cast<Eigen::MatrixBase<Derived3>&>(output).middleCols(outputStart, numFrames).noalias() += layerBuffer.middleCols(bufferStart, numFrames);
 		}
