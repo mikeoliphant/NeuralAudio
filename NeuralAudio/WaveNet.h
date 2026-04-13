@@ -371,12 +371,12 @@ namespace NeuralAudio
 
 			headScale = *(it++);
 
-      if (std::distance(weights.begin(), it) != (long)weights.size())
-      {
-        std::stringstream str;
-        str << "Wrong number of weights. Remaining: " << std::distance(weights.begin(), it);
-        throw std::runtime_error(str.str());
-      }
+			if (std::distance(weights.begin(), it) != (long)weights.size())
+			{
+				std::stringstream str;
+				str << "Wrong number of weights. Remaining: " << std::distance(weights.begin(), it);
+				throw std::runtime_error(str.str());
+			}
 		}
 
 		size_t GetMaxFrames()
