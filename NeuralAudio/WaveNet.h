@@ -26,19 +26,19 @@ namespace NeuralAudio
 	class Conv1DT
 	{
 	public:
-		void SetWeights(std::vector<float>::iterator& inWeights)
+		void SetWeights(std::vector<float> const & inWeights, size_t & idx)
 		{
 			weights.resize(KernelSize);
 
 			for (size_t i = 0; i < OutChannels; i++)
 				for (size_t j = 0; j < InChannels; j++)
 					for (size_t k = 0; k < KernelSize; k++)
-						weights[k](i, j) = *(inWeights++);
+						weights[k](i, j) = inWeights.at(idx++);
 
 			if (DoBias)
 			{
 				for (size_t i = 0; i < OutChannels; i++)
-					bias(i) = *(inWeights++);
+					bias(i) = inWeights.at(idx++);
 			}
 		}
 
@@ -70,16 +70,16 @@ namespace NeuralAudio
 	class DenseLayerT
 	{
 	public:
-		void SetWeights(std::vector<float>::iterator& inWeights)
+		void SetWeights(std::vector<float> const & inWeights, size_t & idx)
 		{
 			for (size_t i = 0; i < OutSize; i++)
 				for (size_t j = 0; j < InSize; j++)
-					weights(i, j) = *(inWeights++);
+					weights(i, j) = inWeights.at(idx++);
 
 			if constexpr (DoBias)
 			{
 				for (size_t i = 0; i < OutSize; i++)
-					bias(i) = *(inWeights++);
+					bias(i) = inWeights.at(idx++);
 			}
 		}
 
@@ -168,11 +168,11 @@ namespace NeuralAudio
 #endif
 		}
 
-		void SetWeights(std::vector<float>::iterator& weights)
+		void SetWeights(std::vector<float> const & inWeights, size_t & idx)
 		{
-			conv1D.SetWeights(weights);
-			inputMixin.SetWeights(weights);
-			oneByOne.SetWeights(weights);
+			conv1D.SetWeights(inWeights, idx);
+			inputMixin.SetWeights(inWeights, idx);
+			oneByOne.SetWeights(inWeights, idx);
 		}
 
 		void AdvanceFrames(const size_t numFrames)
@@ -284,16 +284,16 @@ namespace NeuralAudio
 			return allocNum;
 		}
 
-		void SetWeights(std::vector<float>::iterator& weights)
+		void SetWeights(std::vector<float> const & inWeights, size_t & idx)
 		{
-			rechannel.SetWeights(weights);
+			rechannel.SetWeights(inWeights, idx);
 
 			ForEachIndex<numLayers>([&](auto layerIndex)
 				{
-					std::get<layerIndex>(layers).SetWeights(weights);
+					std::get<layerIndex>(layers).SetWeights(inWeights, idx);
 				});
 
-			headRechannel.SetWeights(weights);
+			headRechannel.SetWeights(inWeights, idx);
 		}
 
 		template<typename Derived, typename Derived2, typename Derived3>
@@ -360,21 +360,21 @@ namespace NeuralAudio
 
 		}
 
-		void SetWeights(std::vector<float> weights)
+		void SetWeights(std::vector<float> const & weights)
 		{
-			std::vector<float>::iterator it = weights.begin();
+			size_t idx = 0;
 
 			ForEachIndex<sizeof...(LayerArrays)>([&](auto layerIndex)
 				{
-					std::get<layerIndex>(layerArrays).SetWeights(it);
+					std::get<layerIndex>(layerArrays).SetWeights(weights, idx);
 				});
 
-			headScale = *(it++);
+			headScale = weights.at(idx++);
 
-			if (std::distance(weights.begin(), it) != (long)weights.size())
+			if (idx != weights.size())
 			{
 				std::stringstream str;
-				str << "Wrong number of weights. Remaining: " << std::distance(weights.begin(), it);
+				str << "Wrong number of weights. Remaining: " << (weights.size() - idx);
 				throw std::runtime_error(str.str());
 			}
 		}
