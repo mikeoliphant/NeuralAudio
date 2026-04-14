@@ -26,6 +26,11 @@ namespace NeuralAudio
 	class Conv1DT
 	{
 	public:
+		size_t GetNumWeights()
+		{
+			return OutChannels * InChannels * KernelSize + (DoBias ? OutChannels : 0);
+		}
+
 		void SetWeights(std::vector<float>::iterator& inWeights)
 		{
 			weights.resize(KernelSize);
@@ -70,6 +75,11 @@ namespace NeuralAudio
 	class DenseLayerT
 	{
 	public:
+		size_t GetNumWeights()
+		{
+			return OutSize * InSize + (DoBias ? OutSize : 0);
+		}
+
 		void SetWeights(std::vector<float>::iterator& inWeights)
 		{
 			for (size_t i = 0; i < OutSize; i++)
@@ -166,6 +176,11 @@ namespace NeuralAudio
 #else
 				bufferStart = size - (WAVENET_MAX_NUM_FRAMES * ((allocNum % LAYER_ARRAY_BUFFER_PADDING) + 1));	// Do the modulo to handle cases where LAYER_ARRAY_BUFFER_PADDING is not big enough to handle offset
 #endif
+		}
+
+		size_t GetNumWeights()
+		{
+			return conv1D.GetNumWeights() + inputMixin.GetNumWeights() + oneByOne.GetNumWeights();
 		}
 
 		void SetWeights(std::vector<float>::iterator& weights)
@@ -284,6 +299,20 @@ namespace NeuralAudio
 			return allocNum;
 		}
 
+		size_t GetNumWeights()
+		{
+			size_t numWeights = rechannel.GetNumWeights();
+
+			ForEachIndex<numLayers>([&](auto layerIndex)
+				{
+					numWeights += std::get<layerIndex>(layers).GetNumWeights();
+				});
+
+			numWeights += headRechannel.GetNumWeights();
+
+			return numWeights;
+		}
+
 		void SetWeights(std::vector<float>::iterator& weights)
 		{
 			rechannel.SetWeights(weights);
@@ -357,11 +386,33 @@ namespace NeuralAudio
 
 					allocNum = std::get<layerIndex>(layerArrays).AllocBuffers(allocNum);
 				});
+		}
 
+		size_t GetNumWeights()
+		{
+			size_t numWeights = 0;
+
+			ForEachIndex<sizeof...(LayerArrays)>([&](auto layerIndex)
+				{
+					numWeights += std::get<layerIndex>(layerArrays).GetNumWeights();
+				});
+
+			numWeights++; // headScale;
+
+			return numWeights;
 		}
 
 		void SetWeights(std::vector<float> weights)
 		{
+			size_t numWeights = GetNumWeights();
+
+			if (numWeights != weights.size())
+			{
+				std::stringstream str;
+				str << "Wrong number of weights. Expected " << numWeights << " but got " << weights.size();
+				throw std::runtime_error(str.str());
+			}
+
 			std::vector<float>::iterator it = weights.begin();
 
 			ForEachIndex<sizeof...(LayerArrays)>([&](auto layerIndex)
@@ -370,13 +421,6 @@ namespace NeuralAudio
 				});
 
 			headScale = *(it++);
-
-			if (std::distance(weights.begin(), it) != (long)weights.size())
-			{
-				std::stringstream str;
-				str << "Wrong number of weights. Remaining: " << std::distance(weights.begin(), it);
-				throw std::runtime_error(str.str());
-			}
 		}
 
 		size_t GetMaxFrames()
