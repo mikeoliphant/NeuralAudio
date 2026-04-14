@@ -299,7 +299,7 @@ namespace NeuralAudio
 		template<typename Derived, typename Derived2, typename Derived3>
 		void Prewarm(const Eigen::MatrixBase<Derived>& layerInputs, const Eigen::MatrixBase<Derived2>& condition, Eigen::MatrixBase<Derived3> const& headInputs)
 		{
-			rechannel.Process(layerInputs, std::get<0>(layers).layerBuffer.middleCols(std::get<0>(layers).bufferStart, 1));
+			rechannel.Process(layerInputs.leftCols(1), std::get<0>(layers).layerBuffer.middleCols(std::get<0>(layers).bufferStart, 1));
 
 			ForEachIndex<numLayers>([&](auto layerIndex)
 				{
@@ -315,13 +315,13 @@ namespace NeuralAudio
 					}
 				});
 
-			headRechannel.Process(headInputs, headOutputs.leftCols(1));
+			headRechannel.Process(headInputs.leftCols(1), headOutputs.leftCols(1));
 		}
 
 		template<typename Derived, typename Derived2, typename Derived3>
 		void Process(const Eigen::MatrixBase<Derived>& layerInputs, const Eigen::MatrixBase<Derived2>& condition, Eigen::MatrixBase<Derived3> const& headInputs, const size_t numFrames)
 		{
-			rechannel.Process(layerInputs, std::get<0>(layers).layerBuffer.middleCols(std::get<0>(layers).bufferStart, numFrames));
+			rechannel.Process(layerInputs.leftCols(numFrames), std::get<0>(layers).layerBuffer.middleCols(std::get<0>(layers).bufferStart, numFrames));
 
 			ForEachIndex<numLayers>([&](auto layerIndex)
 				{
@@ -337,7 +337,7 @@ namespace NeuralAudio
 					std::get<layerIndex>(layers).AdvanceFrames(numFrames);
 				});
 
-			headRechannel.Process(headInputs, headOutputs.leftCols(numFrames));
+			headRechannel.Process(headInputs.leftCols(numFrames), headOutputs.leftCols(numFrames));
 		}
 	};
 
