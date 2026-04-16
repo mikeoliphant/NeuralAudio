@@ -7,3 +7,6 @@
 [submodule "deps/math_approx"]
 	path = deps/math_approx
 	url = https://github.com/Chowdhury-DSP/math_approx
+[submodule "Utils/deps/argparse"]
+	path = Utils/deps/argparse
+	url = https://github.com/p-ranav/argparse

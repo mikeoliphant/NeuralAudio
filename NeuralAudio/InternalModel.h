@@ -20,8 +20,6 @@ namespace NeuralAudio
 			ReadKerasConfig(modelJson);
 
 			return CreateModelFromKerasJson(modelJson);
-
-			return true;
 		}
 
 		virtual bool CreateModelFromKerasJson(const nlohmann::json& modelJson)

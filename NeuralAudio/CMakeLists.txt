@@ -25,6 +25,20 @@ if(NAM_USE_INLINE_GEMM)
     add_definitions(-DNAM_USE_INLINE_GEMM)
 else()
     message(STATUS "NOT Using NAM Core inline matrix multiplications")
+option(BUILD_INTERNAL_STATIC_WAVENET "Build Internal static WaveNet models" ON)
+if(BUILD_INTERNAL_STATIC_WAVENET)
+    message(STATUS "Building Internal static WaveNet models")
+    add_definitions(-DBUILD_INTERNAL_STATIC_WAVENET)
+else()
+    message(STATUS "NOT Building Internal static WaveNet models")
+endif()
+
+option(BUILD_INTERNAL_STATIC_LSTM "Build Internal static LSTM models" ON)
+if(BUILD_INTERNAL_STATIC_LSTM)
+    message(STATUS "Building Internal static LSTM models")
+    add_definitions(-DBUILD_INTERNAL_STATIC_LSTM)
+else()
+    message(STATUS "NOT Building Internal static LSTM models")
 endif()
 
 set(LSTM_MATH "FastMath" CACHE STRING "LSTM math functions")
@@ -41,11 +55,11 @@ add_definitions(-DWAVENET_MAX_NUM_FRAMES=${WAVENET_FRAMES})
 
 message(STATUS "WaveNet frame size is: ${WAVENET_FRAMES}")
 
-set(BUFFER_PADDING "24" CACHE STRING "Convoluation buffer padding size")
+set(BUFFER_PADDING "24" CACHE STRING "Convolution buffer padding size")
 
 add_definitions(-DLAYER_ARRAY_BUFFER_PADDING=${BUFFER_PADDING})
 
-message(STATUS "Convoluation buffer padding size: ${BUFFER_PADDING}")
+message(STATUS "Convolution buffer padding size: ${BUFFER_PADDING}")
 
 if (MSVC)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")

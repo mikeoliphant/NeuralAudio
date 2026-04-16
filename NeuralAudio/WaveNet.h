@@ -26,6 +26,11 @@ namespace NeuralAudio
 	class Conv1DT
 	{
 	public:
+		size_t GetNumWeights()
+		{
+			return OutChannels * InChannels * KernelSize + (DoBias ? OutChannels : 0);
+		}
+
 		void SetWeights(std::vector<float>::iterator& inWeights)
 		{
 			weights.resize(KernelSize);
@@ -70,6 +75,11 @@ namespace NeuralAudio
 	class DenseLayerT
 	{
 	public:
+		size_t GetNumWeights()
+		{
+			return OutSize * InSize + (DoBias ? OutSize : 0);
+		}
+
 		void SetWeights(std::vector<float>::iterator& inWeights)
 		{
 			for (size_t i = 0; i < OutSize; i++)
@@ -168,6 +178,11 @@ namespace NeuralAudio
 #endif
 		}
 
+		size_t GetNumWeights()
+		{
+			return conv1D.GetNumWeights() + inputMixin.GetNumWeights() + oneByOne.GetNumWeights();
+		}
+
 		void SetWeights(std::vector<float>::iterator& weights)
 		{
 			conv1D.SetWeights(weights);
@@ -223,9 +238,9 @@ namespace NeuralAudio
 			//	data[pos] = WAVENET_MATH::Tanh(data[pos]);
 			//}
 
-			const_cast<Eigen::MatrixBase<Derived2>&>(headInput).noalias() += block.topRows(Channels);
+			const_cast<Eigen::MatrixBase<Derived2>&>(headInput).leftCols(numFrames).noalias() += block;
 
-			oneByOne.Process(block.topRows(Channels), const_cast<Eigen::MatrixBase<Derived3>&>(output).middleCols(outputStart, numFrames));
+			oneByOne.Process(block, const_cast<Eigen::MatrixBase<Derived3>&>(output).middleCols(outputStart, numFrames));
 
 			const_cast<Eigen::MatrixBase<Derived3>&>(output).middleCols(outputStart, numFrames).noalias() += layerBuffer.middleCols(bufferStart, numFrames);
 		}
@@ -284,6 +299,20 @@ namespace NeuralAudio
 			return allocNum;
 		}
 
+		size_t GetNumWeights()
+		{
+			size_t numWeights = rechannel.GetNumWeights();
+
+			ForEachIndex<numLayers>([&](auto layerIndex)
+				{
+					numWeights += std::get<layerIndex>(layers).GetNumWeights();
+				});
+
+			numWeights += headRechannel.GetNumWeights();
+
+			return numWeights;
+		}
+
 		void SetWeights(std::vector<float>::iterator& weights)
 		{
 			rechannel.SetWeights(weights);
@@ -299,7 +328,7 @@ namespace NeuralAudio
 		template<typename Derived, typename Derived2, typename Derived3>
 		void Prewarm(const Eigen::MatrixBase<Derived>& layerInputs, const Eigen::MatrixBase<Derived2>& condition, Eigen::MatrixBase<Derived3> const& headInputs)
 		{
-			rechannel.Process(layerInputs, std::get<0>(layers).layerBuffer.middleCols(std::get<0>(layers).bufferStart, 1));
+			rechannel.Process(layerInputs.leftCols(1), std::get<0>(layers).layerBuffer.middleCols(std::get<0>(layers).bufferStart, 1));
 
 			ForEachIndex<numLayers>([&](auto layerIndex)
 				{
@@ -315,13 +344,13 @@ namespace NeuralAudio
 					}
 				});
 
-			headRechannel.Process(headInputs, headOutputs.leftCols(1));
+			headRechannel.Process(headInputs.leftCols(1), headOutputs.leftCols(1));
 		}
 
 		template<typename Derived, typename Derived2, typename Derived3>
 		void Process(const Eigen::MatrixBase<Derived>& layerInputs, const Eigen::MatrixBase<Derived2>& condition, Eigen::MatrixBase<Derived3> const& headInputs, const size_t numFrames)
 		{
-			rechannel.Process(layerInputs, std::get<0>(layers).layerBuffer.middleCols(std::get<0>(layers).bufferStart, numFrames));
+			rechannel.Process(layerInputs.leftCols(numFrames), std::get<0>(layers).layerBuffer.middleCols(std::get<0>(layers).bufferStart, numFrames));
 
 			ForEachIndex<numLayers>([&](auto layerIndex)
 				{
@@ -337,7 +366,7 @@ namespace NeuralAudio
 					std::get<layerIndex>(layers).AdvanceFrames(numFrames);
 				});
 
-			headRechannel.Process(headInputs, headOutputs.leftCols(numFrames));
+			headRechannel.Process(headInputs.leftCols(numFrames), headOutputs.leftCols(numFrames));
 		}
 	};
 
@@ -357,11 +386,33 @@ namespace NeuralAudio
 
 					allocNum = std::get<layerIndex>(layerArrays).AllocBuffers(allocNum);
 				});
+		}
 
+		size_t GetNumWeights()
+		{
+			size_t numWeights = 0;
+
+			ForEachIndex<sizeof...(LayerArrays)>([&](auto layerIndex)
+				{
+					numWeights += std::get<layerIndex>(layerArrays).GetNumWeights();
+				});
+
+			numWeights++; // headScale;
+
+			return numWeights;
 		}
 
 		void SetWeights(std::vector<float> weights)
 		{
+			size_t numWeights = GetNumWeights();
+
+			if (numWeights != weights.size())
+			{
+				std::stringstream str;
+				str << "Wrong number of weights. Expected " << numWeights << " but got " << weights.size();
+				throw std::runtime_error(str.str());
+			}
+
 			std::vector<float>::iterator it = weights.begin();
 
 			ForEachIndex<sizeof...(LayerArrays)>([&](auto layerIndex)
@@ -370,8 +421,6 @@ namespace NeuralAudio
 				});
 
 			headScale = *(it++);
-
-			assert(std::distance(weights.begin(), it) == (long)weights.size());
 		}
 
 		size_t GetMaxFrames()
@@ -389,11 +438,11 @@ namespace NeuralAudio
 				{
 					if constexpr (layerIndex == 0)
 					{
-						std::get<layerIndex>(layerArrays).Prewarm(condition, condition, headArray.leftCols(1));
+						std::get<layerIndex>(layerArrays).Prewarm(condition, condition, headArray);
 					}
 					else
 					{
-						std::get<layerIndex>(layerArrays).Prewarm(std::get<layerIndex - 1>(layerArrays).arrayOutputs.leftCols(1), condition, std::get<layerIndex - 1>(layerArrays).headOutputs.leftCols(1));
+						std::get<layerIndex>(layerArrays).Prewarm(std::get<layerIndex - 1>(layerArrays).arrayOutputs, condition, std::get<layerIndex - 1>(layerArrays).headOutputs);
 					}
 				});
 		}
@@ -410,11 +459,11 @@ namespace NeuralAudio
 				{
 					if constexpr (layerIndex == 0)
 					{
-						std::get<layerIndex>(layerArrays).Process(condition, condition, headArray.leftCols(numFrames), numFrames);
+						std::get<layerIndex>(layerArrays).Process(condition, condition, headArray, numFrames);
 					}
 					else
 					{
-						std::get<layerIndex>(layerArrays).Process(std::get<layerIndex - 1>(layerArrays).arrayOutputs.leftCols(numFrames), condition, std::get<layerIndex - 1>(layerArrays).headOutputs.leftCols(numFrames), numFrames);
+						std::get<layerIndex>(layerArrays).Process(std::get<layerIndex - 1>(layerArrays).arrayOutputs, condition, std::get<layerIndex - 1>(layerArrays).headOutputs, numFrames);
 					}
 				});
 
