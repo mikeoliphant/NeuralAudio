@@ -25,6 +25,8 @@ if(NAM_USE_INLINE_GEMM)
     add_definitions(-DNAM_USE_INLINE_GEMM)
 else()
     message(STATUS "NOT Using NAM Core inline matrix multiplications")
+endif()
+
 option(BUILD_INTERNAL_STATIC_WAVENET "Build Internal static WaveNet models" ON)
 if(BUILD_INTERNAL_STATIC_WAVENET)
     message(STATUS "Building Internal static WaveNet models")
