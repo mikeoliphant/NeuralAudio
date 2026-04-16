@@ -6,7 +6,7 @@ NeuralAudio is a C++ library designed to make it easy to use neural network mach
 
 NeuralAudio currently supports the following model types:
 
-- [Neural Amp Modeler](https://github.com/sdatkinson/neural-amp-modeler) (NAM) WaveNet and LSTM models
+- [Neural Amp Modeler](https://github.com/sdatkinson/neural-amp-modeler) (NAM) WaveNet and LSTM models, A1 and A2 support
 - [RTNeural](https://github.com/jatinchowdhury18/RTNeural) keras models (LSTM, GRU)
 
 # Underlying Libraries and Performance
@@ -17,13 +17,15 @@ For completeness, and to facilitate accuracy and performance benchmarking, it ca
 
 The internal NeuralAudio implmentation currently outperforms the other implementations on all tested platforms (Windows x64, Linux x64/Arm64). It also uses significantly less memory than the NAM Core WaveNet implementation (which, for example, uses about 10x as much memory for a "standard" WaveNet model).
 
-For WaveNet, the internal implmeentation supports optimized static models of the offical NAM network architectures:  "Standard", "Lite", "Feather", "Nano".
+For WaveNet, the internal implmeentation supports optimized static models of the offical NAM A1 network architectures:  "Standard", "Lite", "Feather", "Nano".
 
 For LSTM, the internal implementation supports optimized static models architectures for 1x8, 1x12, 1x16, 1x24, 2x8, 2x12, and 2x16 models.
 
 All NAM files with WaveNet and LSTM architectures not supported internally will fall back on a less performant dynamic implementation (although still faster than NAM Core).
 
 All keras models not supported internally will fall back to the RTNeural implmentation.
+
+NAM A2 models currently use the NAM Core implementation.
 
 # API overview
 
@@ -86,7 +88,7 @@ NeuralAudio::EModelLoadMode::RTNeural
 
 You can check which implementation was actually used to load the model with ```model->GetLoadMode()```.
 
-**NOTE:** Because of compile time and executable size considerations, only the internal and dynamic RTNeural implementations are built by default. If you want to use RTNeural, it is recommended that you add ```-DBUILD_STATIC_RTNEURAL=ON``` to your cmake commandline. This will create static model implmentations for the same sets of WaveNet and LSTM models as the internal implmentation, and results in increased performance. If you want to use NAM Core, add ```DBUILD_NAMCORE=ON``` to your cmake commandline.
+**NOTE:** Because of compile time and executable size considerations, only the internal, NAM Core and dynamic RTNeural implementations are built by default. If you want to use RTNeural, it is recommended that you add ```-DBUILD_STATIC_RTNEURAL=ON``` to your cmake commandline. This will create static model implmentations for the same sets of WaveNet and LSTM models as the internal implmentation, and results in increased performance.
 
 ## Getting the model receptive field size
 
