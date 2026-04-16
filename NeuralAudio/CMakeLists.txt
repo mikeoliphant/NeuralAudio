@@ -95,11 +95,15 @@ if(BUILD_NAMCORE)
 		../deps/NeuralAmpModelerCore/NAM/registry.h
 		../deps/NeuralAmpModelerCore/NAM/ring_buffer.h
 		../deps/NeuralAmpModelerCore/NAM/ring_buffer.cpp
+		../deps/NeuralAmpModelerCore/NAM/slimmable.h
 		../deps/NeuralAmpModelerCore/NAM/lstm.cpp
 		../deps/NeuralAmpModelerCore/NAM/dsp.h
 		../deps/NeuralAmpModelerCore/NAM/dsp.cpp
-		../deps/NeuralAmpModelerCore/NAM/wavenet.cpp
-		../deps/NeuralAmpModelerCore/NAM/wavenet.h)
+		../deps/NeuralAmpModelerCore/NAM/wavenet/slimmable.cpp
+		../deps/NeuralAmpModelerCore/NAM/wavenet/detail.h
+		../deps/NeuralAmpModelerCore/NAM/wavenet/params.h
+		../deps/NeuralAmpModelerCore/NAM/wavenet/model.h
+		../deps/NeuralAmpModelerCore/NAM/wavenet/model.cpp)
 endif()
 
 if(BUILD_STATIC_RTNEURAL)
