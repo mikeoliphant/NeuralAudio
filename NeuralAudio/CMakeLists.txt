@@ -11,7 +11,7 @@ else()
     message(STATUS "NOT Building static RTNeural models")
 endif()
 
-option(BUILD_NAMCORE "Build NAM Core" OFF)
+option(BUILD_NAMCORE "Build NAM Core" ON)
 if(BUILD_NAMCORE)
     message(STATUS "Building NAM Core implementation")
     add_definitions(-DBUILD_NAMCORE)
@@ -19,6 +19,12 @@ else()
     message(STATUS "NOT Building NAM Core implementation")
 endif()
 
+option(NAM_USE_INLINE_GEMM "Use inline matrix multiplications in NAM Core" OFF)
+if(NAM_USE_INLINE_GEMM)
+    message(STATUS "Using NAM Core inline matrix multiplications")
+    add_definitions(-DNAM_USE_INLINE_GEMM)
+else()
+    message(STATUS "NOT Using NAM Core inline matrix multiplications")
 option(BUILD_INTERNAL_STATIC_WAVENET "Build Internal static WaveNet models" ON)
 if(BUILD_INTERNAL_STATIC_WAVENET)
     message(STATUS "Building Internal static WaveNet models")
@@ -77,7 +83,16 @@ set(SOURCES
 if(BUILD_NAMCORE)
 	set(NAM_SOURCES	../deps/NeuralAmpModelerCore/NAM/activations.h
 		../deps/NeuralAmpModelerCore/NAM/activations.cpp
+		../deps/NeuralAmpModelerCore/NAM/conv1d.cpp
+		../deps/NeuralAmpModelerCore/NAM/conv1d.h
+		../deps/NeuralAmpModelerCore/NAM/film.h 
+		../deps/NeuralAmpModelerCore/NAM/gating_activations.h
+		../deps/NeuralAmpModelerCore/NAM/get_dsp.h
+		../deps/NeuralAmpModelerCore/NAM/get_dsp.cpp
 		../deps/NeuralAmpModelerCore/NAM/lstm.h
+		../deps/NeuralAmpModelerCore/NAM/registry.h
+		../deps/NeuralAmpModelerCore/NAM/ring_buffer.h
+		../deps/NeuralAmpModelerCore/NAM/ring_buffer.cpp
 		../deps/NeuralAmpModelerCore/NAM/lstm.cpp
 		../deps/NeuralAmpModelerCore/NAM/dsp.h
 		../deps/NeuralAmpModelerCore/NAM/dsp.cpp
@@ -92,7 +107,7 @@ set(RTNEURAL_WN_SOURCES ../deps/RTNeural-NAM/wavenet/wavenet_layer.hpp
 	../deps/RTNeural-NAM/wavenet/arena.hpp)
 endif()
 
-add_library(NeuralAudio STATIC ${SOURCES} ${NAM_SOURCES} ${RTNEURAL_WN_SOURCES})
+add_library(NeuralAudio OBJECT ${SOURCES} ${NAM_SOURCES} ${RTNEURAL_WN_SOURCES})
 
 target_include_directories(NeuralAudio PUBLIC ..)
 target_include_directories(NeuralAudio SYSTEM PRIVATE ../deps/NeuralAmpModelerCore)

@@ -130,6 +130,8 @@ Note - you'll have to change the Visual Studio version if you are using a differ
 
 ```-DBUILD_NAMCORE=ON|OFF```: Support loading models using the NAM Core implemenations.
 
+```-DNAM_USE_INLINE_GEMM=ON```: Enable use of inline matrix multiplication in NAM Core.
+
 ```-DBUILD_STATIC_RTNEURAL=ON|OFF```: Build static RTNeural model architectures (slower compile, larger size - only use if you plan on forcing RTNeural model loading).
 
 ```-DBUILD_INTERNAL_STATIC_WAVENET=ON|OFF```: Build internal static WaveNet model architectures (faster internal WaveNet, but slower compile, larger size).
