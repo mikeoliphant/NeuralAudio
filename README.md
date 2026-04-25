@@ -161,3 +161,4 @@ The following applications and devices are using the NeuralAudio library for mod
 - [stompbox](https://github.com/mikeoliphant/stompbox): Guitar amplification and effects pedalboard simulation.
 - [NeuralRack](https://github.com/brummer10/NeuralRack): Neural Model and Impulse Response File loader for Linux/Windows.
 - [Darkglass Anagram](https://www.darkglass.com/creation/anagram): Bass guitar effects unit.
+- [neural_tilde](https://github.com/apresta/neural_tilde): Max/MSP external for running neural amplifier captures
