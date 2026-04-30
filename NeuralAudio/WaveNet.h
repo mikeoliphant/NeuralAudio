@@ -50,17 +50,27 @@ namespace NeuralAudio
 		template<typename Derived, typename Derived2>
 		inline void Process(const Eigen::MatrixBase<Derived>& input, Eigen::MatrixBase<Derived2> const & output, const size_t iStart, const size_t nCols) const
 		{
-			for (size_t k = 0; k < KernelSize; k++)
+			ForEachIndex<KernelSize>([&](auto k)
 			{
 				auto offset = Dilation * ((int)k + 1 - KernelSize);
 
 				auto inBlock = input.middleCols(iStart + offset, nCols);
 
-				if (k == 0)
-					const_cast<Eigen::MatrixBase<Derived2>&>(output).noalias() = weights[k] * inBlock;
+				if constexpr ((InChannels <= 4) || DoBias)
+				{
+					if constexpr (k == 0)
+						const_cast<Eigen::MatrixBase<Derived2>&>(output).noalias() = weights[k].lazyProduct(inBlock);
+					else
+						const_cast<Eigen::MatrixBase<Derived2>&>(output).noalias() += weights[k].lazyProduct(inBlock);
+				}
 				else
-					const_cast<Eigen::MatrixBase<Derived2>&>(output).noalias() += weights[k] * inBlock;
-			}
+				{
+					if constexpr (k == 0)
+						const_cast<Eigen::MatrixBase<Derived2>&>(output).noalias() = weights[k] * inBlock;
+					else
+						const_cast<Eigen::MatrixBase<Derived2>&>(output).noalias() += weights[k] * inBlock;
+				}
+			});
 
 			if constexpr (DoBias)
 				const_cast<Eigen::MatrixBase<Derived2>&>(output).colwise() += bias;
