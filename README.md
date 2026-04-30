@@ -9,6 +9,10 @@ NeuralAudio currently supports the following model types:
 - [Neural Amp Modeler](https://github.com/sdatkinson/neural-amp-modeler) (NAM) WaveNet and LSTM models, A1 and A2 support
 - [RTNeural](https://github.com/jatinchowdhury18/RTNeural) keras models (LSTM, GRU)
 
+# License
+
+This repository is licensed under the [MIT license](https://github.com/mikeoliphant/NeuralAudio/blob/main/LICENSE). It is a liberal license, but please make sure that you comply with the terms - as well as the terms of [this project's dependencies](https://github.com/mikeoliphant/NeuralAudio/blob/main/CREDITS.md). I would also appreciate it if you would let me know if you are using this library.
+
 # Underlying Libraries and Performance
 
 By default, NeuralAudio uses its own implementation of WaveNet and LSTM network models. This implementation has been designed to produce **exactly** the same output as the [NAM Core library](https://github.com/sdatkinson/NeuralAmpModelerCore), but with increased performance and reduced memory usage.
