@@ -24,7 +24,15 @@ if(NAM_USE_INLINE_GEMM)
     message(STATUS "Using NAM Core inline matrix multiplications")
     add_definitions(-DNAM_USE_INLINE_GEMM)
 else()
-    message(STATUS "NOT Using NAM Core inline matrix multiplications")
+    message(STATUS "NOT using NAM Core inline matrix multiplications")
+endif()
+
+option(NAM_ENABLE_A2_FAST "Use NAM A2 fast-path WaveNet" ON)
+if(NAM_ENABLE_A2_FAST)
+    message(STATUS "Using NAM A2 fast-path WaveNet")
+    add_definitions(-DNAM_ENABLE_A2_FAST)
+else()
+    message(STATUS "NOT using NAM A2 fast-path WaveNet")
 endif()
 
 option(BUILD_INTERNAL_STATIC_WAVENET "Build Internal static WaveNet models" ON)
@@ -32,7 +40,7 @@ if(BUILD_INTERNAL_STATIC_WAVENET)
     message(STATUS "Building Internal static WaveNet models")
     add_definitions(-DBUILD_INTERNAL_STATIC_WAVENET)
 else()
-    message(STATUS "NOT Building Internal static WaveNet models")
+    message(STATUS "NOT building Internal static WaveNet models")
 endif()
 
 option(BUILD_INTERNAL_STATIC_LSTM "Build Internal static LSTM models" ON)
@@ -40,7 +48,7 @@ if(BUILD_INTERNAL_STATIC_LSTM)
     message(STATUS "Building Internal static LSTM models")
     add_definitions(-DBUILD_INTERNAL_STATIC_LSTM)
 else()
-    message(STATUS "NOT Building Internal static LSTM models")
+    message(STATUS "NOT building Internal static LSTM models")
 endif()
 
 set(LSTM_MATH "FastMath" CACHE STRING "LSTM math functions")
@@ -103,7 +111,9 @@ if(BUILD_NAMCORE)
 		../deps/NeuralAmpModelerCore/NAM/wavenet/detail.h
 		../deps/NeuralAmpModelerCore/NAM/wavenet/params.h
 		../deps/NeuralAmpModelerCore/NAM/wavenet/model.h
-		../deps/NeuralAmpModelerCore/NAM/wavenet/model.cpp)
+		../deps/NeuralAmpModelerCore/NAM/wavenet/model.cpp
+		../deps/NeuralAmpModelerCore/NAM/wavenet/a2_fast.h
+		../deps/NeuralAmpModelerCore/NAM/wavenet/a2_fast.cpp)
 endif()
 
 if(BUILD_STATIC_RTNEURAL)
