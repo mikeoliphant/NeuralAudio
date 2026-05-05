@@ -5,6 +5,7 @@
 #include <NAM/get_dsp.h>
 #include <NAM/dsp.h>
 #include <NAM/registry.h>
+#include <NAM/slimmable.h>
 
 namespace NeuralAudio
 {
@@ -14,6 +15,8 @@ namespace NeuralAudio
 		NAMModel()
 		{
 			nam::activations::Activation::enable_fast_tanh();
+
+			slimmableSize = defaultQualityScaleFactor;
 		}
 
 		~NAMModel()
@@ -36,7 +39,44 @@ namespace NeuralAudio
 
 			namModel = nam::get_dsp(modelJson);
 
+			auto* slim = dynamic_cast<nam::SlimmableModel*>(namModel.get());
+
+			if (slim != nullptr)
+			{
+				isSlimmable = true;
+
+				slim->SetSlimmableSize(slimmableSize);
+			}
+
 			return true;
+		}
+
+		bool HasQualityScaling()
+		{
+			return isSlimmable;
+		}
+
+		float GetQualityScaleFactor()
+		{
+			return slimmableSize;
+		}
+
+		void SetQualityScaleFactor(float scaleFactor)
+		{
+			if (HasQualityScaling())
+			{
+				if (slimmableSize != scaleFactor)
+				{
+					slimmableSize = scaleFactor;
+
+					if (namModel != nullptr)
+					{
+						auto* slim = dynamic_cast<nam::SlimmableModel*>(namModel.get());
+
+						slim->SetSlimmableSize(slimmableSize);
+					}
+				}
+			}
 		}
 
 		void Process(float* input, float* output, size_t numSamples)
@@ -51,5 +91,7 @@ namespace NeuralAudio
 
 	private:
 		std::unique_ptr<nam::DSP> namModel = nullptr;
+		float slimmableSize = 1.0f;
+		bool isSlimmable = false;
 	};
 }

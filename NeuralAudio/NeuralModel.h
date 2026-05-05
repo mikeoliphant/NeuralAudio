@@ -56,9 +56,28 @@ namespace NeuralAudio
 			defaultMaxAudioBufferSize = maxSize;
 		}
 
+		static void SetDefaultQualityScaleFactor(float scaleFactor)
+		{
+			defaultQualityScaleFactor = scaleFactor;
+		}
+
 		virtual EModelLoadMode GetLoadMode()
 		{
 			return EModelLoadMode::Internal;
+		}
+
+		virtual bool HasQualityScaling()
+		{
+			return false;
+		}
+
+		virtual float GetQualityScaleFactor()
+		{
+			return 1.0f;
+		}
+
+		virtual void SetQualityScaleFactor(float scaleFactor)
+		{
 		}
 
 		virtual bool IsStatic()
@@ -115,6 +134,7 @@ namespace NeuralAudio
 		inline static EModelLoadMode lstmLoadMode = EModelLoadMode::Internal;
 		inline static EModelLoadMode wavenetLoadMode = EModelLoadMode::Internal;
 		inline static int defaultMaxAudioBufferSize = 128;
+		inline static float defaultQualityScaleFactor = 1.0f;
 
 		void Prewarm(size_t numSamples, size_t blockSize)
 		{
