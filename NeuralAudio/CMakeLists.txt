@@ -107,6 +107,8 @@ if(BUILD_NAMCORE)
 		../deps/NeuralAmpModelerCore/NAM/lstm.cpp
 		../deps/NeuralAmpModelerCore/NAM/dsp.h
 		../deps/NeuralAmpModelerCore/NAM/dsp.cpp
+		../deps/NeuralAmpModelerCore/NAM/container.cpp
+		../deps/NeuralAmpModelerCore/NAM/container.h
 		../deps/NeuralAmpModelerCore/NAM/wavenet/slimmable.cpp
 		../deps/NeuralAmpModelerCore/NAM/wavenet/detail.h
 		../deps/NeuralAmpModelerCore/NAM/wavenet/params.h
