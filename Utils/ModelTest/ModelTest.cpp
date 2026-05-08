@@ -270,7 +270,13 @@ int main(int argc, char* argv[])
 		.required()
         .help("Specify the number of iterations")
         .scan<'i', int>();
-		
+
+	program.add_argument("-q", "--quality_scale")
+		.default_value(1.0f)
+		.nargs(1)
+		.required()
+		.help("Quality scaling (0.0 is fasteset, 1.0 is highest quality")
+		.scan<'g', float>();
     try
 	{
         program.parse_args(argc, argv);
@@ -289,7 +295,13 @@ int main(int argc, char* argv[])
 
 	blockSize = program.get<int>("--block_size");
 
-	std::cout << "Block size: " << blockSize << std::endl;
+	float qualityScale = 1.0f;
+
+	qualityScale = program.get<float>("--quality_scale");
+
+	NeuralModel::SetDefaultQualityScaleFactor(qualityScale);
+
+	std::cout << "Block size: " << blockSize << "  Quality Scale: " << qualityScale << std::endl;
 
 	if (!modelPath.empty())
 	{
