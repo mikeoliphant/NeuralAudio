@@ -82,6 +82,8 @@ static std::tuple<double, double> BenchModel(NeuralModel* model, int blockSize, 
 
 	double tot = std::chrono::duration_cast<std::chrono::duration<double>> (end - start).count();
 
+	maxBlock *= numBlocks;
+
 	return std::tie(tot, maxBlock);
 }
 
