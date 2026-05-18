@@ -82,6 +82,7 @@ namespace NeuralAudio
 
 		virtual void SetQualityScaleFactor(float scaleFactor)
 		{
+			(void)scaleFactor;
 		}
 
 		virtual bool IsStatic()
@@ -89,7 +90,7 @@ namespace NeuralAudio
 			return false;
 		}
 
-		virtual void SetMaxAudioBufferSize(int maxSize)
+		virtual void SetMaxAudioBufferSize(const int maxSize)
 		{
 			(void)maxSize;
 		}
@@ -114,6 +115,21 @@ namespace NeuralAudio
 			return -1;	// No fixed receptive field size (ie: for LSTM)
 		}
 
+		virtual std::string GetMetadata(std::string fieldName)
+		{
+			auto it = std::find_if(metadata.begin(), metadata.end(), [&](const auto& pair)
+			{
+				return pair.first == fieldName;
+			});
+
+			if (it != metadata.end())
+			{
+				return it->second;
+			}
+
+			return "";
+		}
+
 		virtual void Process(float* input, float* output, size_t numSamples)
 		{
 			(void)input;
@@ -133,12 +149,29 @@ namespace NeuralAudio
 		float modelOutputLevelDBu = 12;
 		float modelLoudnessDB = -18;
 		float sampleRate = 48000;
+		std::vector<std::pair<std::string, std::string>> metadata;
 
 		inline static float audioInputLevelDBu = 12;
 		inline static EModelLoadMode lstmLoadMode = EModelLoadMode::Internal;
 		inline static EModelLoadMode wavenetLoadMode = EModelLoadMode::Internal;
 		inline static int defaultMaxAudioBufferSize = 128;
 		inline static float defaultQualityScaleFactor = DEFAULT_QUALITY_SCALE;
+
+		void AddMetadata(std::string fieldName, std::string fieldValue)
+		{
+			metadata.push_back({fieldName, fieldValue});
+		}
+
+		void AddMetadata(const nlohmann::json& metadataJson)
+		{
+			for (auto& [key, value] : metadataJson.items())
+			{
+				if (!value.is_null())
+				{
+					AddMetadata(key, value.dump());
+				}
+			}
+		}
 
 		void Prewarm(size_t numSamples, size_t blockSize)
 		{

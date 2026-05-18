@@ -330,6 +330,13 @@ namespace NeuralAudio
 
 	void NeuralModel::ReadNAMConfig(const nlohmann::json& modelJson)
 	{
+		if (modelJson.contains("metadata"))
+		{
+			nlohmann::json metadataJson = modelJson.at("metadata");
+
+			AddMetadata(metadataJson);
+		}
+			
 		if (modelJson.contains("sample_rate") && modelJson.at("sample_rate").is_number())
 		{
 			sampleRate = modelJson.at("sample_rate");
