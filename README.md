@@ -140,6 +140,14 @@ if (!metadataValue.empty())
 ```
 Results are always returned a strings. Field names are case sensitive.
 
+To get the model version string, do:
+
+```
+std::string version = model->GetModelVersion()
+```
+
+The string will be empty if no version information exists.
+
 ## Getting the model receptive field size
 
 WaveNet models have a fixed receptive field size (ie: size of the input that the output depends on).
