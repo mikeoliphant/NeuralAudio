@@ -96,7 +96,7 @@ namespace NeuralAudio
 			return true;
 		}
 
-		void SetMaxAudioBufferSize(int maxSize)
+		void SetMaxAudioBufferSize(const int maxSize)
 		{
 			(void)maxSize;
 		}
@@ -214,7 +214,7 @@ namespace NeuralAudio
 			return true;
 		}
 
-		void SetMaxAudioBufferSize(int maxSize)
+		void SetMaxAudioBufferSize(const int maxSize)
 		{
 			model->SetMaxFrames(maxSize);
 		}
@@ -353,7 +353,7 @@ namespace NeuralAudio
 			return true;
 		}
 
-		void SetMaxAudioBufferSize(int maxSize)
+		void SetMaxAudioBufferSize(const int maxSize)
 		{
 			(void)maxSize;
 		}
@@ -516,7 +516,7 @@ namespace NeuralAudio
 			return true;
 		}
 
-		void SetMaxAudioBufferSize(int maxSize)
+		void SetMaxAudioBufferSize(const int maxSize)
 		{
 			(void)maxSize;
 		}

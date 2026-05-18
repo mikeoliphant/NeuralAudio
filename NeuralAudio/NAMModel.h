@@ -48,6 +48,8 @@ namespace NeuralAudio
 				slim->SetSlimmableSize(slimmableSize);
 			}
 
+			SetMaxAudioBufferSize(defaultMaxAudioBufferSize);
+
 			return true;
 		}
 
@@ -77,6 +79,11 @@ namespace NeuralAudio
 					}
 				}
 			}
+		}
+
+		void SetMaxAudioBufferSize(const int maxSize)
+		{
+			namModel->Reset(namModel->GetExpectedSampleRate(), maxSize);
 		}
 
 		void Process(float* input, float* output, size_t numSamples)
