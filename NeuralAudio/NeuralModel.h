@@ -4,6 +4,10 @@
 #include <istream>
 #include "json.hpp"
 
+#ifndef DEFAULT_QUALITY_SCALE
+#define DEFAULT_QUALITY_SCALE 1.0
+#endif
+
 namespace NeuralAudio
 {
 	enum EModelLoadMode
@@ -134,7 +138,7 @@ namespace NeuralAudio
 		inline static EModelLoadMode lstmLoadMode = EModelLoadMode::Internal;
 		inline static EModelLoadMode wavenetLoadMode = EModelLoadMode::Internal;
 		inline static int defaultMaxAudioBufferSize = 128;
-		inline static float defaultQualityScaleFactor = 1.0f;
+		inline static float defaultQualityScaleFactor = DEFAULT_QUALITY_SCALE;
 
 		void Prewarm(size_t numSamples, size_t blockSize)
 		{

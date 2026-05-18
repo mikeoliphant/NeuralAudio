@@ -43,6 +43,10 @@ else()
     message(STATUS "NOT building Internal static WaveNet models")
 endif()
 
+set(WAVENET_MATH "FastMath" CACHE STRING "WaveNet math functions")
+add_definitions(-DWAVENET_MATH=${WAVENET_MATH})
+message(STATUS "WaveNet math is: ${WAVENET_MATH}")
+
 option(BUILD_INTERNAL_STATIC_LSTM "Build Internal static LSTM models" ON)
 if(BUILD_INTERNAL_STATIC_LSTM)
     message(STATUS "Building Internal static LSTM models")
@@ -55,9 +59,11 @@ set(LSTM_MATH "FastMath" CACHE STRING "LSTM math functions")
 add_definitions(-DLSTM_MATH=${LSTM_MATH})
 message(STATUS "LSTM math is: ${LSTM_MATH}")
 
-set(WAVENET_MATH "FastMath" CACHE STRING "WaveNet math functions")
-add_definitions(-DWAVENET_MATH=${WAVENET_MATH})
-message(STATUS "WaveNet math is: ${WAVENET_MATH}")
+set(DEFAULT_QUALITY_SCALE "1.0" CACHE STRING "Default model quality scale factor")
+
+add_definitions(-DDEFAULT_QUALITY_SCALE=${DEFAULT_QUALITY_SCALE})
+
+message(STATUS "Default model quality scale factor is: ${DEFAULT_QUALITY_SCALE}")
 
 set(WAVENET_FRAMES "64" CACHE STRING "WaveNet frame size")
 
