@@ -330,6 +330,8 @@ namespace NeuralAudio
 
 	void NeuralModel::ReadNAMConfig(const nlohmann::json& modelJson)
 	{
+		modelVersion = modelJson.at("version");
+
 		if (modelJson.contains("metadata"))
 		{
 			nlohmann::json metadataJson = modelJson.at("metadata");

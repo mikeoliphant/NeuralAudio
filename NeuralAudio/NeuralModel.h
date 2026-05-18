@@ -115,6 +115,11 @@ namespace NeuralAudio
 			return -1;	// No fixed receptive field size (ie: for LSTM)
 		}
 
+		virtual std::string GetModelVersion()
+		{
+			return modelVersion;
+		}
+
 		virtual std::string GetMetadata(const std::string& fieldName)
 		{
 			auto it = std::find_if(metadata.begin(), metadata.end(), [&](const auto& pair)
@@ -149,6 +154,7 @@ namespace NeuralAudio
 		float modelOutputLevelDBu = 12;
 		float modelLoudnessDB = -18;
 		float sampleRate = 48000;
+		std::string modelVersion = "";
 		std::vector<std::pair<std::string, std::string>> metadata;
 
 		inline static float audioInputLevelDBu = 12;
