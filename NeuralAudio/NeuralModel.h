@@ -115,7 +115,7 @@ namespace NeuralAudio
 			return -1;	// No fixed receptive field size (ie: for LSTM)
 		}
 
-		virtual std::string GetMetadata(std::string fieldName)
+		virtual std::string GetMetadata(const std::string& fieldName)
 		{
 			auto it = std::find_if(metadata.begin(), metadata.end(), [&](const auto& pair)
 			{
