@@ -36,7 +36,7 @@ namespace NeuralAudio
 	class RTNeuralModel : public NeuralModelImpl
 	{
 	public:
-		EModelLoadMode GetLoadMode()
+		EModelLoadMode GetLoadMode() override
 		{
 			return EModelLoadMode::RTNeural;
 		}
@@ -95,7 +95,7 @@ namespace NeuralAudio
 			}
 		}
 
-		bool IsStatic()
+		bool IsStatic() override
 		{
 			return true;
 		}
@@ -214,13 +214,13 @@ namespace NeuralAudio
 			return true;
 		}
 
-		void Process(float* input, float* output, size_t numSamples)
+		void Process(float* input, float* output, size_t numSamples) override
 		{
 			for (size_t i = 0; i < numSamples; i++)
 				output[i] = model->forward(input + i);
 		}
 
-		void Prewarm()
+		void Prewarm() override
 		{
 			float sample = 0;
 

@@ -73,7 +73,7 @@ namespace NeuralAudio
 			}
 		}
 
-		bool IsStatic()
+		bool IsStatic() override
 		{
 			return true;
 		}
@@ -97,17 +97,17 @@ namespace NeuralAudio
 			return true;
 		}
 
-		void SetMaxAudioBufferSize(const int maxSize)
+		void SetMaxAudioBufferSize(const int maxSize) override
 		{
 			(void)maxSize;
 		}
 
-		int GetReceptiveFieldSize()
+		int GetReceptiveFieldSize() override
 		{
 			return model->ReceptiveFieldSize;
 		}
 
-		void Process(float* input, float* output, size_t numSamples)
+		void Process(float* input, float* output, size_t numSamples) override
 		{
 			size_t offset = 0;
 
@@ -122,7 +122,7 @@ namespace NeuralAudio
 			}
 		}
 
-		void Prewarm()
+		void Prewarm() override
 		{
 			model->Prewarm();
 		}
@@ -155,17 +155,17 @@ namespace NeuralAudio
 	class InternalWaveNetDefinitionT : public InternalWaveNetDefinitionBase
 	{
 	public:
-		InternalModel* CreateModel()
+		InternalModel* CreateModel() override
 		{
 			return new InternalWaveNetModelT<numChannels, headSize>;
 		}
 
-		virtual size_t GetNumChannels()
+		virtual size_t GetNumChannels() override
 		{
 			return numChannels;
 		}
 
-		virtual size_t GetHeadSize()
+		virtual size_t GetHeadSize() override
 		{
 			return headSize;
 		}
@@ -187,7 +187,7 @@ namespace NeuralAudio
 			}
 		}
 
-		EModelLoadMode GetLoadMode()
+		EModelLoadMode GetLoadMode() override
 		{
 			return EModelLoadMode::Internal;
 		}
@@ -215,12 +215,12 @@ namespace NeuralAudio
 			return true;
 		}
 
-		void SetMaxAudioBufferSize(const int maxSize)
+		void SetMaxAudioBufferSize(const int maxSize) override
 		{
 			model->SetMaxFrames(maxSize);
 		}
 
-		void Process(float* input, float* output, size_t numSamples)
+		void Process(float* input, float* output, size_t numSamples) override
 		{
 			size_t offset = 0;
 
@@ -235,7 +235,7 @@ namespace NeuralAudio
 			}
 		}
 
-		void Prewarm()
+		void Prewarm() override
 		{
 			model->Prewarm();
 		}
@@ -263,7 +263,7 @@ namespace NeuralAudio
 			}
 		}
 
-		bool IsStatic()
+		bool IsStatic() override
 		{
 			return true;
 		}
@@ -354,17 +354,17 @@ namespace NeuralAudio
 			return true;
 		}
 
-		void SetMaxAudioBufferSize(const int maxSize)
+		void SetMaxAudioBufferSize(const int maxSize) override
 		{
 			(void)maxSize;
 		}
 
-		void Process(float* input, float* output, size_t numSamples)
+		void Process(float* input, float* output, size_t numSamples) override
 		{
 			model->Process(input, output, numSamples);
 		}
 
-		void Prewarm()
+		void Prewarm() override
 		{
 			NeuralModelImpl::Prewarm(2048, 64);
 		}
@@ -397,17 +397,17 @@ namespace NeuralAudio
 	class InternalLSTMDefinitionT : public InternalLSTMDefinitionBase
 	{
 	public:
-		InternalModel* CreateModel()
+		InternalModel* CreateModel() override
 		{
 			return new InternalLSTMModelT<NumLayers, HiddenSize>;
 		}
 
-		virtual size_t GetNumLayers()
+		virtual size_t GetNumLayers() override
 		{
 			return NumLayers;
 		}
 
-		virtual size_t GetHiddenSize()
+		virtual size_t GetHiddenSize() override
 		{
 			return HiddenSize;
 		}
@@ -517,17 +517,17 @@ namespace NeuralAudio
 			return true;
 		}
 
-		void SetMaxAudioBufferSize(const int maxSize)
+		void SetMaxAudioBufferSize(const int maxSize) override
 		{
 			(void)maxSize;
 		}
 
-		void Process(float* input, float* output, size_t numSamples)
+		void Process(float* input, float* output, size_t numSamples) override
 		{
 			model->Process(input, output, numSamples);
 		}
 
-		void Prewarm()
+		void Prewarm() override
 		{
 			NeuralModelImpl::Prewarm(2048, 64);
 		}

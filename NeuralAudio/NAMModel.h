@@ -26,7 +26,7 @@ namespace NeuralAudio
 				namModel.reset();
 		}
 
-		EModelLoadMode GetLoadMode()
+		EModelLoadMode GetLoadMode() override
 		{
 			return EModelLoadMode::NAMCore;
 		}
@@ -54,17 +54,17 @@ namespace NeuralAudio
 			return true;
 		}
 
-		bool HasQualityScaling()
+		bool HasQualityScaling() override
 		{
 			return isSlimmable;
 		}
 
-		float GetQualityScaleFactor()
+		float GetQualityScaleFactor() override
 		{
 			return slimmableSize;
 		}
 
-		void SetQualityScaleFactor(float scaleFactor)
+		void SetQualityScaleFactor(float scaleFactor) override
 		{
 			if (HasQualityScaling())
 			{
@@ -82,17 +82,17 @@ namespace NeuralAudio
 			}
 		}
 
-		void SetMaxAudioBufferSize(const int maxSize)
+		void SetMaxAudioBufferSize(const int maxSize) override
 		{
 			namModel->Reset(namModel->GetExpectedSampleRate(), maxSize);
 		}
 
-		void Process(float* input, float* output, size_t numSamples)
+		void Process(float* input, float* output, size_t numSamples) override
 		{
 			namModel->process(&input, &output, (int)numSamples);
 		}
 
-		void Prewarm()
+		void Prewarm() override
 		{
 			namModel->prewarm();
 		}
