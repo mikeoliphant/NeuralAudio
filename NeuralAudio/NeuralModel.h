@@ -2,6 +2,7 @@
 
 #include <filesystem>
 #include <istream>
+#include <algorithm>
 #include <string>
 #include <vector>
 
