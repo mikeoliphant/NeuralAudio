@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NeuralModel.h"
+#include "NeuralModelImpl.h"
 #include <NAM/activations.h>
 #include <NAM/get_dsp.h>
 #include <NAM/dsp.h>
@@ -9,7 +10,7 @@
 
 namespace NeuralAudio
 {
-	class NAMModel : public NeuralModel
+	class NAMModel : public NeuralModelImpl
 	{
 	public:
 		NAMModel()

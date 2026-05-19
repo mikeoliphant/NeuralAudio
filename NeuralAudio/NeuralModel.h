@@ -2,7 +2,6 @@
 
 #include <filesystem>
 #include <istream>
-#include "json.hpp"
 
 #ifndef DEFAULT_QUALITY_SCALE
 #define DEFAULT_QUALITY_SCALE 1.0
@@ -147,9 +146,6 @@ namespace NeuralAudio
 		}
 
 	protected:
-		void ReadNAMConfig(const nlohmann::json& modelJson);
-		void ReadKerasConfig(const nlohmann::json& modelJson);
-
 		float modelInputLevelDBu = 12;
 		float modelOutputLevelDBu = 12;
 		float modelLoudnessDB = -18;
@@ -162,36 +158,5 @@ namespace NeuralAudio
 		inline static EModelLoadMode wavenetLoadMode = EModelLoadMode::Internal;
 		inline static int defaultMaxAudioBufferSize = 128;
 		inline static float defaultQualityScaleFactor = DEFAULT_QUALITY_SCALE;
-
-		void AddMetadata(std::string fieldName, std::string fieldValue)
-		{
-			metadata.push_back({fieldName, fieldValue});
-		}
-
-		void AddMetadata(const nlohmann::json& metadataJson)
-		{
-			for (auto& [key, value] : metadataJson.items())
-			{
-				if (!value.is_null())
-				{
-					AddMetadata(key, value.dump());
-				}
-			}
-		}
-
-		void Prewarm(size_t numSamples, size_t blockSize)
-		{
-			std::vector<float> input;
-			input.resize(blockSize);
-			std::fill(input.begin(), input.end(), 0.0f);
-
-			std::vector<float> output;
-			output.resize(blockSize);
-
-			for (size_t block = 0; block < (numSamples / blockSize); block++)
-			{
-				Process(input.data(), output.data(), blockSize);
-			}
-		}
 	};
 }

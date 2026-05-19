@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NeuralModel.h"
+#include "NeuralModelImpl.h"
 #include <RTNeural/RTNeural.h>
 #ifdef BUILD_STATIC_RTNEURAL
 #include "wavenet_model.hpp"
@@ -32,7 +33,7 @@ namespace NeuralAudio
 		}
 	};
 
-	class RTNeuralModel : public NeuralModel
+	class RTNeuralModel : public NeuralModelImpl
 	{
 	public:
 		EModelLoadMode GetLoadMode()

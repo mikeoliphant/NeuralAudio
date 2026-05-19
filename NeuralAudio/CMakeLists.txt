@@ -84,6 +84,7 @@ endif()
 set(SOURCES
 	NeuralModel.h
 	NeuralModel.cpp
+	NeuralModelImpl.h
 	NAMModel.h
 	RTNeuralModel.h
 	RTNeuralLoader.cpp

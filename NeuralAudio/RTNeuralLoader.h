@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NeuralModel.h"
+#include "NeuralModelImpl.h"
 
 namespace NeuralAudio
 {

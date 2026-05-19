@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NeuralModel.h"
+#include "NeuralModelImpl.h"
 #include "WaveNet.h"
 #include "WaveNetDynamic.h"
 #include "LSTM.h"
@@ -12,7 +13,7 @@ namespace NeuralAudio
 	using ILiteDilations1 = NeuralAudio::Dilations<1, 2, 4, 8, 16, 32, 64>;
 	using ILiteDilations2 = NeuralAudio::Dilations<128, 256, 512, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512>;
 
-	class InternalModel : public NeuralModel
+	class InternalModel : public NeuralModelImpl
 	{
 	public:
 		bool LoadFromKerasJson(const nlohmann::json& modelJson)
@@ -365,7 +366,7 @@ namespace NeuralAudio
 
 		void Prewarm()
 		{
-			NeuralModel::Prewarm(2048, 64);
+			NeuralModelImpl::Prewarm(2048, 64);
 		}
 
 	private:
@@ -528,7 +529,7 @@ namespace NeuralAudio
 
 		void Prewarm()
 		{
-			NeuralModel::Prewarm(2048, 64);
+			NeuralModelImpl::Prewarm(2048, 64);
 		}
 
 	private:
