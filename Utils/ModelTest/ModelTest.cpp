@@ -1,3 +1,4 @@
+#include <math.h>
 #include <filesystem>
 #include <iostream>
 #include "argparse.hpp"
