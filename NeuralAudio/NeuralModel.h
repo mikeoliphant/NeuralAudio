@@ -2,6 +2,8 @@
 
 #include <filesystem>
 #include <istream>
+#include <string>
+#include <vector>
 
 #ifndef DEFAULT_QUALITY_SCALE
 #define DEFAULT_QUALITY_SCALE 1.0
