@@ -47,7 +47,7 @@ set(WAVENET_MATH "FastMath" CACHE STRING "WaveNet math functions")
 add_definitions(-DWAVENET_MATH=${WAVENET_MATH})
 message(STATUS "WaveNet math is: ${WAVENET_MATH}")
 
-option(BUILD_INTERNAL_STATIC_LSTM "Build Internal static LSTM models" ON)
+option(BUILD_INTERNAL_STATIC_LSTM "Build Internal static LSTM models" OFF)
 if(BUILD_INTERNAL_STATIC_LSTM)
     message(STATUS "Building Internal static LSTM models")
     add_definitions(-DBUILD_INTERNAL_STATIC_LSTM)
