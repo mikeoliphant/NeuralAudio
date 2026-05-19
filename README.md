@@ -124,6 +124,30 @@ To get the quality scaling factor for a model, do:
 float scaleFactor = model->GetQualityScaleFactor();
 ```
 
+## Getting model metadata
+
+To retrieve arbitrary metadata fields from models that contain them, do:
+
+```
+std::string fieldName = "this_is_a_field_name";
+
+std::string metadataValue = model->GetMetadata(fieldName);
+
+if (!metadataValue.empty())
+{
+  // do something
+}
+```
+Results are always returned a strings. Field names are case sensitive.
+
+To get the model version string, do:
+
+```
+std::string version = model->GetModelVersion()
+```
+
+The string will be empty if no version information exists.
+
 ## Getting the model receptive field size
 
 WaveNet models have a fixed receptive field size (ie: size of the input that the output depends on).
