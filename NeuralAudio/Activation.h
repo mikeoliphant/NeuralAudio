@@ -17,17 +17,15 @@ namespace NeuralAudio
 	struct StdMath
 	{
 		template <typename Matrix>
-		static auto Tanh(Matrix& x)
+		static void Tanh(Matrix *x)
 		{
-			float* data = x.data();
-			size_t size = x.rows() * x.cols();
+			float* data = x->data();
+			size_t size = x->rows() * x->cols();
 
 			for (size_t pos = 0; pos < size; pos++)
 			{
 				data[pos] = Tanh(data[pos]);
 			}
-
-			return x;
 		}
 
 		static inline float Tanh(const float x)
@@ -44,17 +42,15 @@ namespace NeuralAudio
 	struct FastMath
 	{
 		template <typename Matrix>
-		static auto Tanh(Matrix& x)
-		{
-			float* data = x.data();
-			size_t size = x.rows() * x.cols();
+		static void Tanh(Matrix *x)
+		{			
+			float* data = x->data();
+			size_t size = x->rows() * x->cols();
 
 			for (size_t pos = 0; pos < size; pos++)
 			{
 				data[pos] = Tanh(data[pos]);
 			}
-
-			return x;
 		}
 
 		static inline float Tanh(const float x)
@@ -83,9 +79,9 @@ namespace NeuralAudio
 	struct EigenMath
 	{
 		template <typename Matrix>
-		static auto Tanh(const Matrix& x)
+		static void Tanh(Matrix* x)
 		{
-			return x.array().tanh();
+			*x = x->array().tanh();
 		}
 
 		static inline float Tanh(const float x)
