@@ -48,7 +48,7 @@ jobs:
         CXX: clang++
         CXXFLAGS: "-Wall -O3 -march=${{ matrix.native_arch }}"
       run: |
-        cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_NAMCORE=ON -DBUILD_INTERNAL_STATIC_WAVENET=ON -DBUILD_INTERNAL_STATIC_LSTM=ON
+        cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_UTILS=ON -DBUILD_NAMCORE=ON -DBUILD_INTERNAL_STATIC_WAVENET=ON -DBUILD_INTERNAL_STATIC_LSTM=ON
         cmake --build . --config $BUILD_TYPE -j4
 
     - name: Add Archive
@@ -88,7 +88,7 @@ jobs:
     - name: Build
       working-directory: ${{github.workspace}}/build
       run: |
-        cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_NAMCORE=ON -DBUILD_INTERNAL_STATIC_WAVENET=ON -DBUILD_INTERNAL_STATIC_LSTM=ON
+        cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_UTILS=ON -DBUILD_NAMCORE=ON -DBUILD_INTERNAL_STATIC_WAVENET=ON -DBUILD_INTERNAL_STATIC_LSTM=ON -DCMAKE_TOOLCHAIN_FILE=/home/develop/opt/x-tools/aarch64-rpi3-linux-gnu/aarch64-${{ matrix.native_arch }}-linux-gnu.toolchain.cmake
         cmake --build . --config $BUILD_TYPE -j4
 
     - name: Add Archive
@@ -128,7 +128,7 @@ jobs:
       env:
         CXXFLAGS: "/O2 -march=${{ matrix.native_arch }}"
       run: |
-        cmake.exe -G "Visual Studio 17 2022" -A x64  -T ClangCL -DBUILD_NAMCORE=ON -DBUILD_INTERNAL_STATIC_WAVENET=ON -DBUILD_INTERNAL_STATIC_LSTM=ON ..
+        cmake.exe -G "Visual Studio 17 2022" -A x64  -T ClangCL -DBUILD_UTILS=ON -DBUILD_NAMCORE=ON -DBUILD_INTERNAL_STATIC_WAVENET=ON -DBUILD_INTERNAL_STATIC_LSTM=ON ..
         cmake --build . --config=release -j4
 
     - name: Add Archive
