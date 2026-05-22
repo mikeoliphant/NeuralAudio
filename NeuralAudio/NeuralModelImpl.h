@@ -7,6 +7,9 @@ namespace NeuralAudio
 {
 	class NeuralModelImpl : public NeuralModel
 	{
+		public:
+			using NeuralModel::Prewarm;
+
 		protected:
 			void ReadNAMConfig(const nlohmann::json& modelJson)
 			{

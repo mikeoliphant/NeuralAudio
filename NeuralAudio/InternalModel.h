@@ -78,7 +78,7 @@ namespace NeuralAudio
 			return true;
 		}
 
-		bool CreateModelFromNAMJson(const nlohmann::json& modelJson)
+		bool CreateModelFromNAMJson(const nlohmann::json& modelJson) override
 		{
 			if (model != nullptr)
 			{
@@ -192,7 +192,7 @@ namespace NeuralAudio
 			return EModelLoadMode::Internal;
 		}
 
-		bool CreateModelFromNAMJson(const nlohmann::json& modelJson)
+		bool CreateModelFromNAMJson(const nlohmann::json& modelJson) override
 		{
 			nlohmann::json config = modelJson.at("config");
 
@@ -268,7 +268,7 @@ namespace NeuralAudio
 			return true;
 		}
 
-		bool CreateModelFromNAMJson(const nlohmann::json& modelJson)
+		bool CreateModelFromNAMJson(const nlohmann::json& modelJson) override
 		{
 			if (model != nullptr)
 			{
@@ -307,7 +307,7 @@ namespace NeuralAudio
 			return vec;
 		}
 
-		bool CreateModelFromKerasJson(const nlohmann::json& modelJson)
+		bool CreateModelFromKerasJson(const nlohmann::json& modelJson) override
 		{
 			if (model != nullptr)
 			{
@@ -430,7 +430,7 @@ namespace NeuralAudio
 			}
 		}
 
-		bool CreateModelFromNAMJson(const nlohmann::json& modelJson)
+		bool CreateModelFromNAMJson(const nlohmann::json& modelJson) override
 		{
 			if (model != nullptr)
 			{
@@ -469,7 +469,7 @@ namespace NeuralAudio
 			return vec;
 		}
 
-		bool CreateModelFromKerasJson(const nlohmann::json& modelJson)
+		bool CreateModelFromKerasJson(const nlohmann::json& modelJson) override
 		{
 			if (model != nullptr)
 			{
