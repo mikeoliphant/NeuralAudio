@@ -135,7 +135,7 @@ jobs:
       working-directory: ${{github.workspace}}/build
       run: |
         mkdir ModelTest
-        cp Utils/ModelTest/ModelTest.exe ModelTest
+        cp Utils/ModelTest/Release/ModelTest.exe ModelTest
         cp -r Utils/Models ModelTest
         Compress-Archive -Path ModelTest -Destination ${{ env.ARCHIVE_NAME }}
       
