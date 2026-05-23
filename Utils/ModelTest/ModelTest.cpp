@@ -242,7 +242,8 @@ int RunDefaultTests(int blockSize)
 	if (modelPath == modelPath.root_path())
 	{
 		std::cout << "Unable to find Models: " << std::filesystem::current_path() << std::endl;
-		std::cout << "ModelTest must be run from within the Utils subdirectory" << std::endl;
+		std::cout << "ModelTest looks for a \"Models\" folder in current folder or up the path." << std::endl;
+		std::cout << "You can also specify a specific model to test by passing the path on the commandline." << std::endl;
 
 		return -1;
 	}
