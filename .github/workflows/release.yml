@@ -36,7 +36,7 @@ jobs:
         native_arch: [x86-64, x86-64-v3]
     runs-on: ubuntu-latest
     env:
-      ARCHIVE_NAME: model_test_linux_${{ matrix.native_arch }}.tgz
+      ARCHIVE_NAME: ModelTest_linux_${{ matrix.native_arch }}.tgz
     steps:
     - uses: actions/checkout@v3.3.0
       with:
@@ -79,7 +79,7 @@ jobs:
     container: 
       image: ghcr.io/tttapa/docker-arm-cross-toolchain:aarch64-rpi3-linux-gnu-gcc12
     env:
-      ARCHIVE_NAME: model_test_${{ matrix.native_arch }}.tgz
+      ARCHIVE_NAME: ModelTest_${{ matrix.native_arch }}.tgz
     steps:
     - uses: actions/checkout@v3.3.0
       with:
@@ -117,7 +117,7 @@ jobs:
         native_arch: [x86-64, x86-64-v3]
     runs-on: windows-latest
     env:
-      ARCHIVE_NAME: model_test_win_${{ matrix.native_arch }}.zip
+      ARCHIVE_NAME: ModelTest_win_${{ matrix.native_arch }}.zip
     steps:
     - uses: actions/checkout@v3.3.0
       with:
