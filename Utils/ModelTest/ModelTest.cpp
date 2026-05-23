@@ -230,17 +230,21 @@ int RunDefaultTests(int blockSize)
 {
 	std::filesystem::path modelPath = std::filesystem::current_path();
 
-	while (modelPath.filename() != "Utils")
+	do 
 	{
+		if (std::filesystem::exists((modelPath / "Models")))
+			break;
+
 		modelPath = modelPath.parent_path();
+	}
+	while (modelPath != modelPath.root_path());
 
-		if (modelPath == modelPath.root_path())
-		{
-			std::cout << "Unable to find Models: " << std::filesystem::current_path() << std::endl;
-			std::cout << "ModelTest must be run from within the Utils subdirectory" << std::endl;
+	if (modelPath == modelPath.root_path())
+	{
+		std::cout << "Unable to find Models: " << std::filesystem::current_path() << std::endl;
+		std::cout << "ModelTest must be run from within the Utils subdirectory" << std::endl;
 
-			return -1;
-		}
+		return -1;
 	}
 
 	modelPath = modelPath / "Models";
@@ -294,6 +298,7 @@ int main(int argc, char* argv[])
 
 	int blockSize = 64;
 
+	//std::filesystem::path modelPath = R"(C:\Users\oliph\Downloads\Fender Deluxe Reverb (A2)\Deluxe Reverb.nam)";
 	std::filesystem::path modelPath = program.get("model_file");
 
 	blockSize = program.get<int>("--block_size");
