@@ -249,6 +249,8 @@ namespace NeuralAudio
 						if (modelDef != nullptr)
 						{
 							auto model = modelDef->CreateModel();
+
+							model->SetModelLoader(this);
 							model->LoadFromNAMJson(modelJson);
 
 							newModel = model;
