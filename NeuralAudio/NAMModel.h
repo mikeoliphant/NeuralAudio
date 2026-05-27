@@ -40,7 +40,7 @@ namespace NeuralAudio
 
 			namModel = nam::get_dsp(modelJson);
 
-			suppressPrewarm = true;	// Hack to work around NAM Core get_dsp() above forcing prewarm
+			namModel->SuppressPrewarm(true);
 
 			auto* slim = dynamic_cast<nam::SlimmableModel*>(namModel.get());
 
@@ -52,6 +52,8 @@ namespace NeuralAudio
 			}
 
 			SetMaxAudioBufferSize(loader->GetDefaultMaxAudioBufferSize());
+
+			namModel->SuppressPrewarm(false);
 
 			return true;
 		}
@@ -96,20 +98,12 @@ namespace NeuralAudio
 
 		void Prewarm() override
 		{
-			if (suppressPrewarm)
-			{
-				suppressPrewarm = false;
-			}
-			else
-			{			
-				namModel->prewarm();
-			}
+			namModel->prewarm();
 		}
 
 	private:
 		std::unique_ptr<nam::DSP> namModel = nullptr;
 		float slimmableSize = 1.0f;
 		bool isSlimmable = false;
-		bool suppressPrewarm = false;
 	};
 }
