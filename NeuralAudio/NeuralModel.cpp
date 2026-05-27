@@ -282,7 +282,7 @@ namespace NeuralAudio
 #ifdef BUILD_STATIC_RTNEURAL
 				if (lstmLoadMode == EModelLoadMode::RTNeural)
 				{
-					newModel = RTNeuralLoadKeras(modelJson);
+					newModel = RTNeuralLoadKeras(modelJson, this);
 				}
 #endif
 

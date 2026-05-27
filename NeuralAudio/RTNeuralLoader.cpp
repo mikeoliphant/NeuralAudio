@@ -86,7 +86,7 @@ namespace NeuralAudio
 			// If we didn't have a static model that matched, use RTNeural's dynamic model
 			RTNeuralModelDyn* dynModel = new RTNeuralModelDyn;
 
-			dynmodel->SetModelLoader(loader);
+			dynModel->SetModelLoader(loader);
 			dynModel->LoadFromNAMJson(modelJson);
 
 			return dynModel;
@@ -94,7 +94,7 @@ namespace NeuralAudio
 			return nullptr;
 		}
 
-		NeuralModel* RTNeuralLoadKeras(const nlohmann::json& modelJson)
+		NeuralModel* RTNeuralLoadKeras(const nlohmann::json& modelJson, NeuralModelLoader* loader)
 		{
 			const auto layers = modelJson.at("layers");
 			const size_t numLayers = layers.size() - 1;
@@ -107,6 +107,7 @@ namespace NeuralAudio
 			{
 				RTNeuralModel* model = modelDef->CreateModel();
 
+				model->SetModelLoader(loader);
 				model->LoadFromKerasJson(modelJson);
 
 				return model;
