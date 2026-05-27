@@ -85,7 +85,7 @@ namespace NeuralAudio
 		return true;
 	}
 
-	bool NeuralModel::SupportsWaveNetLoadMode(EModelLoadMode mode)
+	bool NeuralModelLoader::SupportsWaveNetLoadMode(EModelLoadMode mode)
 	{
 		if (mode == EModelLoadMode::NAMCore)
 #ifdef BUILD_NAMCORE
@@ -104,7 +104,7 @@ namespace NeuralAudio
 		return true;
 	}
 
-	bool NeuralModel::SupportsLSTMLoadMode(EModelLoadMode mode)
+	bool NeuralModelLoader::SupportsLSTMLoadMode(EModelLoadMode mode)
 	{
 		if (mode == EModelLoadMode::NAMCore)
 #ifdef BUILD_NAMCORE
@@ -116,7 +116,7 @@ namespace NeuralAudio
 		return true;
 	}
 
-	NeuralModel* NeuralModel::CreateFromFile(std::filesystem::path modelPath)
+	NeuralModel* NeuralModelLoader::CreateFromFile(std::filesystem::path modelPath)
 	{
 		if (!std::filesystem::exists(modelPath))
 			return nullptr;
@@ -137,7 +137,7 @@ namespace NeuralAudio
 		return (major > 0) || (minor > 5) || ((minor == 5) && (patch > 4));
 	}
 
-	NeuralModel* NeuralModel::CreateFromStream(std::basic_istream<char>& jsonStream, std::filesystem::path extension)
+	NeuralModel* NeuralModelLoader::CreateFromStream(std::basic_istream<char>& jsonStream, std::filesystem::path extension)
 	{
 		EnsureModelDefsAreLoaded();
 
@@ -155,6 +155,7 @@ namespace NeuralAudio
 			{
 				NAMModel* model = new NAMModel;
 
+				model->SetModelLoader(this);
 				model->LoadFromJson(modelJson);
 
 				newModel = model;
@@ -197,7 +198,7 @@ namespace NeuralAudio
 								if (wavenetLoadMode == EModelLoadMode::RTNeural)
 								{
 #ifdef BUILD_STATIC_RTNEURAL
-									newModel = RTNeuralLoadNAMWaveNet(modelJson);
+									newModel = RTNeuralLoadNAMWaveNet(modelJson, this);
 #endif
 								}
 
@@ -209,6 +210,7 @@ namespace NeuralAudio
 									{
 										auto model = modelDef->CreateModel();
 
+										model->SetModelLoader(this);
 										model->LoadFromNAMJson(modelJson);
 
 										newModel = model;
@@ -223,6 +225,8 @@ namespace NeuralAudio
 						// Use a dynamic model if we had no static definition
 						InternalWaveNetModelDyn* model = new InternalWaveNetModelDyn;
 
+						model->SetModelLoader(this);
+
 						if (model->LoadFromNAMJson(modelJson))
 						{
 							newModel = model;
@@ -234,7 +238,7 @@ namespace NeuralAudio
 #ifdef BUILD_STATIC_RTNEURAL
 					if (lstmLoadMode == EModelLoadMode::RTNeural)
 					{
-						newModel = RTNeuralLoadNAMLSTM(modelJson);
+						newModel = RTNeuralLoadNAMLSTM(modelJson, this);
 					}
 #endif
 
@@ -254,6 +258,8 @@ namespace NeuralAudio
 						if (newModel == nullptr)
 						{
 							InternalLSTMModelDyn* model = new InternalLSTMModelDyn;
+
+							model->SetModelLoader(this);
 
 							if (model->LoadFromNAMJson(modelJson))
 							{
@@ -276,7 +282,7 @@ namespace NeuralAudio
 #ifdef BUILD_STATIC_RTNEURAL
 				if (lstmLoadMode == EModelLoadMode::RTNeural)
 				{
-					newModel = RTNeuralLoadKeras(modelJson);
+					newModel = RTNeuralLoadKeras(modelJson, this);
 				}
 #endif
 

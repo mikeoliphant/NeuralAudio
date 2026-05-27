@@ -13,19 +13,23 @@ extern "C" {
 #endif
 
 struct NeuralModel;
+struct NeuralModelLoader;
 
+NA_EXTERN NeuralModelLoader* CreateLoader();
 
-NA_EXTERN NeuralModel* CreateModelFromFile(const wchar_t* modelPath);
+NA_EXTERN void DeleteLoader(NeuralModelLoader* loader);
+
+NA_EXTERN NeuralModel* CreateModelFromFile(NeuralModelLoader *loader, const wchar_t* modelPath);
 
 NA_EXTERN void DeleteModel(NeuralModel* model);
 
-NA_EXTERN void SetLSTMLoadMode(int loadMode);
+NA_EXTERN void SetLSTMLoadMode(NeuralModelLoader* loader, int loadMode);
 
-NA_EXTERN void SetWaveNetLoadMode(int loadMode);
+NA_EXTERN void SetWaveNetLoadMode(NeuralModelLoader* loader, int loadMode);
 
-NA_EXTERN void SetAudioInputLevelDBu(float audioDBu);
+NA_EXTERN void SetAudioInputLevelDBu(NeuralModelLoader* loader, float audioDBu);
 
-NA_EXTERN void SetDefaultMaxAudioBufferSize(int maxSize);
+NA_EXTERN void SetDefaultMaxAudioBufferSize(NeuralModelLoader* loader, int maxSize);
 
 NA_EXTERN int GetLoadMode(NeuralModel* model);
 

@@ -6,11 +6,31 @@ struct NeuralModel
     NeuralAudio::NeuralModel* model;
 };
 
-NeuralModel* CreateModelFromFile(const wchar_t* modelPath)
+struct NeuralModelLoader
+{
+	NeuralAudio::NeuralModelLoader* loader;
+};
+
+NeuralModelLoader* CreateLoader()
+{
+	NeuralModelLoader* loader = new NeuralModelLoader();
+
+	loader->loader = new NeuralAudio::NeuralModelLoader();
+
+	return loader;
+}
+
+void DeleteLoader(NeuralModelLoader* loader)
+{
+	delete loader->loader;
+	delete loader;
+}
+
+NeuralModel* CreateModelFromFile(NeuralModelLoader* loader, const wchar_t* modelPath)
 {
     NeuralModel* model = new NeuralModel();
 
-    model->model = NeuralAudio::NeuralModel::CreateFromFile(modelPath);
+    model->model = loader->loader->CreateFromFile(modelPath);
 
     return model;
 }
@@ -21,24 +41,24 @@ void DeleteModel(NeuralModel* model)
     delete model;
 }
 
-void SetLSTMLoadMode(int loadMode)
+void SetLSTMLoadMode(NeuralModelLoader* loader, int loadMode)
 {
-	NeuralAudio::NeuralModel::SetLSTMLoadMode((NeuralAudio::EModelLoadMode)loadMode);
+	loader->loader->SetLSTMLoadMode((NeuralAudio::EModelLoadMode)loadMode);
 }
 
-void SetWaveNetLoadMode(int loadMode)
+void SetWaveNetLoadMode(NeuralModelLoader* loader, int loadMode)
 {
-	NeuralAudio::NeuralModel::SetWaveNetLoadMode((NeuralAudio::EModelLoadMode)loadMode);
+	loader->loader->SetWaveNetLoadMode((NeuralAudio::EModelLoadMode)loadMode);
 }
 
-void SetAudioInputLevelDBu(float audioDBu)
+void SetAudioInputLevelDBu(NeuralModelLoader* loader, float audioDBu)
 {
-	NeuralAudio::NeuralModel::SetAudioInputLevelDBu(audioDBu);
+	loader->loader->SetAudioInputLevelDBu(audioDBu);
 }
 
-void SetDefaultMaxAudioBufferSize(int maxSize)
+void SetDefaultMaxAudioBufferSize(NeuralModelLoader* loader, int maxSize)
 {
-	NeuralAudio::NeuralModel::SetDefaultMaxAudioBufferSize(maxSize);
+	loader->loader->SetDefaultMaxAudioBufferSize(maxSize);
 }
 
 int GetLoadMode(NeuralModel* model)

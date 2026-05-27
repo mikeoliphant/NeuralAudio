@@ -282,7 +282,7 @@ namespace NeuralAudio
 
 			model->load_weights(modelJson);
 
-			SetMaxAudioBufferSize(defaultMaxAudioBufferSize);
+			SetMaxAudioBufferSize(loader->GetDefaultMaxAudioBufferSize());
 
 			return true;
 		}

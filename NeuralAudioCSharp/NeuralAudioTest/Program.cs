@@ -6,9 +6,11 @@
     {
         static void Main(string[] args)
         {
-            NeuralModel.SetWaveNetModelLoadMode(NeuralModel.EModelLoadMode.Internal);
+            NeuralModelLoader loader = new();
 
-            NeuralModel model = NeuralModel.FromFile("BossWN-standard.nam");
+            loader.SetWaveNetModelLoadMode(EModelLoadMode.Internal);
+
+            NeuralModel model = loader.CreateModelFromFile("BossWN-standard.nam");
 
             var input = new float[1024];
             var output = new float[1024];

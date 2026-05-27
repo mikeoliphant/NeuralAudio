@@ -8,10 +8,10 @@ using namespace NeuralAudio;
 
 static std::string LoadModes[] = { "Internal", "RTNeural", "NAMCore" };
 
-NeuralModel* LoadModel(std::filesystem::path modelPath, EModelLoadMode loadMode)
+NeuralModel* LoadModel(std::filesystem::path modelPath, NeuralModelLoader& loader, EModelLoadMode loadMode)
 {
-	NeuralModel::SetWaveNetLoadMode(loadMode);
-	NeuralModel::SetLSTMLoadMode(loadMode);
+	loader.SetWaveNetLoadMode(loadMode);
+	loader.SetLSTMLoadMode(loadMode);
 
 	if (!std::filesystem::exists(modelPath))
 	{
@@ -22,7 +22,7 @@ NeuralModel* LoadModel(std::filesystem::path modelPath, EModelLoadMode loadMode)
 
 	try
 	{
-		auto model = NeuralAudio::NeuralModel::CreateFromFile(modelPath);
+		auto model = loader.CreateFromFile(modelPath);
 
 		if (model == nullptr)
 		{
@@ -127,7 +127,7 @@ static double ComputeError(NeuralModel* model1, NeuralModel* model2, int blockSi
 	return sqrt(totErr / (double)(blockSize * numBlocks));
 }
 
-void RunNAMTests(std::filesystem::path modelPath, int blockSize)
+void RunNAMTests(std::filesystem::path modelPath, NeuralModelLoader& loader, int blockSize)
 {
 	std::cout << "Model: " << modelPath << std::endl;
 	std::cout << std::endl;
@@ -136,11 +136,11 @@ void RunNAMTests(std::filesystem::path modelPath, int blockSize)
 
 	int numBlocks = dataSize / blockSize;
 
-	NeuralModel::SetDefaultMaxAudioBufferSize(blockSize);
+	loader.SetDefaultMaxAudioBufferSize(blockSize);
 
-	NeuralModel* rtNeuralModel = LoadModel(modelPath, EModelLoadMode::RTNeural);
-	NeuralModel* namCoreModel = LoadModel(modelPath, EModelLoadMode::NAMCore);
-	NeuralModel* internalModel = LoadModel(modelPath, EModelLoadMode::Internal);
+	NeuralModel* rtNeuralModel = LoadModel(modelPath, loader, EModelLoadMode::RTNeural);
+	NeuralModel* namCoreModel = LoadModel(modelPath, loader, EModelLoadMode::NAMCore);
+	NeuralModel* internalModel = LoadModel(modelPath, loader, EModelLoadMode::Internal);
 
 	double rms;
 
@@ -199,7 +199,7 @@ void RunNAMTests(std::filesystem::path modelPath, int blockSize)
 	std::cout << std::endl;
 }
 
-void RunKerasTests(std::filesystem::path modelPath, int blockSize)
+void RunKerasTests(std::filesystem::path modelPath, NeuralModelLoader& loader, int blockSize)
 {
 	std::cout << "Model: " << modelPath << std::endl;
 
@@ -207,10 +207,10 @@ void RunKerasTests(std::filesystem::path modelPath, int blockSize)
 
 	int numBlocks = dataSize / blockSize;
 
-	NeuralAudio::NeuralModel::SetDefaultMaxAudioBufferSize(blockSize);
+	loader.SetDefaultMaxAudioBufferSize(blockSize);
 
-	auto internalModel = LoadModel(modelPath, EModelLoadMode::Internal);
-	auto rtNeuralModel = LoadModel(modelPath, EModelLoadMode::RTNeural);
+	auto internalModel = LoadModel(modelPath, loader, EModelLoadMode::Internal);
+	auto rtNeuralModel = LoadModel(modelPath, loader, EModelLoadMode::RTNeural);
 
 	double rms = ComputeError(rtNeuralModel, internalModel, blockSize, numBlocks);
 	std::cout << "Internal vs RTNeural RMS err: " << rms << std::endl;
@@ -226,7 +226,7 @@ void RunKerasTests(std::filesystem::path modelPath, int blockSize)
 	std::cout << std::endl;
 }
 
-int RunDefaultTests(int blockSize)
+int RunDefaultTests(NeuralModelLoader& loader, int blockSize)
 {
 	std::filesystem::path modelPath = std::filesystem::current_path();
 
@@ -253,12 +253,12 @@ int RunDefaultTests(int blockSize)
 	std::cout << "Loading models from: " << modelPath << std::endl << std::endl;
 
 	std::cout << "WaveNet (Standard) Test" << std::endl;
-	RunNAMTests(modelPath / "BossWN-standard.nam", blockSize);
+	RunNAMTests(modelPath / "BossWN-standard.nam", loader, blockSize);
 
 	std::cout << std::endl;
 
 	std::cout << "LSTM (1x16) Test" << std::endl;
-	RunNAMTests(modelPath / "BossLSTM-1x16.nam", blockSize);
+	RunNAMTests(modelPath / "BossLSTM-1x16.nam", loader, blockSize);
 
 	return 0;
 }
@@ -308,7 +308,9 @@ int main(int argc, char* argv[])
 
 	qualityScale = program.get<float>("--quality_scale");
 
-	NeuralModel::SetDefaultQualityScaleFactor(qualityScale);
+	NeuralModelLoader loader;
+
+	loader.SetDefaultQualityScaleFactor(qualityScale);
 
 	std::cout << "Block size: " << blockSize << "  Quality Scale: " << qualityScale << std::endl;
 
@@ -316,16 +318,16 @@ int main(int argc, char* argv[])
 	{
 		if (modelPath.extension() == ".nam")
 		{
-			RunNAMTests(modelPath, blockSize);
+			RunNAMTests(modelPath, loader, blockSize);
 		}
 		else
 		{
-			RunKerasTests(modelPath, blockSize);
+			RunKerasTests(modelPath, loader, blockSize);
 		}
 	}
 	else
 	{
-		if (RunDefaultTests(blockSize) < 0)
+		if (RunDefaultTests(loader, blockSize) < 0)
 			return -1;
 	}
 

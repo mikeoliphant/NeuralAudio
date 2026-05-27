@@ -10,6 +10,11 @@ namespace NeuralAudio
 		public:
 			using NeuralModel::Prewarm;
 
+			void SetModelLoader(NeuralModelLoader* loader)
+			{
+				this->loader = loader;
+			}
+
 		protected:
 			void ReadNAMConfig(const nlohmann::json& modelJson)
 			{
@@ -96,5 +101,7 @@ namespace NeuralAudio
 					Process(input.data(), output.data(), blockSize);
 				}
 			}
+
+			NeuralModelLoader *loader;
 	};
 }

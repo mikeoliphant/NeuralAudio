@@ -45,7 +45,7 @@ namespace NeuralAudio
 			return nullptr;
 		}
 
-		NeuralModel* RTNeuralLoadNAMWaveNet(const nlohmann::json& modelJson)
+		NeuralModel* RTNeuralLoadNAMWaveNet(const nlohmann::json& modelJson, NeuralModelLoader *loader)
 		{
 			nlohmann::json config = modelJson.at("config");
 
@@ -58,6 +58,7 @@ namespace NeuralAudio
 			{
 				auto model = modelDef->CreateModel();
 
+				model->SetModelLoader(loader);
 				model->LoadFromNAMJson(modelJson);
 
 				return model;
@@ -66,7 +67,7 @@ namespace NeuralAudio
 			return nullptr;
 		}
 
-		NeuralModel* RTNeuralLoadNAMLSTM(const nlohmann::json& modelJson)
+		NeuralModel* RTNeuralLoadNAMLSTM(const nlohmann::json& modelJson, NeuralModelLoader *loader)
 		{
 			nlohmann::json config = modelJson.at("config");
 
@@ -75,22 +76,25 @@ namespace NeuralAudio
 			if (modelDef != nullptr)
 			{
 				RTNeuralModel* model = modelDef->CreateModel();
+
+				model->SetModelLoader(loader);
 				model->LoadFromNAMJson(modelJson);
 
-				if (model != nullptr)
-					return model;
-
-				// If we didn't have a static model that matched, use RTNeural's dynamic model
-				RTNeuralModelDyn* dynModel = new RTNeuralModelDyn;
-				dynModel->LoadFromNAMJson(modelJson);
-
-				return dynModel;
+				return model;
 			}
+
+			// If we didn't have a static model that matched, use RTNeural's dynamic model
+			RTNeuralModelDyn* dynModel = new RTNeuralModelDyn;
+
+			dynModel->SetModelLoader(loader);
+			dynModel->LoadFromNAMJson(modelJson);
+
+			return dynModel;
 
 			return nullptr;
 		}
 
-		NeuralModel* RTNeuralLoadKeras(const nlohmann::json& modelJson)
+		NeuralModel* RTNeuralLoadKeras(const nlohmann::json& modelJson, NeuralModelLoader* loader)
 		{
 			const auto layers = modelJson.at("layers");
 			const size_t numLayers = layers.size() - 1;
@@ -103,6 +107,7 @@ namespace NeuralAudio
 			{
 				RTNeuralModel* model = modelDef->CreateModel();
 
+				model->SetModelLoader(loader);
 				model->LoadFromKerasJson(modelJson);
 
 				return model;

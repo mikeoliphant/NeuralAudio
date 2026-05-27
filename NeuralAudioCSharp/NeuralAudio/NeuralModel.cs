@@ -3,31 +3,58 @@ using System.Runtime.CompilerServices;
 
 namespace NeuralAudio
 {
+    public enum EModelLoadMode
+    {
+        Internal,
+        RTNeural,
+        NAMCore
+    };
+
+    public class NeuralModelLoader
+    {
+        IntPtr nativeLoader;
+
+        public NeuralModelLoader()
+        {
+            nativeLoader = NativeApi.CreateLoader();
+        }
+
+        ~NeuralModelLoader()
+        {
+            NativeApi.DeleteLoader(nativeLoader);
+        }
+
+        public void SetLSTMModelLoadMode(EModelLoadMode mode)
+        {
+            NativeApi.SetLSTMLoadMode(nativeLoader, (int)mode);
+        }
+
+        public void SetWaveNetModelLoadMode(EModelLoadMode mode)
+        {
+            NativeApi.SetWaveNetLoadMode(nativeLoader, (int)mode);
+        }
+
+        public void SetDefaultMaxAudioBufferSize(int bufferSize)
+        {
+            NativeApi.SetDefaultMaxAudioBufferSize(nativeLoader, bufferSize);
+        }
+
+        public NeuralModel CreateModelFromFile(string modelPath)
+        {
+            NeuralModel model = new NeuralModel();
+
+            model.nativeModel = NativeApi.CreateModelFromFile(nativeLoader, modelPath);
+
+            if (model.nativeModel == IntPtr.Zero)
+                return null;
+
+            return model;
+        }
+    }
+
     public class NeuralModel
     {
-        public enum EModelLoadMode
-        {
-            Internal,
-            RTNeural,
-            NAMCore
-        };
-
-        IntPtr nativeModel;
-
-        public static void SetLSTMModelLoadMode(EModelLoadMode mode)
-        {
-            NativeApi.SetLSTMLoadMode((int)mode);
-        }
-
-        public static void SetWaveNetModelLoadMode(EModelLoadMode mode)
-        {
-            NativeApi.SetWaveNetLoadMode((int)mode);
-        }
-
-        public static void SetDefaultMaxAudioBufferSize(int bufferSize)
-        {
-            NativeApi.SetDefaultMaxAudioBufferSize(bufferSize);
-        }
+        internal IntPtr nativeModel;
 
         public bool IsStatic { get { return NativeApi.IsStatic(nativeModel);  } }
         public EModelLoadMode LoadMode { get { return (EModelLoadMode)NativeApi.GetLoadMode(nativeModel); } }
@@ -35,15 +62,9 @@ namespace NeuralAudio
         public float RecommendedInputDBAdjustment { get { return NativeApi.GetRecommendedInputDBAdjustment(nativeModel); } }
         public float RecommendedOutputDBAdjustment { get { return NativeApi.GetRecommendedOutputDBAdjustment(nativeModel); } }
 
-        public static NeuralModel FromFile(string modelPath)
+        ~NeuralModel()
         {
-            NeuralModel model = new NeuralModel();
-
-            IntPtr nativeModel = NativeApi.CreateModelFromFile(modelPath);
-
-            model.nativeModel = nativeModel;
-
-            return model;
+            NativeApi.DeleteModel(nativeModel);
         }
 
         public void SetMaxAudioBufferSize(int bufferSize)
