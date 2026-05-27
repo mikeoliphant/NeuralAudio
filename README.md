@@ -33,9 +33,12 @@ NAM A2 models currently use the NAM Core implementation.
 
 # API overview
 
-To load a model:
+Models are loaded with a model loader:
+
 ```
-NeuralModel* model = NeuralAudio::NeuralModel::CreateFromFile("<path to model file>");
+NeuralModelLoader loader;
+
+NeuralModel* model = loader.CreateFromFile("<path to model file>");
 ```
 
 To process a model:
@@ -48,10 +51,10 @@ model->Process(pointerToFloatInputData, pointerToFloatOutputData, int numSamples
 
 Some models need to allocate memory based on the size of the audio buffers being used. You need to make sure that processing does not exceed the specified maximum buffer size.
 
-The default maximum size is 128 samples. To change it, do:
+The default maximum size is 128 samples. To change it, change the default size on the model loader:
 
 ```
-NeuralAudio::NeuralModel::SetDefaultMaxAudioBufferSize(maxSize);
+loader.SetDefaultMaxAudioBufferSize(maxSize);
 ```
 
 if you want to change the maximum buffer size of an already created model, do:
@@ -66,20 +69,20 @@ model->SetMaxAudioBufferSize(int maxSize);
 
 Use ```model->GetRecommendedInputDBAdjustment()``` and ```model->GetRecommendedOutputDBAdjustment()``` to obtain the ideal input and output volume level adjustments in dB.
 
-To set a known audio input level (ie: from an audio interface), use ```model->SetAudioInputLevelDBu(float audioDBu)```. This is set at 12DBu by default.
+To set a known audio input level (ie: from an audio interface), use ```loader.SetAudioInputLevelDBu(float audioDBu)```. This is set at 12DBu by default.
 
 ## Model load behavior
 
 By default, models are loaded using the internal NeuralAudio implementation. If you would like to force the use of the NAM Core or RTNeural implementations, you can use:
 
 ```
-NeuralAudio::NeuralModel::SetWaveNetLoadMode(loadMode)
+loader.SetWaveNetLoadMode(loadMode)
 ```
 
 and
 
 ```
-NeuralAudio::NeuralModel::SetLSTMLoadMode(loadMode)
+loader.SetLSTMLoadMode(loadMode)
 ```
 
 where "loadMode" is one of:
@@ -100,10 +103,10 @@ Some models (notably, slimmable NAM A2 models) support quality scaling - trading
 
 Quality scaling is a floating point range from 0.0 (highest performance) to 1.0 (highest quality).
 
-To set the default quality scaling factor, do:
+To set the default quality scaling factor, set it on the loader:
 
 ```
-NeuralAudio::NeuralModel::SetDefaultQualityScaleFactor(scaleFactor);
+loader.SetDefaultQualityScaleFactor(scaleFactor);
 ```
 
 To check if a model supports quality scaling, do:
@@ -112,11 +115,13 @@ To check if a model supports quality scaling, do:
 if (model->HasQualityScaling()) ...
 ```
 
-To set the quality scaling factor for a model, do:
+To set the quality scaling factor for a loaded model, do:
 
 ```
 model->SetQualityScaleFactor(scaleFactor);
 ```
+
+***Note: This operation is not real-time safe if the quality scale factor results in a change to the model***
 
 To get the quality scaling factor for a model, do:
 
