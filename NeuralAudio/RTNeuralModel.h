@@ -41,7 +41,7 @@ namespace NeuralAudio
 			return EModelLoadMode::RTNeural;
 		}
 
-		bool LoadFromKerasJson(const nlohmann::json& modelJson)
+		virtual bool LoadFromKerasJson(const nlohmann::json& modelJson)
 		{
 			ReadKerasConfig(modelJson);
 
@@ -100,7 +100,7 @@ namespace NeuralAudio
 			return true;
 		}
 
-		bool CreateModelFromKerasJson(const nlohmann::json& modelJson)
+		bool CreateModelFromKerasJson(const nlohmann::json& modelJson) override
 		{
 			if (model != nullptr)
 			{
@@ -116,7 +116,7 @@ namespace NeuralAudio
 			return true;
 		}
 
-		bool CreateModelFromNAMJson(const nlohmann::json& modelJson)
+		bool CreateModelFromNAMJson(const nlohmann::json& modelJson) override
 		{
 			if (model != nullptr)
 			{
@@ -263,12 +263,12 @@ namespace NeuralAudio
 			}
 		}
 
-		bool IsStatic()
+		bool IsStatic() override
 		{
 			return true;
 		}
 
-		bool CreateModelFromNAMJson(const nlohmann::json& modelJson)
+		bool CreateModelFromNAMJson(const nlohmann::json& modelJson) override
 		{
 			if (model != nullptr)
 			{
@@ -287,17 +287,17 @@ namespace NeuralAudio
 			return true;
 		}
 
-		void SetMaxAudioBufferSize(int maxSize)
+		void SetMaxAudioBufferSize(int maxSize) override
 		{
 			model->prepare(maxSize);
 		}
 
-		void Process(float* input, float* output, size_t numSamples)
+		void Process(float* input, float* output, size_t numSamples) override
 		{
 			model->forward(input, output, (int)numSamples);
 		}
 
-		void Prewarm()
+		void Prewarm() override
 		{
 			float sample = 0;
 
@@ -321,7 +321,7 @@ namespace NeuralAudio
 	class RTNeuralLSTMDefinitionBase : public RTNeuralModelDefinitionBase
 	{
 	public:
-		virtual RTNeuralModel* CreateModel()
+		RTNeuralModel* CreateModel() override
 		{
 			return nullptr;
 		}
@@ -341,17 +341,17 @@ namespace NeuralAudio
 	class RTNeuralLSTMDefinitionT : public RTNeuralLSTMDefinitionBase
 	{
 	public:
-		RTNeuralModel* CreateModel()
+		RTNeuralModel* CreateModel() override
 		{
 			return new RTNeuralLSTMModelT<numLayers, hiddenSize>;
 		}
 
-		size_t GetNumLayers()
+		size_t GetNumLayers() override
 		{
 			return numLayers;
 		}
 
-		size_t GetHiddenSize()
+		size_t GetHiddenSize() override
 		{
 			return hiddenSize;
 		}
@@ -360,7 +360,7 @@ namespace NeuralAudio
 	class RTNeuralWaveNetDefinitionBase : public RTNeuralModelDefinitionBase
 	{
 	public:
-		virtual RTNeuralModel* CreateModel()
+		virtual RTNeuralModel* CreateModel() override
 		{
 			return nullptr;
 		}
@@ -380,17 +380,17 @@ namespace NeuralAudio
 	class RTNeuralWaveNetDefinitionT : public RTNeuralWaveNetDefinitionBase
 	{
 	public:
-		RTNeuralModel* CreateModel()
+		RTNeuralModel* CreateModel() override
 		{
 			return new RTNeuralWaveNetModelT<numChannels, headSize>;
 		}
 
-		virtual size_t GetNumChannels()
+		size_t GetNumChannels() override
 		{
 			return numChannels;
 		}
 
-		virtual size_t GetHeadSize()
+		size_t GetHeadSize() override
 		{
 			return headSize;
 		}
@@ -411,12 +411,12 @@ namespace NeuralAudio
 				model.reset();
 		}
 
-		EModelLoadMode GetLoadMode()
+		EModelLoadMode GetLoadMode() override
 		{
 			return EModelLoadMode::RTNeural;
 		}
 
-		bool CreateModelFromKerasJson(const nlohmann::json& modelJson)
+		bool CreateModelFromKerasJson(const nlohmann::json& modelJson) override
 		{
 			model = RTNeural::json_parser::parseJson<float, FastMathsProvider>(modelJson, false);
 			model->reset();
@@ -424,7 +424,7 @@ namespace NeuralAudio
 			return true;
 		}
 
-		bool CreateModelFromNAMJson(const nlohmann::json& modelJson)
+		bool CreateModelFromNAMJson(const nlohmann::json& modelJson) override
 		{
 			model = std::make_unique<RTNeural::Model<float>>(1);
 
@@ -535,13 +535,13 @@ namespace NeuralAudio
 			return true;
 		}
 
-		void Process(float* input, float* output, size_t numSamples)
+		void Process(float* input, float* output, size_t numSamples) override
 		{
 			for (size_t i = 0; i < numSamples; i++)
 				output[i] = model->forward(input + i);
 		}
 
-		void Prewarm()
+		void Prewarm() override
 		{
 			float sample = 0;
 

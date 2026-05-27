@@ -10,9 +10,9 @@ namespace NeuralAudio
 		public:
 			using NeuralModel::Prewarm;
 
-			void SetModelLoader(NeuralModelLoader* loader)
+			void SetModelLoader(NeuralModelLoader* modelLoader)
 			{
-				this->loader = loader;
+				this->loader = modelLoader;
 			}
 
 		protected:
