@@ -299,7 +299,6 @@ int main(int argc, char* argv[])
 
 	int blockSize = 64;
 
-	//std::filesystem::path modelPath = R"(C:\Users\oliph\Downloads\Fender Deluxe Reverb (A2)\Deluxe Reverb.nam)";
 	std::filesystem::path modelPath = program.get("model_file");
 
 	blockSize = program.get<int>("--block_size");
