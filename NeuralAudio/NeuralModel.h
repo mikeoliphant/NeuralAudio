@@ -22,49 +22,8 @@ namespace NeuralAudio
 	class NeuralModel
 	{
 	public:
-		static NeuralModel* CreateFromFile(std::filesystem::path modelPath);
-		static NeuralModel* CreateFromStream(std::basic_istream<char>& stream, std::filesystem::path extension);
-
 		virtual ~NeuralModel()
 		{
-		}
-
-		static bool SetLSTMLoadMode(EModelLoadMode val)
-		{
-			if (!SupportsLSTMLoadMode(val))
-				return false;
-
-			lstmLoadMode = val;
-
-			return true;
-		}
-
-		static bool SetWaveNetLoadMode(EModelLoadMode val)
-		{
-			if (!SupportsWaveNetLoadMode(val))
-				return false;
-
-			wavenetLoadMode = val;
-
-			return true;
-		}
-
-		static bool SupportsWaveNetLoadMode(EModelLoadMode mode);
-		static bool SupportsLSTMLoadMode(EModelLoadMode mode);
-
-		static void SetAudioInputLevelDBu(float audioDBu)
-		{
-			audioInputLevelDBu = audioDBu;
-		}
-
-		static void SetDefaultMaxAudioBufferSize(int maxSize)
-		{
-			defaultMaxAudioBufferSize = maxSize;
-		}
-
-		static void SetDefaultQualityScaleFactor(float scaleFactor)
-		{
-			defaultQualityScaleFactor = scaleFactor;
 		}
 
 		virtual EModelLoadMode GetLoadMode()
@@ -149,17 +108,80 @@ namespace NeuralAudio
 		}
 
 	protected:
+		float audioInputLevelDBu = 12;
 		float modelInputLevelDBu = 12;
 		float modelOutputLevelDBu = 12;
 		float modelLoudnessDB = -18;
 		float sampleRate = 48000;
 		std::string modelVersion = "";
 		std::vector<std::pair<std::string, std::string>> metadata;
-
-		inline static float audioInputLevelDBu = 12;
-		inline static EModelLoadMode lstmLoadMode = EModelLoadMode::Internal;
-		inline static EModelLoadMode wavenetLoadMode = EModelLoadMode::Internal;
-		inline static int defaultMaxAudioBufferSize = 128;
-		inline static float defaultQualityScaleFactor = DEFAULT_QUALITY_SCALE;
 	};
+
+	class NeuralModelLoader
+	{
+		public:
+			NeuralModel* CreateFromFile(std::filesystem::path modelPath);
+			NeuralModel* CreateFromStream(std::basic_istream<char>& stream, std::filesystem::path extension);
+
+			bool SetLSTMLoadMode(EModelLoadMode val)
+			{
+				if (!SupportsLSTMLoadMode(val))
+					return false;
+
+				lstmLoadMode = val;
+
+				return true;
+			}
+
+			bool SetWaveNetLoadMode(EModelLoadMode val)
+			{
+				if (!SupportsWaveNetLoadMode(val))
+					return false;
+
+				wavenetLoadMode = val;
+
+				return true;
+			}
+
+			bool SupportsWaveNetLoadMode(EModelLoadMode mode);
+			bool SupportsLSTMLoadMode(EModelLoadMode mode);
+
+			void SetAudioInputLevelDBu(float audioDBu)
+			{
+				audioInputLevelDBu = audioDBu;
+			}
+
+			float GetAudioInputLevelDBu()
+			{
+				return audioInputLevelDBu;
+			}
+
+			void SetDefaultMaxAudioBufferSize(int maxSize)
+			{
+				defaultMaxAudioBufferSize = maxSize;
+			}
+
+			int GetDefaultMaxAudioBufferSize()
+			{
+				return defaultMaxAudioBufferSize;
+			}
+
+			void SetDefaultQualityScaleFactor(float scaleFactor)
+			{
+				defaultQualityScaleFactor = scaleFactor;
+			}
+
+			float GetDefaultQualityScaleFactor()
+			{
+				return defaultQualityScaleFactor;
+			}
+
+		protected:
+			EModelLoadMode lstmLoadMode = EModelLoadMode::Internal;
+			EModelLoadMode wavenetLoadMode = EModelLoadMode::Internal;
+			float audioInputLevelDBu = 12;
+			int defaultMaxAudioBufferSize = 128;
+			float defaultQualityScaleFactor = DEFAULT_QUALITY_SCALE;
+	};
+
 }

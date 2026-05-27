@@ -9,22 +9,28 @@ namespace NeuralAudio
         public const string NEURAL_AUDIO_LIB_NAME = "NeuralAudioCAPI";
 
         [DllImport(NEURAL_AUDIO_LIB_NAME)]
-        public static extern IntPtr CreateModelFromFile([MarshalAs(UnmanagedType.LPWStr)]string modelPath);
+        public static extern IntPtr CreateLoader();
+
+        [DllImport(NEURAL_AUDIO_LIB_NAME)]
+        public static extern void DeleteLoader(IntPtr loader);
+
+        [DllImport(NEURAL_AUDIO_LIB_NAME)]
+        public static extern IntPtr CreateModelFromFile(IntPtr loader, [MarshalAs(UnmanagedType.LPWStr)]string modelPath);
 
         [DllImport(NEURAL_AUDIO_LIB_NAME)]
         public static extern void DeleteModel(IntPtr model);
 
         [DllImport(NEURAL_AUDIO_LIB_NAME)]
-        public static extern void SetLSTMLoadMode(int loadMode);
+        public static extern void SetLSTMLoadMode(IntPtr loader, int loadMode);
 
         [DllImport(NEURAL_AUDIO_LIB_NAME)]
-        public static extern void SetWaveNetLoadMode(int loadMode);
+        public static extern void SetWaveNetLoadMode(IntPtr loader, int loadMode);
 
         [DllImport(NEURAL_AUDIO_LIB_NAME)]
-        public static extern void SetAudioInputLevelDBu(float audioDBu);
+        public static extern void SetAudioInputLevelDBu(IntPtr loader, float audioDBu);
 
         [DllImport(NEURAL_AUDIO_LIB_NAME)]
-        public static extern void SetDefaultMaxAudioBufferSize(int maxSize);
+        public static extern void SetDefaultMaxAudioBufferSize(IntPtr loader, int maxSize);
 
         [DllImport(NEURAL_AUDIO_LIB_NAME)]
         public static extern int GetLoadMode(IntPtr model);

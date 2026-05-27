@@ -92,7 +92,7 @@ namespace NeuralAudio
 
 			model->SetWeights(modelJson.at("weights"));
 
-			SetMaxAudioBufferSize(defaultMaxAudioBufferSize);
+			SetMaxAudioBufferSize(loader->GetDefaultMaxAudioBufferSize());
 
 			return true;
 		}
@@ -210,7 +210,7 @@ namespace NeuralAudio
 
 			model->SetWeights(modelJson.at("weights"));
 
-			SetMaxAudioBufferSize(defaultMaxAudioBufferSize);
+			SetMaxAudioBufferSize(loader->GetDefaultMaxAudioBufferSize());
 
 			return true;
 		}
@@ -282,7 +282,7 @@ namespace NeuralAudio
 
 			model->SetNAMWeights(modelJson.at("weights"));
 
-			SetMaxAudioBufferSize(defaultMaxAudioBufferSize);
+			SetMaxAudioBufferSize(loader->GetDefaultMaxAudioBufferSize());
 
 			return true;
 		}
@@ -444,7 +444,7 @@ namespace NeuralAudio
 
 			model->SetNAMWeights(modelJson.at("weights"));
 
-			SetMaxAudioBufferSize(defaultMaxAudioBufferSize);
+			SetMaxAudioBufferSize(loader->GetDefaultMaxAudioBufferSize());
 
 			return true;
 		}

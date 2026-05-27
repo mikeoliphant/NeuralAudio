@@ -16,8 +16,6 @@ namespace NeuralAudio
 		NAMModel()
 		{
 			nam::activations::Activation::enable_fast_tanh();
-
-			slimmableSize = defaultQualityScaleFactor;
 		}
 
 		~NAMModel()
@@ -36,6 +34,8 @@ namespace NeuralAudio
 			if (namModel)
 				namModel.reset();
 
+			slimmableSize = loader->GetDefaultQualityScaleFactor();
+
 			ReadNAMConfig(modelJson);
 
 			namModel = nam::get_dsp(modelJson);
@@ -51,7 +51,7 @@ namespace NeuralAudio
 				slim->SetSlimmableSize(slimmableSize);
 			}
 
-			SetMaxAudioBufferSize(defaultMaxAudioBufferSize);
+			SetMaxAudioBufferSize(loader->GetDefaultMaxAudioBufferSize());
 
 			return true;
 		}
