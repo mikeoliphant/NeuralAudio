@@ -142,7 +142,7 @@ namespace NeuralAudio
 				layer.SetNAMWeights(it);
 			}
 
-			for (int i = 0; i < hiddenSize; i++)
+			for (size_t i = 0; i < hiddenSize; i++)
 				headWeights[i] = *(it++);
 
 			headBias = *(it++);

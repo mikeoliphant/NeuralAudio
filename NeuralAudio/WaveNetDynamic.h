@@ -108,13 +108,13 @@ namespace NeuralAudio
 
 		void SetWeights(std::vector<float>::iterator& inWeights)
 		{
-			for (auto i = 0; i < outSize; i++)
-				for (auto j = 0; j < inSize; j++)
+			for (size_t i = 0; i < outSize; i++)
+				for (size_t j = 0; j < inSize; j++)
 					weights(i, j) = *(inWeights++);
 
 			if (doBias)
 			{
-				for (auto i = 0; i < outSize; i++)
+				for (size_t i = 0; i < outSize; i++)
 					bias(i) = *(inWeights++);
 			}
 		}

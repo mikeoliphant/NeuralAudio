@@ -299,7 +299,7 @@ int main(int argc, char* argv[])
 
 	int blockSize = 64;
 
-	std::filesystem::path modelPath = program.get("model_file");
+	std::filesystem::path modelPath = R"(C:\Users\oliph\Downloads\This Boss SD-1 Does Not Exist\BossSD1LiveSPICE.nam)"; // program.get("model_file");
 
 	blockSize = program.get<int>("--block_size");
 

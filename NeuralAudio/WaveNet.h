@@ -22,6 +22,97 @@ namespace NeuralAudio
 	//int numRewinds = 0;
 	//int maxRewinds = 0;
 
+	template <int NumRows, int NumCols>
+	class NAMatCols;
+
+	template <int NumRows, int NumCols>
+	class NAMat
+	{
+		public:
+			NAMat()
+			{
+				if constexpr (TooBigForStatic)
+				{
+					Resize(NumRows, NumCols);
+				}
+			}
+
+			void Resize(int numRows, int numCols)
+			{
+				matrix.resize(numRows, numCols);
+			}
+
+			int GetNumRows() const
+			{
+				return matrix.rows();
+			}
+
+			int GetNumCols() const
+			{
+				return matrix.cols();
+			}
+
+			NAMatCols<NumRows, NumCols> Slice(int startCol, int numCols)
+			{
+				NAMatCols<NumRows, NumCols> slice(this, startCol, numCols);
+
+				return slice;
+			}
+
+			void SetZero()
+			{
+				matrix.setZero();
+			}
+
+			auto GetMatrix()
+			{
+				return &matrix;
+			}
+
+			auto GetCols(int startCol, int numCols)
+			{
+				return matrix.middleCols(startCol, numCols);
+			}
+
+			auto GetColsConst(int startCol, int numCols) const
+			{
+				return matrix.middleCols(startCol, numCols);
+			}
+
+		private:
+			static constexpr bool TooBigForStatic = ((NumRows * NumCols) * 4) > EIGEN_STACK_ALLOCATION_LIMIT;
+
+			using MatrixType = typename std::conditional<TooBigForStatic,
+				Eigen::Matrix<float, NumRows, -1>,
+				Eigen::Matrix<float, NumRows, NumCols>>::type;
+			
+			MatrixType matrix;
+	};
+
+	template <int NumRows, int NumCols>
+	class NAMatCols
+	{
+		public:
+			NAMatCols(NAMat<NumRows, NumCols>* ref, int startCol, int numCols)
+			{
+				matrixRef = ref;
+				this->startCol = startCol;
+				this->numCols = numCols;
+			}
+
+			NAMatCols<NumRows, NumCols> Slice(int startCol, int numCols)
+			{
+				NAMatCols<NumRows, NumCols> slice(matrixRef, this->startCol + startCol, numCols);
+
+				return slice;
+			}
+
+		private:
+			NAMat<NumRows, NumCols>* matrixRef;
+			int startCol;
+			int numCols;
+	};
+
 	template <int InChannels, int OutChannels, int KernelSize, bool DoBias, int Dilation>
 	class Conv1DT
 	{
@@ -47,23 +138,25 @@ namespace NeuralAudio
 			}
 		}
 
-		template<typename Derived, typename Derived2>
-		inline void Process(const Eigen::MatrixBase<Derived>& input, Eigen::MatrixBase<Derived2> const & output, const size_t iStart, const size_t nCols) const
+		template<int InputCols, int OutputCols>
+		inline void Process(const NAMat<InChannels, InputCols>& input, NAMat<OutChannels, OutputCols>& output, const size_t iStart, const size_t nCols) const
 		{
+			auto outBlock = output.GetCols(0, nCols);
+
 			for (size_t k = 0; k < KernelSize; k++)
 			{
 				auto offset = Dilation * ((int)k + 1 - KernelSize);
 
-				auto inBlock = input.middleCols(iStart + offset, nCols);
+				auto inBlock = input.GetColsConst(iStart + offset, nCols);
 
 				if (k == 0)
-					const_cast<Eigen::MatrixBase<Derived2>&>(output).noalias() = weights[k] * inBlock;
+					outBlock.noalias() = weights[k] * inBlock;
 				else
-					const_cast<Eigen::MatrixBase<Derived2>&>(output).noalias() += weights[k] * inBlock;
+					outBlock.noalias() += weights[k] * inBlock;
 			}
 
 			if constexpr (DoBias)
-				const_cast<Eigen::MatrixBase<Derived2>&>(output).colwise() += bias;
+				outBlock.colwise() += bias;
 		}
 
 	private:
@@ -131,36 +224,25 @@ namespace NeuralAudio
 		Conv1DT<Channels, Channels, KernelSize, true, Dilation> conv1D;
 		DenseLayerT<ConditionSize, Channels, false> inputMixin;
 		DenseLayerT<Channels, Channels, true> oneByOne;
-		Eigen::Matrix<float, Channels, WAVENET_MAX_NUM_FRAMES> state;
+		NAMat<Channels, WAVENET_MAX_NUM_FRAMES> state;
 
 	public:
 		static constexpr auto ReceptiveFieldSize = (KernelSize - 1) * Dilation;
 		static constexpr auto BufferSize = ReceptiveFieldSize + ((LAYER_ARRAY_BUFFER_PADDING + 1) * WAVENET_MAX_NUM_FRAMES);
-		static constexpr bool TooBigForStatic = ((Channels * BufferSize) * 4) > EIGEN_STACK_ALLOCATION_LIMIT;
 
-		using LayerBufferType = typename std::conditional<TooBigForStatic,
-			Eigen::Matrix<float, Channels, -1>,
-			Eigen::Matrix<float, Channels, BufferSize>>::type;
-
-		LayerBufferType layerBuffer;
-		//Eigen::Matrix<float, Channels, -1> layerBuffer;
+		NAMat<Channels, BufferSize> layerBuffer;
 		size_t bufferStart;
 
 		WaveNetLayerT()
 		{
-			state.setZero();
+			state.SetZero();
 		}
 
 		void AllocBuffer(int allocNum)
 		{
 			long size = BufferSize;
 
-			if constexpr(TooBigForStatic)
-			{
-				layerBuffer.resize(Channels, size);
-			}
-
-			layerBuffer.setZero();
+			layerBuffer.SetZero();
 
 			//if (offset > (size - (ReceptiveFieldSize + WAVENET_MAX_NUM_FRAMES)))
 			//{
@@ -194,7 +276,7 @@ namespace NeuralAudio
 		{
 			bufferStart += numFrames;
 
-			if ((bufferStart + WAVENET_MAX_NUM_FRAMES) > (size_t)layerBuffer.cols())
+			if ((bufferStart + WAVENET_MAX_NUM_FRAMES) > (size_t)layerBuffer.GetNumCols())
 				RewindBuffer();
 		}
 
@@ -204,7 +286,7 @@ namespace NeuralAudio
 
 			size_t start = ReceptiveFieldSize;
 
-			layerBuffer.middleCols(start - ReceptiveFieldSize, ReceptiveFieldSize) = layerBuffer.middleCols(bufferStart - ReceptiveFieldSize, ReceptiveFieldSize);
+			layerBuffer.GetCols(start - ReceptiveFieldSize, ReceptiveFieldSize) = layerBuffer.GetCols(bufferStart - ReceptiveFieldSize, ReceptiveFieldSize);
 
 			bufferStart = start;
 		}
@@ -213,26 +295,26 @@ namespace NeuralAudio
 		{
 			for (size_t offset = 1; offset < ReceptiveFieldSize + 1; offset++)
 			{
-				layerBuffer.col(bufferStart - offset) = layerBuffer.col(bufferStart);
+				layerBuffer.GetCols(bufferStart - offset, 1) = layerBuffer.GetCols(bufferStart, 1);
 			}
 		}
 
-		template<typename Derived, typename Derived2, typename Derived3>
-		void Process(const Eigen::MatrixBase<Derived>& condition, Eigen::MatrixBase<Derived2> const& headInput, Eigen::MatrixBase<Derived3> const& output, const size_t outputStart, const size_t numFrames)
+		template<int InputCols, int OutputCols>
+		void Process(const NAMat<1, WAVENET_MAX_NUM_FRAMES>& condition, NAMat<Channels, InputCols>& headInputs, NAMat<Channels, OutputCols>& output, const size_t outputStart, const size_t numFrames)
 		{
-			auto block = state.leftCols(numFrames);
+			auto block = state.GetCols(0, numFrames);
 
-			conv1D.Process(layerBuffer, block, bufferStart, numFrames);
+			conv1D.Process(layerBuffer, state, bufferStart, numFrames);
 
-			inputMixin.ProcessAcc(condition, block);
+			inputMixin.ProcessAcc(condition.GetColsConst(0, numFrames), block);
 
 			WAVENET_MATH::Tanh(&block);
 
-			const_cast<Eigen::MatrixBase<Derived2>&>(headInput).leftCols(numFrames).noalias() += block;
+			headInputs.GetCols(0, numFrames).noalias() += block;
 
-			oneByOne.Process(block, const_cast<Eigen::MatrixBase<Derived3>&>(output).middleCols(outputStart, numFrames));
+			oneByOne.Process(block, output.GetCols(outputStart, numFrames));
 
-			const_cast<Eigen::MatrixBase<Derived3>&>(output).middleCols(outputStart, numFrames).noalias() += layerBuffer.middleCols(bufferStart, numFrames);
+			output.GetCols(outputStart, numFrames).noalias() += layerBuffer.GetCols(bufferStart, numFrames);
 		}
 	};
 
@@ -267,8 +349,8 @@ namespace NeuralAudio
 		static constexpr auto NumChannelsP = Channels;
 		static constexpr auto HeadSizeP = HeadSize;
 
-		Eigen::Matrix<float, Channels, WAVENET_MAX_NUM_FRAMES> arrayOutputs;
-		Eigen::Matrix<float, HeadSize, WAVENET_MAX_NUM_FRAMES> headOutputs;
+		NAMat<Channels, WAVENET_MAX_NUM_FRAMES> arrayOutputs;
+		NAMat<HeadSize, WAVENET_MAX_NUM_FRAMES> headOutputs;
 		int ReceptiveFieldSize = 0;	// This should be a static constexpr, but I haven't sorted out the right template magic
 
 		WaveNetLayerArrayT()
@@ -315,10 +397,10 @@ namespace NeuralAudio
 			headRechannel.SetWeights(weights);
 		}
 
-		template<typename Derived, typename Derived2, typename Derived3>
-		void Prewarm(const Eigen::MatrixBase<Derived>& layerInputs, const Eigen::MatrixBase<Derived2>& condition, Eigen::MatrixBase<Derived3> const& headInputs)
+		template<int LayerInputCols, int HeadInputCols>
+		void Prewarm(const NAMat<InputSize, LayerInputCols>& layerInputs, const NAMat<1, WAVENET_MAX_NUM_FRAMES>& condition, NAMat<Channels, HeadInputCols>& headInputs)
 		{
-			rechannel.Process(layerInputs.leftCols(1), std::get<0>(layers).layerBuffer.middleCols(std::get<0>(layers).bufferStart, 1));
+			rechannel.Process(layerInputs.GetColsConst(0, 1), std::get<0>(layers).layerBuffer.GetCols(std::get<0>(layers).bufferStart, 1));
 
 			ForEachIndex<numLayers>([&](auto layerIndex)
 				{
@@ -334,13 +416,13 @@ namespace NeuralAudio
 					}
 				});
 
-			headRechannel.Process(headInputs.leftCols(1), headOutputs.leftCols(1));
+			headRechannel.Process(headInputs.GetCols(0, 1), headOutputs.GetCols(0, 1));
 		}
 
-		template<typename Derived, typename Derived2, typename Derived3>
-		void Process(const Eigen::MatrixBase<Derived>& layerInputs, const Eigen::MatrixBase<Derived2>& condition, Eigen::MatrixBase<Derived3> const& headInputs, const size_t numFrames)
+		template<int LayerInputCols, int HeadInputCols>
+		void Process(const NAMat<InputSize, LayerInputCols>& layerInputs, const NAMat<1, WAVENET_MAX_NUM_FRAMES>& condition, NAMat<Channels, HeadInputCols>& headInputs, const size_t numFrames)
 		{
-			rechannel.Process(layerInputs.leftCols(numFrames), std::get<0>(layers).layerBuffer.middleCols(std::get<0>(layers).bufferStart, numFrames));
+			rechannel.Process(layerInputs.GetColsConst(0, numFrames), std::get<0>(layers).layerBuffer.GetCols(std::get<0>(layers).bufferStart, numFrames));
 
 			ForEachIndex<numLayers>([&](auto layerIndex)
 				{
@@ -356,7 +438,7 @@ namespace NeuralAudio
 					std::get<layerIndex>(layers).AdvanceFrames(numFrames);
 				});
 
-			headRechannel.Process(headInputs.leftCols(numFrames), headOutputs.leftCols(numFrames));
+			headRechannel.Process(headInputs.GetCols(0, numFrames), headOutputs.GetCols(0, numFrames));
 		}
 	};
 
@@ -420,9 +502,7 @@ namespace NeuralAudio
 
 		void Prewarm()
 		{
-			float input = 0;
-
-			auto condition = Eigen::Map<const Eigen::Matrix<float, 1, -1>>(&input, 1, 1);
+			condition.SetZero();
 
 			ForEachIndex<sizeof...(LayerArrays)>([&](auto layerIndex)
 				{
@@ -441,9 +521,13 @@ namespace NeuralAudio
 		{
 			//numRewinds = 0;
 
-			auto condition = Eigen::Map<const Eigen::Matrix<float, 1, -1>>(input, 1, numFrames);
+			//auto condition = Eigen::Map<const Eigen::Matrix<float, 1, -1>>(input, 1, numFrames);
 
-			headArray.setZero();
+			float* data = condition.GetCols(0, condition.GetNumCols()).data();
+
+			memcpy(data, input, numFrames);
+
+			headArray.SetZero();
 
 			ForEachIndex<sizeof...(LayerArrays)>([&](auto layerIndex)
 				{
@@ -457,11 +541,12 @@ namespace NeuralAudio
 					}
 				});
 
-			const auto finalHeadArray = std::get<sizeof...(LayerArrays) - 1>(layerArrays).headOutputs;
+			const float* finalHeadData = std::get<sizeof...(LayerArrays) - 1>(layerArrays).headOutputs.GetCols(0, numFrames).data();
 
-			auto out = Eigen::Map<Eigen::Matrix<float, 1, -1>>(output, 1, numFrames);
-
-			out.noalias() = headScale * finalHeadArray.leftCols(numFrames);
+			for (size_t i = 0; i < numFrames; i++)
+			{
+				output[i] = headScale * finalHeadData[i];
+			}
 
 			//if (numRewinds > maxRewinds)
 			//{
@@ -475,7 +560,8 @@ namespace NeuralAudio
 		static constexpr auto headLayerChannels = std::tuple_element_t<0, std::tuple<LayerArrays...>>::NumChannelsP;
 
 		std::tuple<LayerArrays...> layerArrays;
-		Eigen::Matrix<float, headLayerChannels, WAVENET_MAX_NUM_FRAMES> headArray;
+		NAMat<1, WAVENET_MAX_NUM_FRAMES> condition;
+		NAMat<headLayerChannels, WAVENET_MAX_NUM_FRAMES> headArray;
 		float headScale;
 	};
 }
