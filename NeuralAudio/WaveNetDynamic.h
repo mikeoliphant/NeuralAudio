@@ -159,13 +159,13 @@ namespace NeuralAudio
 		size_t bufferStart;
 
 		WaveNetLayer(size_t conditionSize, size_t channels, size_t kernelSize, size_t dilation) :
-			bufferStart(0),
 			channels(channels),
 			conv1D(channels, channels, kernelSize, true, dilation),
 			inputMixin(conditionSize, channels, false),
 			oneByOne(channels, channels, true),
 			state(channels, WAVENET_MAX_NUM_FRAMES),
-			ReceptiveFieldSize((kernelSize - 1) * dilation)
+			ReceptiveFieldSize((kernelSize - 1) * dilation),
+			bufferStart(0)
 		{
 			state.setZero();
 		}
