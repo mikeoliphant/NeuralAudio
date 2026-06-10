@@ -252,7 +252,19 @@ int RunDefaultTests(NeuralModelLoader& loader, int blockSize)
 
 	std::cout << "Loading models from: " << modelPath << std::endl << std::endl;
 
-	std::cout << "WaveNet (Standard) Test" << std::endl;
+	std::cout << "WaveNet (A2 Full) Test" << std::endl;
+	loader.SetDefaultQualityScaleFactor(1.0f);
+	RunNAMTests(modelPath / "BossWN-a2.nam", loader, blockSize);
+
+	std::cout << std::endl;
+
+	std::cout << "WaveNet (A2 Lite) Test" << std::endl;
+	loader.SetDefaultQualityScaleFactor(0.0f);
+	RunNAMTests(modelPath / "BossWN-a2.nam", loader, blockSize);
+
+	std::cout << std::endl;
+
+	std::cout << "WaveNet (A1 Standard) Test" << std::endl;
 	RunNAMTests(modelPath / "BossWN-standard.nam", loader, blockSize);
 
 	std::cout << std::endl;

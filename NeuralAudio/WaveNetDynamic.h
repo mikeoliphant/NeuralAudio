@@ -108,13 +108,13 @@ namespace NeuralAudio
 
 		void SetWeights(std::vector<float>::iterator& inWeights)
 		{
-			for (auto i = 0; i < outSize; i++)
-				for (auto j = 0; j < inSize; j++)
+			for (size_t i = 0; i < outSize; i++)
+				for (size_t j = 0; j < inSize; j++)
 					weights(i, j) = *(inWeights++);
 
 			if (doBias)
 			{
-				for (auto i = 0; i < outSize; i++)
+				for (size_t i = 0; i < outSize; i++)
 					bias(i) = *(inWeights++);
 			}
 		}
@@ -147,10 +147,7 @@ namespace NeuralAudio
 	class WaveNetLayer
 	{
 	private:
-		size_t conditionSize;
 		size_t channels;
-		size_t kernelSize;
-		size_t dilation;
 		Conv1D conv1D;
 		DenseLayer inputMixin;
 		DenseLayer oneByOne;
@@ -162,10 +159,7 @@ namespace NeuralAudio
 		size_t bufferStart;
 
 		WaveNetLayer(size_t conditionSize, size_t channels, size_t kernelSize, size_t dilation) :
-			conditionSize(conditionSize),
 			channels(channels),
-			kernelSize(kernelSize),
-			dilation(dilation),
 			conv1D(channels, channels, kernelSize, true, dilation),
 			inputMixin(conditionSize, channels, false),
 			oneByOne(channels, channels, true),
@@ -263,11 +257,7 @@ namespace NeuralAudio
 	class WaveNetLayerArray
 	{
 	private:
-		size_t inputSize;
-		size_t conditionSize;
-		size_t headSize;
 		size_t channels;
-		size_t kernelSize;
 		std::vector<WaveNetLayer> layers;
 		DenseLayer rechannel;
 		DenseLayer headRechannel;
@@ -278,11 +268,7 @@ namespace NeuralAudio
 
 	public:
 		WaveNetLayerArray(size_t inputSize, size_t conditionSize, size_t headSize, size_t channels, size_t kernelSize, bool hasHeadBias, std::vector<size_t> dilations) :
-			inputSize(inputSize),
-			conditionSize(conditionSize),
-			headSize(headSize),
 			channels(channels),
-			kernelSize(kernelSize),
 			rechannel(inputSize, channels, false),
 			headRechannel(channels, headSize, hasHeadBias),
 			arrayOutputs(channels, WAVENET_MAX_NUM_FRAMES),
