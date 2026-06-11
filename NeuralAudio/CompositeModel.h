@@ -127,10 +127,10 @@ namespace NeuralAudio
 
 				for (auto& level : qualityLevels)
 				{
-					if (std::get<0>(level) > scaleFactor)
-						break;
-
 					modelIndex = std::get<1>(level);
+
+					if (scaleFactor <= std::get<0>(level))
+						break;
 				}
 
 				SetCurrentModelIndex(modelIndex);
