@@ -165,7 +165,7 @@ int receptiveFieldSamples = model->GetReceptiveFieldSize();
 
 Note that this can return -1, which means that the receptive field size is unknown, or not fixed (ie: LSTM models technically have an infinite tail because of their internal feedback loop).
 
-This method is only supported for "internal" models. If you are using NAM Core or RTNeural it will always return -1.
+This method is only supported for "internal" and NAM Core models. For RTNeural it will always return -1.
 
 # Building
 
