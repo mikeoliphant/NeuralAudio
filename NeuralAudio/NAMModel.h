@@ -29,6 +29,11 @@ namespace NeuralAudio
 			return EModelLoadMode::NAMCore;
 		}
 
+		int GetReceptiveFieldSize() override
+		{
+			return namModel->GetPrewarmSamples();
+		}
+
 		bool LoadFromJson(const nlohmann::json& modelJson)
 		{
 			if (namModel)
