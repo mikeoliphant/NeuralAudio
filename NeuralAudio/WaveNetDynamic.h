@@ -5,7 +5,6 @@
 
 #include <Eigen/Dense>
 #include <Eigen/Core>
-#include "NeuralModel.h"
 #include "Activation.h"
 
 #ifndef WAVENET_MAX_NUM_FRAMES

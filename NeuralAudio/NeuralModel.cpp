@@ -8,6 +8,7 @@
 #endif
 #include "RTNeuralModel.h"
 #include "InternalModel.h"
+#include "CompositeModel.h"
 
 namespace NeuralAudio
 {
@@ -116,16 +117,6 @@ namespace NeuralAudio
 		return true;
 	}
 
-	NeuralModel* NeuralModelLoader::CreateFromFile(std::filesystem::path modelPath)
-	{
-		if (!std::filesystem::exists(modelPath))
-			return nullptr;
-
-		std::ifstream jsonStream(modelPath, std::ifstream::binary);
-
-		return CreateFromStream(jsonStream, modelPath.extension());
-	}
-
 	bool NAMIsA2(std::string version)
 	{
 		int major = 0, minor = 0, patch = 0;
@@ -137,32 +128,61 @@ namespace NeuralAudio
 		return (major > 0) || (minor > 5) || ((minor == 5) && (patch > 4));
 	}
 
-	NeuralModel* NeuralModelLoader::CreateFromStream(std::basic_istream<char>& jsonStream, std::filesystem::path extension)
+	NeuralModel* NeuralModelLoader::CreateFromFile(const std::filesystem::path& modelPath, bool doPrewarm)
 	{
-		EnsureModelDefsAreLoaded();
+		if (!std::filesystem::exists(modelPath))
+			return nullptr;
 
+		std::ifstream jsonStream(modelPath, std::ifstream::binary);
+
+		return CreateFromStream(jsonStream, modelPath.extension(), doPrewarm);
+	}
+
+
+	NeuralModel* NeuralModelLoader::CreateFromStream(std::basic_istream<char>& jsonStream, const std::filesystem::path& extension, bool doPrewarm)
+	{
 		nlohmann::json modelJson;
 		jsonStream >> modelJson;
+
+		return CreateFromJson(modelJson, extension, doPrewarm);
+	}
+
+	NeuralModel* NeuralModelLoader::CreateFromJson(const nlohmann::json modelJson, const std::filesystem::path& extension, bool doPrewarm)
+	{
+		EnsureModelDefsAreLoaded();
 
 		NeuralModel* newModel = nullptr;
 
 		if (extension == ".nam")
 		{
+			std::string arch = modelJson.at("architecture");
+
 #ifdef BUILD_NAMCORE
 			std::string version = modelJson.at("version");
 
 			if ((wavenetLoadMode == EModelLoadMode::NAMCore) || NAMIsA2(version))
 			{
-				NAMModel* model = new NAMModel;
+				if (arch == "SlimmableContainer")	// Packed A2 multi-model file 
+				{
+					ScalableCompositeModel* model = new ScalableCompositeModel;
 
-				model->SetModelLoader(this);
-				model->LoadFromJson(modelJson);
+					model->SetModelLoader(this);
+					model->LoadFromJson(modelJson);
 
-				newModel = model;
+					newModel = model;
+				}
+				else
+				{
+					NAMModel* model = new NAMModel;
+
+					model->SetModelLoader(this);
+					model->LoadFromJson(modelJson);
+
+					newModel = model;
+				}
 			}
 #endif
 
-			std::string arch = modelJson.at("architecture");
 			nlohmann::json config = modelJson.at("config");
 
 			if (newModel == nullptr)
@@ -328,7 +348,7 @@ namespace NeuralAudio
 			}
 		}
 
-		if (newModel != nullptr)
+		if ((newModel != nullptr) && doPrewarm)
 		{
 			newModel->Prewarm();
 		}

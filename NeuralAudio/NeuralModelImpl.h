@@ -1,6 +1,5 @@
 #pragma once
 
-#include "json.hpp"
 #include "NeuralModel.h"
 
 namespace NeuralAudio

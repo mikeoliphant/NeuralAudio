@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <string>
 #include <vector>
+#include "json.hpp"
 
 #ifndef DEFAULT_QUALITY_SCALE
 #define DEFAULT_QUALITY_SCALE 1.0
@@ -120,8 +121,9 @@ namespace NeuralAudio
 	class NeuralModelLoader
 	{
 		public:
-			NeuralModel* CreateFromFile(std::filesystem::path modelPath);
-			NeuralModel* CreateFromStream(std::basic_istream<char>& stream, std::filesystem::path extension);
+			NeuralModel* CreateFromFile(const std::filesystem::path& modelPath, bool doPrewarm = true);
+			NeuralModel* CreateFromStream(std::basic_istream<char>& stream, const std::filesystem::path& extension, bool doPrewarm = true);
+			NeuralModel* CreateFromJson(const nlohmann::json modelJson, const std::filesystem::path& extension, bool doPrewarm = true);
 
 			bool SetLSTMLoadMode(EModelLoadMode val)
 			{

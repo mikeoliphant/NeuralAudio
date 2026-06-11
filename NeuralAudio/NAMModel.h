@@ -36,9 +36,6 @@ namespace NeuralAudio
 
 		bool LoadFromJson(const nlohmann::json& modelJson)
 		{
-			if (namModel)
-				namModel.reset();
-
 			slimmableSize = loader->GetDefaultQualityScaleFactor();
 
 			ReadNAMConfig(modelJson);
