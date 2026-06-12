@@ -45,7 +45,7 @@ namespace NeuralAudio
 			return nullptr;
 		}
 
-		NeuralModel* RTNeuralLoadNAMWaveNet(const nlohmann::json& modelJson, NeuralModelLoader *loader)
+		NeuralModelImpl* RTNeuralLoadNAMWaveNet(const nlohmann::json& modelJson, NeuralModelLoader *loader)
 		{
 			nlohmann::json config = modelJson.at("config");
 
@@ -67,7 +67,7 @@ namespace NeuralAudio
 			return nullptr;
 		}
 
-		NeuralModel* RTNeuralLoadNAMLSTM(const nlohmann::json& modelJson, NeuralModelLoader *loader)
+		NeuralModelImpl* RTNeuralLoadNAMLSTM(const nlohmann::json& modelJson, NeuralModelLoader *loader)
 		{
 			nlohmann::json config = modelJson.at("config");
 
@@ -94,7 +94,7 @@ namespace NeuralAudio
 			return nullptr;
 		}
 
-		NeuralModel* RTNeuralLoadKeras(const nlohmann::json& modelJson, NeuralModelLoader* loader)
+		NeuralModelImpl* RTNeuralLoadKeras(const nlohmann::json& modelJson, NeuralModelLoader* loader)
 		{
 			const auto layers = modelJson.at("layers");
 			const size_t numLayers = layers.size() - 1;

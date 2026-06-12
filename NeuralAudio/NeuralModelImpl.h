@@ -1,6 +1,5 @@
 #pragma once
 
-#include "json.hpp"
 #include "NeuralModel.h"
 
 namespace NeuralAudio
@@ -13,6 +12,16 @@ namespace NeuralAudio
 			void SetModelLoader(NeuralModelLoader* modelLoader)
 			{
 				this->loader = modelLoader;
+			}
+
+			bool HadInitialPrewarm()
+			{
+				return hadInitialPrewarm;
+			}
+
+			void SetHadInitialPrewarm()
+			{
+				hadInitialPrewarm = true;
 			}
 
 		protected:
@@ -103,5 +112,6 @@ namespace NeuralAudio
 			}
 
 			NeuralModelLoader *loader;
+			bool hadInitialPrewarm = false;
 	};
 }

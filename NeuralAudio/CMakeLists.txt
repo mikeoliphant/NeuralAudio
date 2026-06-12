@@ -95,6 +95,7 @@ set(SOURCES
 	LSTM.h
 	LSTMDynamic.h
 	InternalModel.h
+	CompositeModel.h
 	TemplateHelper.h)
 
 if(BUILD_NAMCORE)
