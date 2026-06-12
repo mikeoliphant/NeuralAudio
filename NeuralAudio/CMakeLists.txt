@@ -65,6 +65,12 @@ add_definitions(-DDEFAULT_QUALITY_SCALE=${DEFAULT_QUALITY_SCALE})
 
 message(STATUS "Default model quality scale factor is: ${DEFAULT_QUALITY_SCALE}")
 
+set(DEFAULT_INPUT_DBU "12" CACHE STRING "Default dBu level for input scaling")
+
+add_definitions(-DDEFAULT_INPUT_DBU=${DEFAULT_INPUT_DBU})
+
+message(STATUS "Default input dBu is: ${DEFAULT_INPUT_DBU}")
+
 set(WAVENET_FRAMES "64" CACHE STRING "WaveNet frame size")
 
 add_definitions(-DWAVENET_MAX_NUM_FRAMES=${WAVENET_FRAMES})

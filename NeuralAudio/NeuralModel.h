@@ -11,6 +11,10 @@
 #define DEFAULT_QUALITY_SCALE 1.0
 #endif
 
+#ifndef DEFAULT_INPUT_DBU
+#define DEFAULT_INPUT_DBU 12
+#endif
+
 namespace NeuralAudio
 {
 	enum EModelLoadMode
@@ -203,7 +207,7 @@ namespace NeuralAudio
 			EModelLoadMode lstmLoadMode = EModelLoadMode::Internal;
 			EModelLoadMode wavenetLoadMode = EModelLoadMode::Internal;
 			ECompositeModelLoadMode compositeLoadMode = ECompositeModelLoadMode::LoadAll;
-			float audioInputLevelDBu = 12;
+			float audioInputLevelDBu = (float)DEFAULT_INPUT_DBU;
 			int defaultMaxAudioBufferSize = 128;
 			float defaultQualityScaleFactor = (float)DEFAULT_QUALITY_SCALE;
 	};
