@@ -103,7 +103,10 @@ namespace NeuralAudio
 					AddModel(submodelJson.at("max_value"), submodel);
 				}
 
-				SetMaxAudioBufferSize(loader->GetDefaultMaxAudioBufferSize());
+				// Don't call SetMaxAudioBufferSize because it has already been done by individual models
+				// (this can be re-added for completeness if NAM Core GetMaxBufferSize() is made public
+				//SetMaxAudioBufferSize(loader->GetDefaultMaxAudioBufferSize());
+
 				SetQualityScaleFactor(loader->GetDefaultQualityScaleFactor());
 
 				return true;

@@ -40,9 +40,9 @@ namespace NeuralAudio
 
 			ReadNAMConfig(modelJson);
 
-			namModel = nam::get_dsp(modelJson);
+			nam::ScopedPrewarmOnResetDefault scoped_prewarm_default(false);
 
-			namModel->SuppressPrewarm(true);
+			namModel = nam::get_dsp(modelJson);
 
 			auto* slim = dynamic_cast<nam::SlimmableModel*>(namModel.get());
 
@@ -55,7 +55,7 @@ namespace NeuralAudio
 
 			SetMaxAudioBufferSize(loader->GetDefaultMaxAudioBufferSize());
 
-			namModel->SuppressPrewarm(false);
+			namModel->SetPrewarmOnReset(true);
 
 			return true;
 		}
