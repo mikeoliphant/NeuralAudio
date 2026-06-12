@@ -45,7 +45,7 @@ namespace NeuralAudio
 			return nullptr;
 		}
 
-		NeuralModel* RTNeuralLoadNAMWaveNet(const nlohmann::json& modelJson, NeuralModelLoader *loader)
+		NeuralModelImpl* RTNeuralLoadNAMWaveNet(const nlohmann::json& modelJson, NeuralModelLoader *loader)
 		{
 			nlohmann::json config = modelJson.at("config");
 
