@@ -76,13 +76,13 @@ To set a known audio input level (ie: from an audio interface), use ```loader.Se
 By default, models are loaded using the internal NeuralAudio implementation. If you would like to force the use of the NAM Core or RTNeural implementations, you can use:
 
 ```
-loader.SetWaveNetLoadMode(loadMode)
+loader.SetWaveNetLoadMode(loadMode);
 ```
 
 and
 
 ```
-loader.SetLSTMLoadMode(loadMode)
+loader.SetLSTMLoadMode(loadMode);
 ```
 
 where "loadMode" is one of:
@@ -96,6 +96,18 @@ NeuralAudio::EModelLoadMode::RTNeural
 You can check which implementation was actually used to load the model with ```model->GetLoadMode()```.
 
 **NOTE:** Because of compile time and executable size considerations, only the internal, NAM Core and dynamic RTNeural implementations are built by default. If you want to use RTNeural, it is recommended that you add ```-DBUILD_STATIC_RTNEURAL=ON``` to your cmake commandline. This will create static model implmentations for the same sets of WaveNet and LSTM models as the internal implmentation, and results in increased performance. Interal static LSTM model support is also off by default - to turn it on use ```-DBUILD_INTERNAL_STATIC_LSTM=ON```.
+
+### Composite model load behavior
+
+Some models (notably NAM A2 models) are comprised of multiple sub-models. By default, all sub-models will be fully loaded and initialized when the model is loaded.
+
+If you wish to avoid the overhead of initializing unused models and only initialize the active model on load, you can do:
+
+```
+loader->SetCompositeModelLoadMode(ECompositeModelLoadMode::OnDemand);
+```
+
+Note that this means that switching to a different model for the first time via quality scaling will ***not be realtime safe***.
 
 ## Setting model quality scaling factor
 
@@ -121,9 +133,16 @@ To set the quality scaling factor for a loaded model, do:
 model->SetQualityScaleFactor(scaleFactor);
 ```
 
-***Note: This operation is not real-time safe if the quality scale factor results in a change to the model***
+***Note: This operation is not real-time safe if the quality scale factor results in switching to an uninitialized model.*** If you are using the default composite model loading behavior, setting the quality scale factor is always real-time safe. If you are using "OnDemand" composite model loading, you can check whether a quality scale change is real-time safe by doing:
 
-To get the quality scaling factor for a model, do:
+```
+if (!model->IsQualityChangeRealtimeSafe(newScaleFactor)
+{
+  (call SetQualityScaleFactor(), but ensure it is not done in a real-time context)
+}
+```
+
+To get the current quality scaling factor for a model, do:
 
 ```
 float scaleFactor = model->GetQualityScaleFactor();
