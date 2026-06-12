@@ -48,7 +48,7 @@ namespace NeuralAudio
 			return 1.0f;
 		}
 
-		virtual bool IsSetQualityChangeRealtimeSafe(float newScaleFactor)
+		virtual bool IsQualityChangeRealtimeSafe(float newScaleFactor)
 		{
 			return true;
 		}

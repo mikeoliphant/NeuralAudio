@@ -155,7 +155,7 @@ namespace NeuralAudio
 				return currentQualityLevel.load();
 			}
 
-			bool IsSetQualityChangeRealtimeSafe(float newScaleFactor) override
+			bool IsQualityChangeRealtimeSafe(float newScaleFactor) override
 			{
 				return IsModelChangeRealtimeSafe(GetModelIndexFromQualityScale(newScaleFactor));
 			}
