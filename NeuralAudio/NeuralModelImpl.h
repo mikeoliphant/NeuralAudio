@@ -14,6 +14,16 @@ namespace NeuralAudio
 				this->loader = modelLoader;
 			}
 
+			bool HadInitialPrewarm()
+			{
+				return hadInitialPrewarm;
+			}
+
+			void SetHadInitialPrewarm()
+			{
+				hadInitialPrewarm = true;
+			}
+
 		protected:
 			void ReadNAMConfig(const nlohmann::json& modelJson)
 			{
@@ -102,5 +112,6 @@ namespace NeuralAudio
 			}
 
 			NeuralModelLoader *loader;
+			bool hadInitialPrewarm = false;
 	};
 }

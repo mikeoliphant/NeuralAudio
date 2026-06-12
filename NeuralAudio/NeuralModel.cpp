@@ -151,7 +151,7 @@ namespace NeuralAudio
 	{
 		EnsureModelDefsAreLoaded();
 
-		NeuralModel* newModel = nullptr;
+		NeuralModelImpl* newModel = nullptr;
 
 		if (extension == ".nam")
 		{

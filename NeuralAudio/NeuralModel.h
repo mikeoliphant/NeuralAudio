@@ -20,6 +20,12 @@ namespace NeuralAudio
 		NAMCore
 	};
 
+	enum ECompositeModelLoadMode
+	{
+		LoadAll,
+		OnDemand
+	};
+
 	class NeuralModel
 	{
 	public:
@@ -40,6 +46,11 @@ namespace NeuralAudio
 		virtual float GetQualityScaleFactor()
 		{
 			return 1.0f;
+		}
+
+		virtual bool IsSetQualityChangeRealtimeSafe(float newScaleFactor)
+		{
+			return true;
 		}
 
 		virtual void SetQualityScaleFactor(float scaleFactor)
@@ -145,6 +156,16 @@ namespace NeuralAudio
 				return true;
 			}
 
+			ECompositeModelLoadMode GetCompositeModelLoadMode()
+			{
+				return compositeLoadMode;
+			}
+
+			void SetCompositeModelLoadMode(ECompositeModelLoadMode loadMode)
+			{
+				compositeLoadMode = loadMode;
+			}
+
 			bool SupportsWaveNetLoadMode(EModelLoadMode mode);
 			bool SupportsLSTMLoadMode(EModelLoadMode mode);
 
@@ -181,6 +202,7 @@ namespace NeuralAudio
 		protected:
 			EModelLoadMode lstmLoadMode = EModelLoadMode::Internal;
 			EModelLoadMode wavenetLoadMode = EModelLoadMode::Internal;
+			ECompositeModelLoadMode compositeLoadMode = ECompositeModelLoadMode::LoadAll;
 			float audioInputLevelDBu = 12;
 			int defaultMaxAudioBufferSize = 128;
 			float defaultQualityScaleFactor = DEFAULT_QUALITY_SCALE;
