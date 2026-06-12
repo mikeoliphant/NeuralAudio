@@ -205,7 +205,7 @@ namespace NeuralAudio
 			ECompositeModelLoadMode compositeLoadMode = ECompositeModelLoadMode::LoadAll;
 			float audioInputLevelDBu = 12;
 			int defaultMaxAudioBufferSize = 128;
-			float defaultQualityScaleFactor = DEFAULT_QUALITY_SCALE;
+			float defaultQualityScaleFactor = (float)DEFAULT_QUALITY_SCALE;
 	};
 
 }
