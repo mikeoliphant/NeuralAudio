@@ -90,7 +90,12 @@ namespace NeuralAudio
 
 		void SetMaxAudioBufferSize(const int maxSize) override
 		{
-			namModel->Reset(namModel->GetExpectedSampleRate(), maxSize);
+			if (maxSize != currentMaxSize)	// Don't reset if we don't need to
+			{
+				namModel->Reset(namModel->GetExpectedSampleRate(), maxSize);
+
+				currentMaxSize = maxSize;
+			}
 		}
 
 		void Process(float* input, float* output, size_t numSamples) override
@@ -105,6 +110,7 @@ namespace NeuralAudio
 
 	private:
 		std::unique_ptr<nam::DSP> namModel = nullptr;
+		int currentMaxSize = -1;
 		float slimmableSize = 1.0f;
 		bool isSlimmable = false;
 	};
