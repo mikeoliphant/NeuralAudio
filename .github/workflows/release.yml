@@ -128,7 +128,7 @@ jobs:
       env:
         CXXFLAGS: "/O2 -march=${{ matrix.native_arch }}"
       run: |
-        cmake.exe -G "Visual Studio 17 2022" -A x64  -T ClangCL -DBUILD_UTILS=ON -DBUILD_NAMCORE=ON -DBUILD_INTERNAL_STATIC_WAVENET=ON -DBUILD_INTERNAL_STATIC_LSTM=ON ..
+        cmake.exe -G "Visual Studio 18 2026" -A x64  -T ClangCL -DBUILD_UTILS=ON -DBUILD_NAMCORE=ON -DBUILD_INTERNAL_STATIC_WAVENET=ON -DBUILD_INTERNAL_STATIC_LSTM=ON ..
         cmake --build . --config=release -j4
 
     - name: Add Archive
