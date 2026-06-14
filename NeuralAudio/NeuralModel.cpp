@@ -86,6 +86,39 @@ namespace NeuralAudio
 		return true;
 	}
 
+	static void OversampleNAMConfig(nlohmann::json& modelJson, int externalSampleRate)
+	{
+		std::string arch = modelJson.at("architecture");
+
+		if (arch != "WaveNet")
+			return;
+
+		int modelSampleRate = 48000;
+
+		if (modelJson.contains("sample_rate") && modelJson.at("sample_rate").is_number())
+		{
+			modelSampleRate = (int)modelJson.at("sample_rate").get<float>();
+		}
+
+		if (modelSampleRate == externalSampleRate)
+			return;	// No oversampling required
+
+		if ((externalSampleRate % modelSampleRate) != 0)
+			return;	// Not an integer multiple
+
+		int oversampleFactor = externalSampleRate / modelSampleRate;
+
+		auto& config = modelJson.at("config");
+
+		for (auto& layer : config.at("layers"))
+		{
+			for (auto& dilation : layer.at("dilations"))
+			{
+				dilation = dilation.get<int>() * oversampleFactor;
+			}
+		}
+	}
+
 	bool NeuralModelLoader::SupportsWaveNetLoadMode(EModelLoadMode mode)
 	{
 		if (mode == EModelLoadMode::NAMCore)
@@ -147,7 +180,7 @@ namespace NeuralAudio
 		return CreateFromJson(modelJson, extension, doPrewarm);
 	}
 
-	NeuralModel* NeuralModelLoader::CreateFromJson(const nlohmann::json modelJson, const std::filesystem::path& extension, bool doPrewarm)
+	NeuralModel* NeuralModelLoader::CreateFromJson(nlohmann::json& modelJson, const std::filesystem::path& extension, bool doPrewarm)
 	{
 		EnsureModelDefsAreLoaded();
 
@@ -155,6 +188,8 @@ namespace NeuralAudio
 
 		if (extension == ".nam")
 		{
+			OversampleNAMConfig(modelJson, externalSampleRate);
+
 			std::string arch = modelJson.at("architecture");
 
 #ifdef BUILD_NAMCORE
