@@ -140,7 +140,7 @@ namespace NeuralAudio
 		public:
 			NeuralModel* CreateFromFile(const std::filesystem::path& modelPath, bool doPrewarm = true);
 			NeuralModel* CreateFromStream(std::basic_istream<char>& stream, const std::filesystem::path& extension, bool doPrewarm = true);
-			NeuralModel* CreateFromJson(const nlohmann::json modelJson, const std::filesystem::path& extension, bool doPrewarm = true);
+			NeuralModel* CreateFromJson(nlohmann::json& modelJson, const std::filesystem::path& extension, bool doPrewarm = true);
 
 			bool SetLSTMLoadMode(EModelLoadMode val)
 			{
@@ -205,6 +205,11 @@ namespace NeuralAudio
 				return defaultQualityScaleFactor;
 			}
 
+			void SetExternalSampleRate(int sampleRate)
+			{
+				this->externalSampleRate = sampleRate;
+			}
+
 		protected:
 			EModelLoadMode lstmLoadMode = EModelLoadMode::Internal;
 			EModelLoadMode wavenetLoadMode = EModelLoadMode::Internal;
@@ -212,6 +217,7 @@ namespace NeuralAudio
 			float audioInputLevelDBu = (float)DEFAULT_INPUT_DBU;
 			int defaultMaxAudioBufferSize = 128;
 			float defaultQualityScaleFactor = (float)DEFAULT_QUALITY_SCALE;
+			int externalSampleRate = 48000;
 	};
 
 }
