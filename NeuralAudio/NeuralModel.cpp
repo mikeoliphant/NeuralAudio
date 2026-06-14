@@ -72,7 +72,7 @@ namespace NeuralAudio
 	static std::vector<int> liteDilations = { 1, 2, 4, 8, 16, 32, 64 };
 	static std::vector<int> liteDilations2 = { 128, 256, 512, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512 };
 
-	static bool CheckDilations(const nlohmann::json dilationJson, std::vector<int>& checkDilations)
+	static bool CheckDilations(const nlohmann::json& dilationJson, std::vector<int>& checkDilations)
 	{
 		if (dilationJson.size() != checkDilations.size())
 			return false;
@@ -218,7 +218,7 @@ namespace NeuralAudio
 			}
 #endif
 
-			nlohmann::json config = modelJson.at("config");
+			auto& config = modelJson.at("config");
 
 			if (newModel == nullptr)
 			{
@@ -226,8 +226,8 @@ namespace NeuralAudio
 				{
 					if (config.at("layers").size() == 2)
 					{
-						nlohmann::json firstLayerConfig = config.at("layers").at(0);
-						nlohmann::json secondLayerConfig = config.at("layers").at(1);
+						auto& firstLayerConfig = config.at("layers").at(0);
+						auto& secondLayerConfig = config.at("layers").at(1);
 
 						if (!firstLayerConfig.at("gated") && !secondLayerConfig.at("gated") && !firstLayerConfig.at("head_bias") && secondLayerConfig.at("head_bias"))
 						{

@@ -29,13 +29,6 @@ namespace NeuralAudio
 			{
 				modelVersion = modelJson.at("version");
 
-				if (modelJson.contains("metadata"))
-				{
-					nlohmann::json metadataJson = modelJson.at("metadata");
-
-					AddMetadata(metadataJson);
-				}
-
 				if (modelJson.contains("sample_rate") && modelJson.at("sample_rate").is_number())
 				{
 					sampleRate = modelJson.at("sample_rate");
@@ -43,21 +36,23 @@ namespace NeuralAudio
 
 				if (modelJson.contains("metadata"))
 				{
-					nlohmann::json metaData = modelJson.at("metadata");
+					auto& metadataJson = modelJson.at("metadata");
 
-					if (metaData.contains("loudness") && metaData.at("loudness").is_number())
+					AddMetadata(metadataJson);
+
+					if (metadataJson.contains("loudness") && metadataJson.at("loudness").is_number())
 					{
-						modelLoudnessDB = (float)metaData.at("loudness");
+						modelLoudnessDB = (float)metadataJson.at("loudness");
 					}
 
-					if (metaData.contains("input_level_dbu") && metaData.at("input_level_dbu").is_number())
+					if (metadataJson.contains("input_level_dbu") && metadataJson.at("input_level_dbu").is_number())
 					{
-						modelInputLevelDBu = metaData.at("input_level_dbu");
+						modelInputLevelDBu = metadataJson.at("input_level_dbu");
 					}
 
-					if (metaData.contains("output_level_dbu") && metaData.at("output_level_dbu").is_number())
+					if (metadataJson.contains("output_level_dbu") && metadataJson.at("output_level_dbu").is_number())
 					{
-						modelOutputLevelDBu = metaData.at("output_level_dbu");
+						modelOutputLevelDBu = metadataJson.at("output_level_dbu");
 					}
 				}
 			}

@@ -126,7 +126,7 @@ namespace NeuralAudio
 
 			model = new ModelType;
 
-			nlohmann::json config = modelJson.at("config");
+			auto& config = modelJson.at("config");
 
 			std::vector<float> weights = modelJson.at("weights");
 
@@ -278,7 +278,7 @@ namespace NeuralAudio
 
 			model = new ModelType;
 
-			nlohmann::json config = modelJson.at("config");
+			auto& config = modelJson.at("config");
 
 			model->load_weights(modelJson);
 
@@ -428,7 +428,7 @@ namespace NeuralAudio
 		{
 			model = std::make_unique<RTNeural::Model<float>>(1);
 
-			nlohmann::json config = modelJson.at("config");
+			auto& config = modelJson.at("config");
 
 			const size_t numLayers = config.at("num_layers");
 			const size_t inputSize = config.at("input_size");

@@ -114,20 +114,20 @@ namespace NeuralAudio
 				return EModelLoadMode::NAMCore;
 			}
 
-			bool LoadFromJson(const nlohmann::json& modelJson)
+			bool LoadFromJson(nlohmann::json& modelJson)
 			{
 				ReadNAMConfig(modelJson);
 
 				return CreateModelFromNAMJson(modelJson);
 			}
 
-			virtual bool CreateModelFromNAMJson(const nlohmann::json& modelJson)
+			virtual bool CreateModelFromNAMJson(nlohmann::json& modelJson)
 			{
 				compositeLoadMode = loader->GetCompositeModelLoadMode();
 
-				nlohmann::json config = modelJson.at("config");
+				auto& config = modelJson.at("config");
 
-				nlohmann::json subModels = config.at("submodels");
+				auto& subModels = config.at("submodels");
 
 				for (auto& submodelJson : subModels)
 				{

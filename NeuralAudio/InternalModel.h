@@ -88,7 +88,7 @@ namespace NeuralAudio
 
 			model = new ModelType;
 
-			nlohmann::json config = modelJson.at("config");
+			auto& config = modelJson.at("config");
 
 			model->SetWeights(modelJson.at("weights"));
 
@@ -194,13 +194,13 @@ namespace NeuralAudio
 
 		bool CreateModelFromNAMJson(const nlohmann::json& modelJson) override
 		{
-			nlohmann::json config = modelJson.at("config");
+			auto& config = modelJson.at("config");
 
 			std::vector<WaveNetLayerArray> layerArrays;
 
 			for (size_t i = 0; i < config.at("layers").size(); i++)
 			{
-				nlohmann::json layerConfig = config.at("layers").at(i);
+				auto& layerConfig = config.at("layers").at(i);
 
 				layerArrays.push_back(WaveNetLayerArray(layerConfig.at("input_size"), layerConfig.at("condition_size"), layerConfig.at("head_size"),
 					layerConfig.at("channels"), layerConfig.at("kernel_size"), layerConfig.at("head_bias"), layerConfig.at("dilations")));
@@ -278,7 +278,7 @@ namespace NeuralAudio
 
 			model = new LSTMModelT<NumLayers, HiddenSize>;
 
-			nlohmann::json config = modelJson.at("config");
+			auto& config = modelJson.at("config");
 
 			model->SetNAMWeights(modelJson.at("weights"));
 
@@ -438,7 +438,7 @@ namespace NeuralAudio
 				model = nullptr;
 			}
 
-			nlohmann::json config = modelJson.at("config");
+			auto& config = modelJson.at("config");
 
 			model = new LSTMModel(config.at("num_layers"), config.at("hidden_size"));
 
