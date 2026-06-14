@@ -88,8 +88,6 @@ namespace NeuralAudio
 
 			model = new ModelType;
 
-			auto& config = modelJson.at("config");
-
 			model->SetWeights(modelJson.at("weights"));
 
 			SetMaxAudioBufferSize(loader->GetDefaultMaxAudioBufferSize());
