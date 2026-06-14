@@ -65,6 +65,14 @@ namespace NeuralAudio
 				}
 			}
 
+			int GetReceptiveFieldSize() override
+			{
+				if (currentModelIndex == -1)
+					return -1;
+
+				return models[currentModelIndex.load()]->GetReceptiveFieldSize();
+			}
+
 			void SetMaxAudioBufferSize(const int maxSize) override
 			{
 				for (auto& model : models)
