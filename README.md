@@ -148,6 +148,18 @@ To get the current quality scaling factor for a model, do:
 float scaleFactor = model->GetQualityScaleFactor();
 ```
 
+## Model oversampling
+
+WaveNet models are altered (via scaling the convolution dilation sizes) to produce the correct output when the external sample rate is an even multiple of the model sample rate.
+
+By default, the external sample rate is set to 48kHz. To change it, do:
+
+```
+loader.SetExternalSampleRate(sampleRate);
+```
+
+Note that ***models are only altered on load***. If you change the external sample rate you will need to reload any existing models where you want the change to take effect.
+
 ## Getting model metadata
 
 To retrieve arbitrary metadata fields from models that contain them, do:
