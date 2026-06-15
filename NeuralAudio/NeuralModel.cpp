@@ -116,6 +116,13 @@ namespace NeuralAudio
 			{
 				dilation = dilation.get<int>() * oversampleFactor;
 			}
+
+			if (layer.contains("head"))
+			{
+				auto& head = layer.at("head");
+
+				head["head_dilation"] = oversampleFactor;
+			}
 		}
 	}
 
