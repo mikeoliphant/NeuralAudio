@@ -276,8 +276,6 @@ namespace NeuralAudio
 
 			model = new LSTMModelT<NumLayers, HiddenSize>;
 
-			auto& config = modelJson.at("config");
-
 			model->SetNAMWeights(modelJson.at("weights"));
 
 			SetMaxAudioBufferSize(loader->GetDefaultMaxAudioBufferSize());
