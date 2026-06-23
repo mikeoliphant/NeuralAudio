@@ -13,23 +13,17 @@ NeuralAudio currently supports the following model types:
 
 This repository is licensed under the [MIT license](https://github.com/mikeoliphant/NeuralAudio/blob/main/LICENSE). It is a liberal license, but please make sure that you comply with the terms - as well as the terms of [this project's dependencies](https://github.com/mikeoliphant/NeuralAudio/blob/main/CREDITS.md). I would also appreciate it if you would let me know if you are using this library.
 
-# Underlying Libraries and Performance
+# Underlying Libraries
 
-By default, NeuralAudio uses its own implementation of WaveNet and LSTM network models. This implementation has been designed to produce **exactly** the same output as the [NAM Core library](https://github.com/sdatkinson/NeuralAmpModelerCore), but with increased performance and reduced memory usage.
+NAM A2 models currently use the NAM Core implementation (and consequently require building with NAM Core enabled).
 
-For completeness, and to facilitate accuracy and performance benchmarking, it can also load models using the [NAM Core implementation](https://github.com/sdatkinson/NeuralAmpModelerCore) and [RTNeural](https://github.com/jatinchowdhury18/RTNeural).
+For A1 WaveNet, the internal implmeentation supports optimized static models of the offical NAM A1 network architectures:  "Standard", "Lite", "Feather", "Nano".
 
-The internal NeuralAudio implmentation currently outperforms the other implementations on all tested platforms (Windows x64, Linux x64/Arm64). It also uses significantly less memory than the NAM Core WaveNet implementation (which, for example, uses about 10x as much memory for a "standard" WaveNet model).
+For A1 LSTM, the internal implementation supports optimized static models architectures for 1x8, 1x12, 1x16, 1x24, 2x8, 2x12, and 2x16 models.
 
-For WaveNet, the internal implmeentation supports optimized static models of the offical NAM A1 network architectures:  "Standard", "Lite", "Feather", "Nano".
-
-For LSTM, the internal implementation supports optimized static models architectures for 1x8, 1x12, 1x16, 1x24, 2x8, 2x12, and 2x16 models.
-
-All NAM files with WaveNet and LSTM architectures not supported internally will fall back on a less performant dynamic implementation (although still faster than NAM Core).
+All A1 NAM files with WaveNet and LSTM architectures not supported internally will fall back on a less performant dynamic implementation (although still faster than NAM Core).
 
 All keras models not supported internally will fall back to the RTNeural implmentation.
-
-NAM A2 models currently use the NAM Core implementation.
 
 # API overview
 
