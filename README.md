@@ -84,12 +84,12 @@ where "loadMode" is one of:
 ```
 NeuralAudio::EModelLoadMode::Internal
 NeuralAudio::EModelLoadMode::NAMCore
-NeuralAudio::EModelLoadMode::RTNeural
+NeuralAudio::EModelLoadMode::RTNeural  (only supported for LSTM)
 ```
 
 You can check which implementation was actually used to load the model with ```model->GetLoadMode()```.
 
-**NOTE:** Because of compile time and executable size considerations, only the internal, NAM Core and dynamic RTNeural implementations are built by default. If you want to use RTNeural, it is recommended that you add ```-DBUILD_STATIC_RTNEURAL=ON``` to your cmake commandline. This will create static model implmentations for the same sets of WaveNet and LSTM models as the internal implmentation, and results in increased performance. Interal static LSTM model support is also off by default - to turn it on use ```-DBUILD_INTERNAL_STATIC_LSTM=ON```.
+**NOTE:** Because of compile time and executable size considerations, only the internal, NAM Core and dynamic RTNeural implementations are built by default. If you want to use RTNeural for LSTM models, it is recommended that you add ```-DBUILD_STATIC_RTNEURAL=ON``` to your cmake commandline. This will create static model implmentations for the same set of LSTM models as the internal implmentation, and results in increased performance. Interal static LSTM model support is also off by default - to turn it on use ```-DBUILD_INTERNAL_STATIC_LSTM=ON```.
 
 ### Composite model load behavior
 
