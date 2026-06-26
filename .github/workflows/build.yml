@@ -40,11 +40,16 @@ jobs:
     - uses: actions/checkout@v3.3.0
       with:
         submodules: recursive
+
+    - name: Setup GCC 15
+      uses: egor-tensin/setup-gcc@v2
+      with:
+        version: '15'
     
     - name: Build
       working-directory: ${{github.workspace}}/build
       env:
-        CXX: g++-13
+        CXX: g++-15
       run: |
         cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_UTILS=ON -DBUILD_NAMCORE=ON -DBUILD_STATIC_RTNEURAL=ON -DBUILD_INTERNAL_STATIC_WAVENET=ON -DBUILD_INTERNAL_STATIC_LSTM=ON
         cmake --build . --config $BUILD_TYPE -j4
