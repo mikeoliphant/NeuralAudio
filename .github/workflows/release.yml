@@ -45,8 +45,8 @@ jobs:
     - name: Build
       working-directory: ${{github.workspace}}/build
       env:
-        CXX: clang++
-        CXXFLAGS: "-Wall -O3 -march=${{ matrix.native_arch }}"
+        CXX: g++-15
+        CXXFLAGS: "-Wall -O3 -march=${{ matrix.native_arch }} -static-libstdc++ -static-libgcc"      
       run: |
         cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_UTILS=ON -DBUILD_NAMCORE=ON -DBUILD_INTERNAL_STATIC_WAVENET=ON -DBUILD_INTERNAL_STATIC_LSTM=ON
         cmake --build . --config $BUILD_TYPE -j4
