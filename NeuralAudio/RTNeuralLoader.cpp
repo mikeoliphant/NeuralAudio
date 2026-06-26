@@ -16,11 +16,6 @@ namespace NeuralAudio
 			rtNeuralLSTMModelDefs.push_back(new RTNeuralLSTMDefinitionT<2, 8>);
 			rtNeuralLSTMModelDefs.push_back(new RTNeuralLSTMDefinitionT<2, 12>);
 			rtNeuralLSTMModelDefs.push_back(new RTNeuralLSTMDefinitionT<2, 16>);
-
-			rtNeuralWaveNetModelDefs.push_back(new RTNeuralWaveNetDefinitionT<16, 8>);	// Standard
-			rtNeuralWaveNetModelDefs.push_back(new RTNeuralWaveNetDefinitionT<12, 6>);	// Lite
-			rtNeuralWaveNetModelDefs.push_back(new RTNeuralWaveNetDefinitionT<8, 4>);	// Feather
-			rtNeuralWaveNetModelDefs.push_back(new RTNeuralWaveNetDefinitionT<4, 2>);	// Nano
 		}
 
 		RTNeuralLSTMDefinitionBase* FindRTNeuralLSTMDefinition(size_t numLayers, size_t hiddenSize)
@@ -29,39 +24,6 @@ namespace NeuralAudio
 			{
 				if ((numLayers == model->GetNumLayers()) && (hiddenSize == model->GetHiddenSize()))
 					return model;
-			}
-
-			return nullptr;
-		}
-
-		RTNeuralWaveNetDefinitionBase* FindRTNeuralWaveNetDefinition(size_t numChannels, size_t headSize)
-		{
-			for (auto const& model : rtNeuralWaveNetModelDefs)
-			{
-				if ((numChannels == model->GetNumChannels()) && (headSize == model->GetHeadSize()))
-					return model;
-			}
-
-			return nullptr;
-		}
-
-		NeuralModelImpl* RTNeuralLoadNAMWaveNet(const nlohmann::json& modelJson, NeuralModelLoader *loader)
-		{
-			auto& config = modelJson.at("config");
-
-			auto& firstLayerConfig = config.at("layers").at(0);
-			auto& secondLayerConfig = config.at("layers").at(1);
-			
-			auto modelDef = FindRTNeuralWaveNetDefinition(firstLayerConfig.at("channels"), firstLayerConfig.at("head_size"));
-
-			if (modelDef != nullptr)
-			{
-				auto model = modelDef->CreateModel();
-
-				model->SetModelLoader(loader);
-				model->LoadFromNAMJson(modelJson);
-
-				return model;
 			}
 
 			return nullptr;

@@ -136,11 +136,7 @@ namespace NeuralAudio
 #endif
 
 		if (mode == EModelLoadMode::RTNeural)
-#ifdef BUILD_STATIC_RTNEURAL
-			return true;
-#else
 			return false;
-#endif
 
 		return true;
 	}

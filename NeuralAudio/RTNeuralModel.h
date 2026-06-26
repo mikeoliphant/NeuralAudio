@@ -3,9 +3,6 @@
 #include "NeuralModel.h"
 #include "NeuralModelImpl.h"
 #include <RTNeural/RTNeural.h>
-#ifdef BUILD_STATIC_RTNEURAL
-#include "wavenet_model.hpp"
-#endif
 #include "TemplateHelper.h"
 
 namespace NeuralAudio
@@ -232,83 +229,6 @@ namespace NeuralAudio
 		ModelType* model = nullptr;
 	};
 
-	using StdDilations = wavenet::Dilations<1, 2, 4, 8, 16, 32, 64, 128, 256, 512>;
-	using LiteDilations1 = wavenet::Dilations<1, 2, 4, 8, 16, 32, 64>;
-	using LiteDilations2 = wavenet::Dilations<128, 256, 512, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512>;
-
-	template <int numChannels, int headSize>
-	class RTNeuralWaveNetModelT : public RTNeuralModel
-	{
-		using ModelType = typename std::conditional<numChannels == 16,
-			wavenet::Wavenet_Model<float, 1,
-				wavenet::Layer_Array<float, 1, 1, headSize, numChannels, 3, StdDilations, false, FastMathsProvider>,
-				wavenet::Layer_Array<float, numChannels, 1, 1, headSize, 3, StdDilations, true, FastMathsProvider>>,
-			wavenet::Wavenet_Model<float, 1,
-				wavenet::Layer_Array<float, 1, 1, headSize, numChannels, 3, LiteDilations1, false, FastMathsProvider>,
-				wavenet::Layer_Array<float, numChannels, 1, 1, headSize, 3, LiteDilations2, true, FastMathsProvider>>
-			>::type;
-
-	public:
-		RTNeuralWaveNetModelT()
-			: model(nullptr)
-		{
-		}
-
-		~RTNeuralWaveNetModelT()
-		{
-			if (model != nullptr)
-			{
-				delete model;
-				model = nullptr;
-			}
-		}
-
-		bool IsStatic() override
-		{
-			return true;
-		}
-
-		bool CreateModelFromNAMJson(const nlohmann::json& modelJson) override
-		{
-			if (model != nullptr)
-			{
-				delete model;
-				model = nullptr;
-			}
-
-			model = new ModelType;
-
-			auto& config = modelJson.at("config");
-
-			model->load_weights(modelJson);
-
-			SetMaxAudioBufferSize(loader->GetDefaultMaxAudioBufferSize());
-
-			return true;
-		}
-
-		void SetMaxAudioBufferSize(int maxSize) override
-		{
-			model->prepare(maxSize);
-		}
-
-		void Process(float* input, float* output, size_t numSamples) override
-		{
-			model->forward(input, output, (int)numSamples);
-		}
-
-		void Prewarm() override
-		{
-			float sample = 0;
-
-			for (size_t i = 0; i < 2048; i++)
-				model->forward(sample);
-		}
-
-	private:
-		ModelType* model = nullptr;
-	};
-
 	class RTNeuralModelDefinitionBase
 	{
 	public:
@@ -354,45 +274,6 @@ namespace NeuralAudio
 		size_t GetHiddenSize() override
 		{
 			return hiddenSize;
-		}
-	};
-
-	class RTNeuralWaveNetDefinitionBase : public RTNeuralModelDefinitionBase
-	{
-	public:
-		virtual RTNeuralModel* CreateModel() override
-		{
-			return nullptr;
-		}
-
-		virtual size_t GetNumChannels()
-		{
-			return 0;
-		}
-
-		virtual size_t GetHeadSize()
-		{
-			return 0;
-		}
-	};
-
-	template <int numChannels, int headSize>
-	class RTNeuralWaveNetDefinitionT : public RTNeuralWaveNetDefinitionBase
-	{
-	public:
-		RTNeuralModel* CreateModel() override
-		{
-			return new RTNeuralWaveNetModelT<numChannels, headSize>;
-		}
-
-		size_t GetNumChannels() override
-		{
-			return numChannels;
-		}
-
-		size_t GetHeadSize() override
-		{
-			return headSize;
 		}
 	};
 

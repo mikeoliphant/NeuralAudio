@@ -132,20 +132,12 @@ if(BUILD_NAMCORE)
 		../deps/NeuralAmpModelerCore/NAM/wavenet/a2_fast.cpp)
 endif()
 
-if(BUILD_STATIC_RTNEURAL)
-set(RTNEURAL_WN_SOURCES ../deps/RTNeural-NAM/wavenet/wavenet_layer.hpp
-	../deps/RTNeural-NAM/wavenet/wavenet_layer_array.hpp
-	../deps/RTNeural-NAM/wavenet/wavenet_model.hpp
-	../deps/RTNeural-NAM/wavenet/arena.hpp)
-endif()
-
-add_library(NeuralAudio OBJECT ${SOURCES} ${NAM_SOURCES} ${RTNEURAL_WN_SOURCES})
+add_library(NeuralAudio OBJECT ${SOURCES} ${NAM_SOURCES})
 
 target_include_directories(NeuralAudio PUBLIC ..)
 target_include_directories(NeuralAudio SYSTEM PRIVATE ../deps/NeuralAmpModelerCore)
 target_include_directories(NeuralAudio SYSTEM PRIVATE ../deps/RTNeural)
 target_include_directories(NeuralAudio SYSTEM PRIVATE ../deps/math_approx)
-target_include_directories(NeuralAudio SYSTEM PRIVATE ../deps/RTNeural-NAM/wavenet)
 target_include_directories(NeuralAudio SYSTEM PRIVATE ../deps/RTNeural/modules/Eigen)
 target_include_directories(NeuralAudio SYSTEM PRIVATE ../deps/RTNeural/modules/json)
 
