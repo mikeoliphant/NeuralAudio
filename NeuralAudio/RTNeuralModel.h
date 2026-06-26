@@ -123,8 +123,6 @@ namespace NeuralAudio
 
 			model = new ModelType;
 
-			auto& config = modelJson.at("config");
-
 			std::vector<float> weights = modelJson.at("weights");
 
 			const int networkInputSize = 1;

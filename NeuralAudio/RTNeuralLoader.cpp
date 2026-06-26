@@ -5,7 +5,6 @@ namespace NeuralAudio
 {
 #ifdef BUILD_STATIC_RTNEURAL
 		std::list<RTNeuralLSTMDefinitionBase*> rtNeuralLSTMModelDefs;
-		std::list<RTNeuralWaveNetDefinitionBase*> rtNeuralWaveNetModelDefs;
 
 		void EnsureRTNeuralModelDefsAreLoaded()
 		{

@@ -253,13 +253,6 @@ namespace NeuralAudio
 
 							if (isOfficialArchitecture)
 							{
-								if (wavenetLoadMode == EModelLoadMode::RTNeural)
-								{
-#ifdef BUILD_STATIC_RTNEURAL
-									newModel = RTNeuralLoadNAMWaveNet(modelJson, this);
-#endif
-								}
-
 								if (newModel == nullptr)
 								{
 									auto modelDef = FindInternalWaveNetDefinition(firstLayerConfig.at("channels"), firstLayerConfig.at("head_size"));
