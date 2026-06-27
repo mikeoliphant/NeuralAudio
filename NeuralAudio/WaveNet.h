@@ -311,6 +311,8 @@ namespace NeuralAudio
 				{
 					ReceptiveFieldSize += std::get<layerIndex>(layers).ReceptiveFieldSize;
 				});
+
+			ReceptiveFieldSize += headRechannel.ReceptiveFieldSize;
 		}
 
 		int AllocBuffers(int allocNum)
