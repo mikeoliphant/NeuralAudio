@@ -37,6 +37,16 @@ namespace NeuralAudio
 		{
 			return 1.0f / (1.0f + std::exp(-x));
 		}
+
+		static inline float LeakyRelu(float x, float negativeSlope)
+		{
+			return x > 0.0f ? x : negativeSlope * x;
+		}
+
+		static inline float LeakyRelu(float x)
+		{
+			return LeakyRelu(x, 0.01f);
+		}
 	};
 
 	struct FastMath
@@ -73,6 +83,16 @@ namespace NeuralAudio
 
 			//return 1.0f / (1.0f + std::exp(-x));
 			return  0.5f * (Tanh(x * 0.5f) + 1);
+		}
+
+		static inline float LeakyRelu(float x, float negativeSlope)
+		{
+			return x > 0.0f ? x : negativeSlope * x;
+		}
+
+		static inline float LeakyRelu(float x)
+		{
+			return LeakyRelu(x, 0.01f);
 		}
 	};
 
