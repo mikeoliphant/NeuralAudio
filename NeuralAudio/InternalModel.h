@@ -151,11 +151,11 @@ namespace NeuralAudio
 	public:
 		using ModelType = typename std::conditional<NumChannels == 16,
 			NeuralAudio::WaveNetModelT<
-				NeuralAudio::WaveNetLayerArrayT<1, 1, HeadSize, 1, 1, NumChannels, IStdKernelSizes, IStdDilations, false>,
-				NeuralAudio::WaveNetLayerArrayT<NumChannels, 1, 1, 1, 1, HeadSize, IStdKernelSizes, IStdDilations, true>>,
+				NeuralAudio::WaveNetLayerArrayT<1, 1, HeadSize, 1, 1, NumChannels, IStdKernelSizes, IStdDilations, false, EActivationType::Tanh>,
+				NeuralAudio::WaveNetLayerArrayT<NumChannels, 1, 1, 1, 1, HeadSize, IStdKernelSizes, IStdDilations, true, EActivationType::Tanh>>,
 			NeuralAudio::WaveNetModelT<
-				NeuralAudio::WaveNetLayerArrayT<1, 1, HeadSize, 1, 1, NumChannels, ILiteKernelSizes1, ILiteDilations1, false>,
-				NeuralAudio::WaveNetLayerArrayT<NumChannels, 1, 1, 1, 1, HeadSize, ILiteKernelSizes2, ILiteDilations2, true>>
+				NeuralAudio::WaveNetLayerArrayT<1, 1, HeadSize, 1, 1, NumChannels, ILiteKernelSizes1, ILiteDilations1, false, EActivationType::Tanh>,
+				NeuralAudio::WaveNetLayerArrayT<NumChannels, 1, 1, 1, 1, HeadSize, ILiteKernelSizes2, ILiteDilations2, true, EActivationType::Tanh>>
 			>::type;
 
 		InternalModel* CreateModel() override

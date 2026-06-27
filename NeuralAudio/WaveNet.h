@@ -16,6 +16,12 @@
 #define LAYER_ARRAY_BUFFER_PADDING 24
 #endif
 
+enum EActivationType
+{
+	Tanh,
+	LeakyReLU
+};
+
 namespace NeuralAudio
 {
 	template <int Channels, int ReceptiveFieldSize>
@@ -191,7 +197,7 @@ namespace NeuralAudio
 		Eigen::Vector<float, OutSize> bias;
 	};
 
-	template <int ConditionSize, int Channels, int KernelSize, int Dilation>
+	template <int ConditionSize, int Channels, int KernelSize, int Dilation, EActivationType Activation>
 	class WaveNetLayerT
 	{
 	private:
@@ -244,7 +250,14 @@ namespace NeuralAudio
 
 			inputMixin.ProcessAcc(condition, block);
 
-			WAVENET_MATH::LeakyRelu(&block);
+			if constexpr (Activation == EActivationType::Tanh)
+			{
+				WAVENET_MATH::Tanh(&block);
+			}
+			else if constexpr (Activation == EActivationType::LeakyReLU)
+			{
+				WAVENET_MATH::LeakyReLU(&block);
+			}
 
 			const_cast<Eigen::MatrixBase<Derived2>&>(headInput).leftCols(numFrames).noalias() += block;
 
@@ -260,7 +273,7 @@ namespace NeuralAudio
 	template <int... values>
 		using KernelSizes = std::integer_sequence<int, values...>;
 
-	template <int InputSize, int ConditionSize, int HeadSize, int HeadKernelSize, int HeadDilation, int Channels, typename KernelSizeSequence, typename DilationsSequence, bool HasHeadBias>
+	template <int InputSize, int ConditionSize, int HeadSize, int HeadKernelSize, int HeadDilation, int Channels, typename KernelSizeSequence, typename DilationsSequence, bool HasHeadBias, EActivationType Activation>
 	class WaveNetLayerArrayT
 	{
 		template <typename, typename>
@@ -271,7 +284,7 @@ namespace NeuralAudio
 		template <int... dilationVals, int... kernelSizeVals>
 		struct LayersHelper<KernelSizes<kernelSizeVals...>, Dilations<dilationVals...>>
 		{
-			using type = std::tuple<WaveNetLayerT<ConditionSize, Channels, kernelSizeVals, dilationVals>...>;
+			using type = std::tuple<WaveNetLayerT<ConditionSize, Channels, kernelSizeVals, dilationVals, Activation>...>;
 		};
 
 		using Layers = typename LayersHelper<KernelSizeSequence, DilationsSequence>::type;
