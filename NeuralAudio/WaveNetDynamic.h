@@ -267,12 +267,12 @@ namespace NeuralAudio
 
 
 	public:
-		WaveNetLayerArray(size_t inputSize, size_t conditionSize, size_t headSize, size_t channels, size_t kernelSize, bool hasHeadBias, std::vector<size_t> dilations) :
+		WaveNetLayerArray(size_t inputSize, size_t conditionSize, size_t HeadSize, size_t channels, size_t kernelSize, bool hasHeadBias, std::vector<size_t> dilations) :
 			channels(channels),
 			rechannel(inputSize, channels, false),
-			headRechannel(channels, headSize, hasHeadBias),
+			headRechannel(channels, HeadSize, hasHeadBias),
 			arrayOutputs(channels, WAVENET_MAX_NUM_FRAMES),
-			headOutputs(headSize, WAVENET_MAX_NUM_FRAMES)
+			headOutputs(HeadSize, WAVENET_MAX_NUM_FRAMES)
 		{
 			for (auto dilation : dilations)
 			{

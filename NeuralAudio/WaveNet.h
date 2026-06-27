@@ -244,7 +244,7 @@ namespace NeuralAudio
 
 			inputMixin.ProcessAcc(condition, block);
 
-			WAVENET_MATH::Tanh(&block);
+			WAVENET_MATH::LeakyRelu(&block);
 
 			const_cast<Eigen::MatrixBase<Derived2>&>(headInput).leftCols(numFrames).noalias() += block;
 
@@ -260,7 +260,7 @@ namespace NeuralAudio
 	template <int... values>
 		using KernelSizes = std::integer_sequence<int, values...>;
 
-	template <int InputSize, int ConditionSize, int HeadSize, int Channels, typename KernelSizeSequence, typename DilationsSequence, bool HasHeadBias>
+	template <int InputSize, int ConditionSize, int HeadSize, int HeadKernelSize, int HeadDilation, int Channels, typename KernelSizeSequence, typename DilationsSequence, bool HasHeadBias>
 	class WaveNetLayerArrayT
 	{
 		template <typename, typename>
@@ -279,7 +279,7 @@ namespace NeuralAudio
 	private:
 		Layers layers;
 		DenseLayerT<InputSize, Channels, false> rechannel;
-		Conv1DT<Channels, HeadSize, 1, HasHeadBias, 1> headRechannel;
+		Conv1DT<Channels, HeadSize, HeadKernelSize, HasHeadBias, HeadDilation> headRechannel;
 
 		static constexpr auto numLayers = std::tuple_size_v<decltype (layers)>;
 		static constexpr auto lastLayer = numLayers - 1;
@@ -306,6 +306,8 @@ namespace NeuralAudio
 				{
 					std::get<layerIndex>(layers).AllocBuffer(allocNum++);
 				});
+
+			headRechannel.channelBuffer.AllocBuffer(allocNum++);
 
 			return allocNum;
 		}
@@ -356,6 +358,7 @@ namespace NeuralAudio
 				});
 
 			headRechannel.channelBuffer.buffer.middleCols(headRechannel.channelBuffer.bufferStart, 1).noalias() = headInputs.leftCols(1);	// Should be able to avoid this copy
+			headRechannel.channelBuffer.CopyBuffer();
 			headRechannel.Process(headOutputs.leftCols(1), 1);
 		}
 
@@ -380,6 +383,7 @@ namespace NeuralAudio
 
 			headRechannel.channelBuffer.buffer.middleCols(headRechannel.channelBuffer.bufferStart, numFrames).noalias() = headInputs.leftCols(numFrames);	// Should be able to avoid this copy
 			headRechannel.Process(headOutputs.leftCols(numFrames), numFrames);
+			headRechannel.channelBuffer.AdvanceFrames(numFrames);
 		}
 	};
 

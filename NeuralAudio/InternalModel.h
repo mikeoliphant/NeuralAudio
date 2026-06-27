@@ -16,6 +16,9 @@ namespace NeuralAudio
 	using ILiteDilations2 = NeuralAudio::Dilations<128, 256, 512, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512>;
 	using ILiteKernelSizes2 = NeuralAudio::KernelSizes<3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3>;
 
+	using A2KernelSizes = NeuralAudio::KernelSizes<6, 6, 6, 6, 6, 6, 6, 6,	6, 6, 6, 6,	6, 6, 15, 15, 6, 6,	6, 6, 6, 6,	6>;
+	using A2Dilations = NeuralAudio::Dilations<1, 3, 7, 17, 41, 101, 239, 1, 3, 7, 17, 41, 101, 239, 1, 13, 1, 3, 7, 17, 41, 101, 239>;
+
 	class InternalModel : public NeuralModelImpl
 	{
 	public:
@@ -48,19 +51,9 @@ namespace NeuralAudio
 		}
 	};
 
-
-	template <int numChannels, int headSize>
+	template <typename ModelType>
 	class InternalWaveNetModelT : public InternalModel
 	{
-		using ModelType = typename std::conditional<numChannels == 16,
-			NeuralAudio::WaveNetModelT<
-				NeuralAudio::WaveNetLayerArrayT<1, 1, headSize, numChannels, IStdKernelSizes, IStdDilations, false>,
-				NeuralAudio::WaveNetLayerArrayT<numChannels, 1, 1, headSize, IStdKernelSizes, IStdDilations, true>>,
-			NeuralAudio::WaveNetModelT<
-				NeuralAudio::WaveNetLayerArrayT<1, 1, headSize, numChannels, ILiteKernelSizes1, ILiteDilations1, false>,
-				NeuralAudio::WaveNetLayerArrayT<numChannels, 1, 1, headSize, ILiteKernelSizes2, ILiteDilations2, true>>
-			>::type;
-
 	public:
 		InternalWaveNetModelT()
 			: model(nullptr)
@@ -152,23 +145,32 @@ namespace NeuralAudio
 		}
 	};
 
-	template <int numChannels, int headSize>
-	class InternalWaveNetDefinitionT : public InternalWaveNetDefinitionBase
+	template <int NumChannels, int HeadSize>
+	class InternalA1WaveNetDefinitionT : public InternalWaveNetDefinitionBase
 	{
 	public:
+		using ModelType = typename std::conditional<NumChannels == 16,
+			NeuralAudio::WaveNetModelT<
+				NeuralAudio::WaveNetLayerArrayT<1, 1, HeadSize, 1, 1, NumChannels, IStdKernelSizes, IStdDilations, false>,
+				NeuralAudio::WaveNetLayerArrayT<NumChannels, 1, 1, 1, 1, HeadSize, IStdKernelSizes, IStdDilations, true>>,
+			NeuralAudio::WaveNetModelT<
+				NeuralAudio::WaveNetLayerArrayT<1, 1, HeadSize, 1, 1, NumChannels, ILiteKernelSizes1, ILiteDilations1, false>,
+				NeuralAudio::WaveNetLayerArrayT<NumChannels, 1, 1, 1, 1, HeadSize, ILiteKernelSizes2, ILiteDilations2, true>>
+			>::type;
+
 		InternalModel* CreateModel() override
 		{
-			return new InternalWaveNetModelT<numChannels, headSize>;
+			return new InternalWaveNetModelT<ModelType>;
 		}
 
 		virtual size_t GetNumChannels() override
 		{
-			return numChannels;
+			return NumChannels;
 		}
 
 		virtual size_t GetHeadSize() override
 		{
-			return headSize;
+			return HeadSize;
 		}
 	};
 

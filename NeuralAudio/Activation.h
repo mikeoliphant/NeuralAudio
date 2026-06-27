@@ -85,6 +85,18 @@ namespace NeuralAudio
 			return  0.5f * (Tanh(x * 0.5f) + 1);
 		}
 
+		template <typename Matrix>
+		static void LeakyRelu(Matrix* x)
+		{
+			float* data = x->data();
+			size_t size = x->rows() * x->cols();
+
+			for (size_t pos = 0; pos < size; pos++)
+			{
+				data[pos] = LeakyRelu(data[pos]);
+			}
+		}
+
 		static inline float LeakyRelu(float x, float negativeSlope)
 		{
 			return x > 0.0f ? x : negativeSlope * x;
