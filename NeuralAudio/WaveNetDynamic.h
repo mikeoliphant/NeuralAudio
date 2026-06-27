@@ -151,7 +151,7 @@ namespace NeuralAudio
 		DenseLayer inputMixin;
 		DenseLayer oneByOne;
 		Eigen::MatrixXf state;
-		Eigen::MatrixXf layerBuffer;
+		Eigen::MatrixXf buffer;
 
 	public:
 		size_t ReceptiveFieldSize;
@@ -171,15 +171,15 @@ namespace NeuralAudio
 
 		Eigen::MatrixXf& GetLayerBuffer()
 		{
-			return layerBuffer;
+			return buffer;
 		}
 
 		void AllocBuffer(size_t allocNum)
 		{
 			size_t size = ReceptiveFieldSize + ((LAYER_ARRAY_BUFFER_PADDING + 1) * WAVENET_MAX_NUM_FRAMES);
 
-			layerBuffer.resize(channels, size);
-			layerBuffer.setZero();
+			buffer.resize(channels, size);
+			buffer.setZero();
 
 			// offset prevents buffer rewinds of various layers from happening at the same time
 #if (LAYER_ARRAY_BUFFER_PADDING == 0)
@@ -205,7 +205,7 @@ namespace NeuralAudio
 		{
 			bufferStart += numFrames;
 
-			if ((int)(bufferStart + WAVENET_MAX_NUM_FRAMES) > layerBuffer.cols())
+			if ((int)(bufferStart + WAVENET_MAX_NUM_FRAMES) > buffer.cols())
 				RewindBuffer();
 		}
 
@@ -213,7 +213,7 @@ namespace NeuralAudio
 		{
 			size_t start = ReceptiveFieldSize;
 
-			layerBuffer.middleCols(start - ReceptiveFieldSize, ReceptiveFieldSize) = layerBuffer.middleCols(bufferStart - ReceptiveFieldSize, ReceptiveFieldSize);
+			buffer.middleCols(start - ReceptiveFieldSize, ReceptiveFieldSize) = buffer.middleCols(bufferStart - ReceptiveFieldSize, ReceptiveFieldSize);
 
 			bufferStart = start;
 		}
@@ -222,7 +222,7 @@ namespace NeuralAudio
 		{
 			for (size_t offset = 1; offset < ReceptiveFieldSize + 1; offset++)
 			{
-				layerBuffer.col(bufferStart - offset) = layerBuffer.col(bufferStart);
+				buffer.col(bufferStart - offset) = buffer.col(bufferStart);
 			}
 		}
 
@@ -230,7 +230,7 @@ namespace NeuralAudio
 		{
 			auto block = state.leftCols(numFrames);
 
-			conv1D.Process(layerBuffer, block, bufferStart, numFrames);
+			conv1D.Process(buffer, block, bufferStart, numFrames);
 
 			inputMixin.ProcessAcc(condition, block);
 
@@ -248,7 +248,7 @@ namespace NeuralAudio
 
 			oneByOne.Process(block.topRows(channels), output.middleCols(outputStart, numFrames));
 
-			output.middleCols(outputStart, numFrames).noalias() += layerBuffer.middleCols(bufferStart, numFrames);
+			output.middleCols(outputStart, numFrames).noalias() += buffer.middleCols(bufferStart, numFrames);
 
 			AdvanceFrames(numFrames);
 		}
@@ -267,12 +267,12 @@ namespace NeuralAudio
 
 
 	public:
-		WaveNetLayerArray(size_t inputSize, size_t conditionSize, size_t headSize, size_t channels, size_t kernelSize, bool hasHeadBias, std::vector<size_t> dilations) :
+		WaveNetLayerArray(size_t inputSize, size_t conditionSize, size_t HeadSize, size_t channels, size_t kernelSize, bool hasHeadBias, std::vector<size_t> dilations) :
 			channels(channels),
 			rechannel(inputSize, channels, false),
-			headRechannel(channels, headSize, hasHeadBias),
+			headRechannel(channels, HeadSize, hasHeadBias),
 			arrayOutputs(channels, WAVENET_MAX_NUM_FRAMES),
-			headOutputs(headSize, WAVENET_MAX_NUM_FRAMES)
+			headOutputs(HeadSize, WAVENET_MAX_NUM_FRAMES)
 		{
 			for (auto dilation : dilations)
 			{

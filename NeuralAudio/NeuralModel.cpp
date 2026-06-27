@@ -22,10 +22,10 @@ namespace NeuralAudio
 		if (!modelDefsAreLoaded)
 		{
 #ifdef BUILD_INTERNAL_STATIC_WAVENET
-			internalWavenetModelDefs.push_back(new InternalWaveNetDefinitionT<16, 8>);	// Standard
-			internalWavenetModelDefs.push_back(new InternalWaveNetDefinitionT<12, 6>);	// Lite
-			internalWavenetModelDefs.push_back(new InternalWaveNetDefinitionT<8, 4>);	// Feather
-			internalWavenetModelDefs.push_back(new InternalWaveNetDefinitionT<4, 2>);	// Nano
+			internalWavenetModelDefs.push_back(new InternalA1WaveNetDefinitionT<16, 8>);	// Standard
+			internalWavenetModelDefs.push_back(new InternalA1WaveNetDefinitionT<12, 6>);	// Lite
+			internalWavenetModelDefs.push_back(new InternalA1WaveNetDefinitionT<8, 4>);	// Feather
+			internalWavenetModelDefs.push_back(new InternalA1WaveNetDefinitionT<4, 2>);	// Nano
 #endif
 
 #ifdef BUILD_INTERNAL_STATIC_LSTM
@@ -46,11 +46,11 @@ namespace NeuralAudio
 		}
 	}
 
-	static InternalWaveNetDefinitionBase* FindInternalWaveNetDefinition(size_t numChannels, size_t headSize)
+	static InternalWaveNetDefinitionBase* FindInternalWaveNetDefinition(size_t NumChannels, size_t HeadSize)
 	{
 		for (auto const& model : internalWavenetModelDefs)
 		{
-			if ((numChannels == model->GetNumChannels()) && (headSize == model->GetHeadSize()))
+			if ((NumChannels == model->GetNumChannels()) && (HeadSize == model->GetHeadSize()))
 				return model;
 		}
 
@@ -72,14 +72,17 @@ namespace NeuralAudio
 	static std::vector<int> liteDilations = { 1, 2, 4, 8, 16, 32, 64 };
 	static std::vector<int> liteDilations2 = { 128, 256, 512, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512 };
 
-	static bool CheckDilations(const nlohmann::json& dilationJson, std::vector<int>& checkDilations)
+	static std::vector<int> a2KernelSizes = { 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 15, 15, 6, 6, 6, 6, 6, 6, 6 };
+	static std::vector<int> a2Dilations = { 1, 3, 7, 17, 41, 101, 239, 1, 3, 7, 17, 41, 101, 239, 1, 13, 1, 3, 7, 17, 41, 101, 239 };
+
+	static bool CheckIntegerSequence(const nlohmann::json& sequenceJson, std::vector<int>& sequenceVector)
 	{
-		if (dilationJson.size() != checkDilations.size())
+		if (sequenceJson.size() != sequenceVector.size())
 			return false;
 
-		for (size_t i = 0; i < dilationJson.size(); i++)
+		for (size_t i = 0; i < sequenceJson.size(); i++)
 		{
-			if (dilationJson[i] != checkDilations[i])
+			if (sequenceJson[i] != sequenceVector[i])
 				return false;
 		}
 
@@ -164,6 +167,155 @@ namespace NeuralAudio
 		return (major > 0) || (minor > 5) || ((minor == 5) && (patch > 4));
 	}
 
+	bool ApproxEqual(float a, float b, float epsilon = 1e-5f)
+	{
+		return std::fabs(a - b) <= epsilon;
+	}
+
+	bool IsActive(const nlohmann::json& json, const char* name)
+	{
+		if (!json.contains(name))
+			return true;
+
+		return json.at(name).value("active", false);
+	}
+
+	bool HasNonNull(const nlohmann::json& json, const char* name)
+	{
+		return json.contains(name) && !json.at(name).is_null();
+	}
+
+	bool NAMIsA2Standard(const nlohmann::json& modelJson)
+	{
+		if (!modelJson.contains("architecture"))
+			return false;
+
+		if (modelJson.at("architecture") != "WaveNet")
+			return false;
+
+		if (!modelJson.contains("config"))
+			return false;
+
+		auto& config = modelJson.at("config");
+
+		if (HasNonNull(config, "head"))
+			return false;
+
+		if (config.contains("condition_dsp"))
+			return false;
+
+		if (config.value("in_channels", 1) != 1)
+			return false;
+
+		if (!config.contains("layers"))
+			return false;
+
+		if (config.at("layers").size() != 1)
+			return false;
+
+		const auto& layerConfig = config.at("layers").at(0);
+
+		if (layerConfig.value("input_size", 0) != 1)
+			return false;
+
+		if (layerConfig.value("condition_size", 0) != 1)
+			return false;
+
+		const int channels = layerConfig.value("channels", 0);
+
+		if ((channels != 3) && (channels != 8))
+			return false;
+
+		if (layerConfig.value("bottleneck", channels) != channels)
+			return false;
+
+		if (!layerConfig.contains("kernel_sizes"))
+			return false;
+
+		if (!CheckIntegerSequence(layerConfig.at("kernel_sizes"), a2KernelSizes))
+			return false;
+
+		if (!layerConfig.contains("dilations"))
+			return false;
+
+		if (!CheckIntegerSequence(layerConfig.at("dilations"), a2Dilations))
+			return false;
+
+		if (!layerConfig.contains("activation"))
+			return false;
+
+		for (const auto& activation : layerConfig.at("activation"))
+		{
+			if (!activation.contains("type"))
+				return false;
+
+			if (activation.at("type") != "LeakyReLU")
+				return false;
+
+			if (!ApproxEqual(activation.value("negative_slope", 0.01f), 0.01f))
+				return false;
+		}
+
+		if (layerConfig.contains("secondary_activation"))
+		{
+			for (const auto& activation : layerConfig.at("secondary_activation"))
+			{
+				if (!activation.is_null())
+					return false;
+			}
+		}
+
+		if (layerConfig.contains("gating_mode"))
+		{
+			for (const auto& gating : layerConfig.at("gating_mode"))
+			{
+				if (!gating.is_null() && (gating != "none"))
+					return false;
+			}
+		}
+
+		if (!layerConfig.contains("head"))
+			return false;
+
+		const auto& head = layerConfig.at("head");
+
+		if (head.value("out_channels", 1) != 1)
+			return false;
+
+		if (head.value("kernel_size", 16) != 16)
+			return false;
+
+		if (head.value("head_dilation", 1) != 1)
+			return false;
+
+		if (!head.value("bias", true))
+			return false;
+
+		if (!IsActive(layerConfig, "layer1x1"))
+			return false;
+
+		if (layerConfig.at("layer1x1").value("groups", 1) != 1)
+			return false;
+
+		for (auto& key : { "head1x1", "conv_pre_film", "conv_post_film", "input_mixin_pre_film", "input_mixin_post_film",
+							"activation_pre_film", "activation_post_film", "layer1x1_post_film", "head1x1_post_film" })
+		{
+			if (IsActive(layerConfig, key))
+				return false;
+		}
+
+		if (layerConfig.value("groups_input", 1) != 1)
+			return false;
+
+		if (layerConfig.value("groups_input_mixin", 1) != 1)
+			return false;
+
+		if (HasNonNull(layerConfig, "slimmable"))
+			return false;
+
+		return true;
+	}
+
 	NeuralModel* NeuralModelLoader::CreateFromFile(const std::filesystem::path& modelPath, bool doPrewarm)
 	{
 		if (!std::filesystem::exists(modelPath))
@@ -195,21 +347,28 @@ namespace NeuralAudio
 
 			std::string arch = modelJson.at("architecture");
 
-#ifdef BUILD_NAMCORE
-			std::string version = modelJson.at("version");
-
-			if ((wavenetLoadMode == EModelLoadMode::NAMCore) || NAMIsA2(version))
+			if (arch == "SlimmableContainer")	// Packed A2 multi-model file 
 			{
-				if (arch == "SlimmableContainer")	// Packed A2 multi-model file 
-				{
-					ScalableCompositeModel* model = new ScalableCompositeModel;
+				ScalableCompositeModel* model = new ScalableCompositeModel;
 
-					model->SetModelLoader(this);
-					model->LoadFromJson(modelJson);
+				model->SetModelLoader(this);
+				model->LoadFromJson(modelJson);
 
-					newModel = model;
-				}
-				else
+				newModel = model;
+			}
+
+
+			if (newModel == nullptr)
+			{
+#ifdef BUILD_NAMCORE
+				std::string version = modelJson.at("version");
+
+				bool loadA2WithNAMCore = true;
+
+#ifdef BUILD_STATIC_INTERNAL_NAMA2
+				loadA2WithNAMCore = false;
+#endif
+				if ((wavenetLoadMode == EModelLoadMode::NAMCore) || (NAMIsA2(version) && (loadA2WithNAMCore || !NAMIsA2Standard(modelJson))))
 				{
 					NAMModel* model = new NAMModel;
 
@@ -227,7 +386,41 @@ namespace NeuralAudio
 			{
 				if (arch == "WaveNet")
 				{
-					if (config.at("layers").size() == 2)
+					if (config.at("layers").size() == 1)
+					{
+#ifdef BUILD_STATIC_INTERNAL_NAMA2
+						auto& layerConfig = config.at("layers").at(0);
+
+						if (CheckIntegerSequence(layerConfig.at("dilations"), a2Dilations))
+						{
+							if (layerConfig.at("channels") == 3)
+							{
+								auto model = new InternalWaveNetModelT<NeuralAudio::WaveNetModelT<NeuralAudio::WaveNetLayerArrayT<1, 1, 1, 16, 1, 3, A2KernelSizes, A2Dilations, true, EActivationType::LeakyReLU>>>();
+
+								if (model != nullptr)
+								{
+									model->SetModelLoader(this);
+									model->LoadFromNAMJson(modelJson);
+
+									newModel = model;
+								}
+							}
+							else if (layerConfig.at("channels") == 8)
+							{
+								auto model = new InternalWaveNetModelT <NeuralAudio::WaveNetModelT<NeuralAudio::WaveNetLayerArrayT<1, 1, 1, 16, 1, 8, A2KernelSizes, A2Dilations, true, EActivationType::LeakyReLU>>>();
+
+								if (model != nullptr)
+								{
+									model->SetModelLoader(this);
+									model->LoadFromNAMJson(modelJson);
+
+									newModel = model;
+								}
+							}
+						}
+#endif
+					}
+					else if (config.at("layers").size() == 2)
 					{
 						auto& firstLayerConfig = config.at("layers").at(0);
 						auto& secondLayerConfig = config.at("layers").at(1);
@@ -238,14 +431,14 @@ namespace NeuralAudio
 
 							if (firstLayerConfig.at("channels") == 16)
 							{
-								if (CheckDilations(firstLayerConfig.at("dilations"), stdDilations) && CheckDilations(secondLayerConfig.at("dilations"), stdDilations))
+								if (CheckIntegerSequence(firstLayerConfig.at("dilations"), stdDilations) && CheckIntegerSequence(secondLayerConfig.at("dilations"), stdDilations))
 								{
 									isOfficialArchitecture = true;
 								}
 							}
 							else
 							{
-								if (CheckDilations(firstLayerConfig.at("dilations"), liteDilations) && CheckDilations(secondLayerConfig.at("dilations"), liteDilations2))
+								if (CheckIntegerSequence(firstLayerConfig.at("dilations"), liteDilations) && CheckIntegerSequence(secondLayerConfig.at("dilations"), liteDilations2))
 								{
 									isOfficialArchitecture = true;
 								}

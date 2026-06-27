@@ -65,6 +65,16 @@ namespace NeuralAudio
 				}
 			}
 
+			EModelLoadMode GetLoadMode() override
+			{
+				return models[currentModelIndex.load()]->GetLoadMode();
+			}
+
+			bool IsStatic() override
+			{
+				return models[currentModelIndex.load()]->IsStatic();
+			}
+
 			int GetReceptiveFieldSize() override
 			{
 				if (currentModelIndex == -1)
@@ -117,11 +127,6 @@ namespace NeuralAudio
 	class ScalableCompositeModel : public CompositeModel
 	{
 		public:			
-			EModelLoadMode GetLoadMode() override
-			{
-				return EModelLoadMode::NAMCore;
-			}
-
 			bool LoadFromJson(nlohmann::json& modelJson)
 			{
 				ReadNAMConfig(modelJson);

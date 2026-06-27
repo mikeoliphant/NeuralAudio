@@ -37,6 +37,28 @@ namespace NeuralAudio
 		{
 			return 1.0f / (1.0f + std::exp(-x));
 		}
+
+		template <typename Matrix>
+		static void LeakyReLU(Matrix* x)
+		{
+			float* data = x->data();
+			size_t size = x->rows() * x->cols();
+
+			for (size_t pos = 0; pos < size; pos++)
+			{
+				data[pos] = LeakyReLU(data[pos]);
+			}
+		}
+
+		static inline float LeakyReLU(float x, float negativeSlope)
+		{
+			return x > 0.0f ? x : negativeSlope * x;
+		}
+
+		static inline float LeakyReLU(float x)
+		{
+			return LeakyReLU(x, 0.01f);
+		}
 	};
 
 	struct FastMath
@@ -73,6 +95,28 @@ namespace NeuralAudio
 
 			//return 1.0f / (1.0f + std::exp(-x));
 			return  0.5f * (Tanh(x * 0.5f) + 1);
+		}
+
+		template <typename Matrix>
+		static void LeakyReLU(Matrix* x)
+		{
+			float* data = x->data();
+			size_t size = x->rows() * x->cols();
+
+			for (size_t pos = 0; pos < size; pos++)
+			{
+				data[pos] = LeakyReLU(data[pos]);
+			}
+		}
+
+		static inline float LeakyReLU(float x, float negativeSlope)
+		{
+			return x > 0.0f ? x : negativeSlope * x;
+		}
+
+		static inline float LeakyReLU(float x)
+		{
+			return LeakyReLU(x, 0.01f);
 		}
 	};
 
