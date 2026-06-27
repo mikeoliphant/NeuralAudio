@@ -279,7 +279,7 @@ namespace NeuralAudio
 	private:
 		Layers layers;
 		DenseLayerT<InputSize, Channels, false> rechannel;
-		DenseLayerT<Channels, HeadSize, HasHeadBias> headRechannel;
+		Conv1DT<Channels, HeadSize, 1, HasHeadBias, 1> headRechannel;
 
 		static constexpr auto numLayers = std::tuple_size_v<decltype (layers)>;
 		static constexpr auto lastLayer = numLayers - 1;
@@ -355,7 +355,8 @@ namespace NeuralAudio
 					}
 				});
 
-			headRechannel.Process(headInputs.leftCols(1), headOutputs.leftCols(1));
+			headRechannel.channelBuffer.buffer.middleCols(headRechannel.channelBuffer.bufferStart, 1).noalias() = headInputs.leftCols(1);	// Should be able to avoid this copy
+			headRechannel.Process(headOutputs.leftCols(1), 1);
 		}
 
 		template<typename Derived, typename Derived2, typename Derived3>
@@ -377,7 +378,8 @@ namespace NeuralAudio
 					std::get<layerIndex>(layers).AdvanceFrames(numFrames);
 				});
 
-			headRechannel.Process(headInputs.leftCols(numFrames), headOutputs.leftCols(numFrames));
+			headRechannel.channelBuffer.buffer.middleCols(headRechannel.channelBuffer.bufferStart, numFrames).noalias() = headInputs.leftCols(numFrames);	// Should be able to avoid this copy
+			headRechannel.Process(headOutputs.leftCols(numFrames), numFrames);
 		}
 	};
 
