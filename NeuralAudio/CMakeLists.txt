@@ -104,6 +104,7 @@ set(SOURCES
 	RTNeuralLoader.cpp
 	RTNeuralLoader.h
 	Activation.h
+	MatMul.h
 	WaveNet.h
 	WaveNetDynamic.h
 	LSTM.h
