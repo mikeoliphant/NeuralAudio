@@ -43,7 +43,7 @@ else()
     message(STATUS "NOT building Internal static WaveNet models")
 endif()
 
-option(BUILD_STATIC_INTERNAL_NAMA2 "Build Internal static A2 WaveNet models" OFF)
+option(BUILD_STATIC_INTERNAL_NAMA2 "Build Internal static A2 WaveNet models" ON)
 if(BUILD_STATIC_INTERNAL_NAMA2)
     message(STATUS "Building Internal static A2 WaveNet models")
     add_definitions(-DBUILD_STATIC_INTERNAL_NAMA2)
