@@ -9,6 +9,8 @@ namespace NeuralAudio
 
 		static inline void MultiplyInitZero(const float* inData, float* outData, const float* weights, int numFrames)
 		{
+			static_assert(HasKernel(), "Multiplication not implemented for InChannel/OutChannel combination");
+
 			if constexpr ((InChannels == 3) && (OutChannels == 3))
 			{
 				const float w00 = weights[0], w10 = weights[1], w20 = weights[2];
@@ -54,6 +56,8 @@ namespace NeuralAudio
 
 		static inline void MultiplyInitColwise(const float* inData, float* outData, const float* weights, const float* initData, int numFrames)
 		{
+			static_assert(HasKernel(), "Multiplication not implemented for InChannel/OutChannel combination");
+
 			if constexpr ((InChannels == 3) && (OutChannels == 3))
 			{
 				const float w00 = weights[0], w10 = weights[1], w20 = weights[2];
@@ -99,6 +103,8 @@ namespace NeuralAudio
 
 		static inline void MultiplyAccumlulate(const float* inData, float* outData, const float* weights, int numFrames)
 		{
+			static_assert(HasKernel(), "Multiplication not implemented for InChannel/OutChannel combination");
+
 			if constexpr ((InChannels == 3) && (OutChannels == 3))
 			{
 				const float w00 = weights[0], w10 = weights[1], w20 = weights[2];
