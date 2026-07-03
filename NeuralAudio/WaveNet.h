@@ -124,35 +124,98 @@ namespace NeuralAudio
 		template<typename Derived>
 		inline void Process(Eigen::MatrixBase<Derived> const & output, const size_t numFrames) const
 		{
-			float* output_ptr = &const_cast<Eigen::MatrixBase<Derived>&>(output)(0, 0);
+			float* outputPtr = &const_cast<Eigen::MatrixBase<Derived>&>(output)(0, 0);
 			const float* biasPtr = bias.data();
 
-			for (size_t k = 0; k < KernelSize; k++)
+#if ENABLE_MULTIFRAME_8X8_CONVOLUTION
+			if constexpr ((InChannels == 8) && (OutChannels == 8))
 			{
-				const float* weight_ptr = this->weights[k].data();
+				// Based on @jfsantos NAM Core implementation - https://github.com/sdatkinson/NeuralAmpModelerCore/pull/277
 
-				const auto offset = Dilation * ((int)k + 1 - KernelSize);
+				constexpr int T = 4;
+				const int nF4 = (numFrames / T) * T;
 
-				const auto inBlock = channelBuffer.buffer.middleCols(channelBuffer.bufferStart + offset, numFrames);
-				const float* input_ptr = inBlock.data();
-
-				if constexpr (MatMul<InChannels, OutChannels>::HasKernel())
+				for (int f = 0; f < nF4; f += T)
 				{
-					if (k == 0)	// Maybe move this out of loop?
+					float a[T][InChannels]{};
+
+					for (int k = 0; k < KernelSize; k++)
 					{
-						MatMul<InChannels, OutChannels>::MultiplyInitColwise(input_ptr, output_ptr, weight_ptr, biasPtr, numFrames);
+						const float* W = this->weights[k].data();
+						const auto offset = Dilation * ((int)k + 1 - KernelSize);
+						const auto inBlock = channelBuffer.buffer.middleCols(channelBuffer.bufferStart + offset + f, T);
+						const float* hb = inBlock.data();
+
+						for (int cp = 0; cp < InChannels; cp++)
+						{
+							const float* Wcol = W + cp * InChannels;
+							const float h0 = hb[cp], h1 = hb[InChannels + cp], h2 = hb[2 * InChannels + cp], h3 = hb[3 * InChannels + cp];
+							for (int o = 0; o < InChannels; o++)
+							{
+								a[0][o] += Wcol[o] * h0;
+								a[1][o] += Wcol[o] * h1;
+								a[2][o] += Wcol[o] * h2;
+								a[3][o] += Wcol[o] * h3;
+							}
+						}
 					}
-					else
+					for (int ti = 0; ti < T; ti++)
+						std::memcpy(outputPtr + static_cast<size_t>(f + ti) * InChannels, a[ti], InChannels * sizeof(float));
+				}
+
+				// Scalar tail for any frames past the T-aligned boundary.
+				for (int f = nF4; f < numFrames; f++)
+				{
+					float* zf = outputPtr + static_cast<size_t>(f) * InChannels;
+					for (int o = 0; o < InChannels; o++)
+						zf[o] = 0.0f;
+					for (int k = 0; k < KernelSize; k++)
 					{
-						MatMul<InChannels, OutChannels>::MultiplyAccumlulate(input_ptr, output_ptr, weight_ptr, numFrames);
+						const float* W = this->weights[k].data();
+						const auto offset = Dilation * ((int)k + 1 - KernelSize);
+						const auto inBlock = channelBuffer.buffer.middleCols(channelBuffer.bufferStart + offset + f, T);
+						const float* h = inBlock.data();
+
+						for (int cp = 0; cp < InChannels; cp++)
+						{
+							const float hv = h[cp];
+							const float* Wcol = W + cp * InChannels;
+							for (int o = 0; o < InChannels; o++)
+								zf[o] += Wcol[o] * hv;
+						}
 					}
 				}
-				else
+			}
+			else
+#endif
+			{
+				for (size_t k = 0; k < KernelSize; k++)
 				{
-					if (k == 0)
-						const_cast<Eigen::MatrixBase<Derived>&>(output).noalias() = weights[k] * inBlock;
+					const float* weightPtr = this->weights[k].data();
+
+					const auto offset = Dilation * ((int)k + 1 - KernelSize);
+
+					const auto inBlock = channelBuffer.buffer.middleCols(channelBuffer.bufferStart + offset, numFrames);
+					const float* inputPtr = inBlock.data();
+
+					if constexpr (MatMul<InChannels, OutChannels>::HasKernel())
+					{
+						if (k == 0)	// Maybe move this out of loop?
+						{
+							MatMul<InChannels, OutChannels>::MultiplyInitColwise(inputPtr, outputPtr, weightPtr, biasPtr, numFrames);
+						}
+						else
+						{
+							MatMul<InChannels, OutChannels>::MultiplyAccumlulate(inputPtr, outputPtr, weightPtr, numFrames);
+						}
+					}
 					else
-						const_cast<Eigen::MatrixBase<Derived>&>(output).noalias() += weights[k] * inBlock;
+					{
+						if (k == 0)
+							const_cast<Eigen::MatrixBase<Derived>&>(output).noalias() = weights[k] * inBlock;
+						else
+							const_cast<Eigen::MatrixBase<Derived>&>(output).noalias() += weights[k] * inBlock;
+					}
 				}
 			}
 

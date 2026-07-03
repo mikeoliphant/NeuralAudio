@@ -7,6 +7,8 @@ namespace NeuralAudio
 	{
 		static constexpr bool HasKernel() { return ((InChannels == 3) && ((OutChannels == 3) || (OutChannels == 1))); }
 
+		// 3x3 implementation inspired by @jfsantos NAM Core a2fast - https://github.com/sdatkinson/NeuralAmpModelerCore/blob/main/NAM/wavenet/a2_fast.cpp
+
 		static inline void MultiplyInitZero(const float* inData, float* outData, const float* weights, int numFrames)
 		{
 			static_assert(HasKernel(), "Multiplication not implemented for InChannel/OutChannel combination");
