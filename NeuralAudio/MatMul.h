@@ -9,7 +9,7 @@ namespace NeuralAudio
 
 		// 3x3 implementation inspired by @jfsantos NAM Core a2fast - https://github.com/sdatkinson/NeuralAmpModelerCore/blob/main/NAM/wavenet/a2_fast.cpp
 
-		static inline void MultiplyInitZero(const float* inData, float* outData, const float* weights, int numFrames)
+		static inline void MultiplyInitZero(const float* inData, float* outData, const float* weights, size_t numFrames)
 		{
 			static_assert(HasKernel(), "Multiplication not implemented for InChannel/OutChannel combination");
 
@@ -19,9 +19,9 @@ namespace NeuralAudio
 				const float w01 = weights[3], w11 = weights[4], w21 = weights[5];
 				const float w02 = weights[6], w12 = weights[7], w22 = weights[8];
 
-				for (int frame = 0; frame < numFrames; frame++)
+				for (size_t frame = 0; frame < numFrames; frame++)
 				{
-					const int offset = frame * 3;
+					const size_t offset = frame * 3;
 					const float* in = &inData[offset];
 					float* out = &outData[offset];
 
@@ -43,9 +43,9 @@ namespace NeuralAudio
 			{
 				const float w0 = weights[0], w1 = weights[1], w2 = weights[2];
 
-				for (int frame = 0; frame < numFrames; frame++)
+				for (size_t frame = 0; frame < numFrames; frame++)
 				{
-					const int offset = frame * 3;
+					const size_t offset = frame * 3;
 					const float* in = &inData[offset];
 
 					float a0 = w0 * in[frame * 3];
@@ -56,7 +56,7 @@ namespace NeuralAudio
 			}
 		}
 
-		static inline void MultiplyInitColwise(const float* inData, float* outData, const float* weights, const float* initData, int numFrames)
+		static inline void MultiplyInitColwise(const float* inData, float* outData, const float* weights, const float* initData, size_t numFrames)
 		{
 			static_assert(HasKernel(), "Multiplication not implemented for InChannel/OutChannel combination");
 
@@ -66,9 +66,9 @@ namespace NeuralAudio
 				const float w01 = weights[3], w11 = weights[4], w21 = weights[5];
 				const float w02 = weights[6], w12 = weights[7], w22 = weights[8];
 
-				for (int frame = 0; frame < numFrames; frame++)
+				for (size_t frame = 0; frame < numFrames; frame++)
 				{
-					const int offset = frame * 3;
+					const size_t offset = frame * 3;
 					const float* in = &inData[offset];
 					float* out = &outData[offset];
 
@@ -90,9 +90,9 @@ namespace NeuralAudio
 			{
 				const float w0 = weights[0], w1 = weights[1], w2 = weights[2];
 
-				for (int frame = 0; frame < numFrames; frame++)
+				for (size_t frame = 0; frame < numFrames; frame++)
 				{
-					const int offset = frame * 3;
+					const size_t offset = frame * 3;
 					const float* in = &inData[offset];
 
 					float a0 = initData[0] + w0 * in[0];
@@ -103,7 +103,7 @@ namespace NeuralAudio
 			}
 		}
 
-		static inline void MultiplyAccumlulate(const float* inData, float* outData, const float* weights, int numFrames)
+		static inline void MultiplyAccumlulate(const float* inData, float* outData, const float* weights, size_t numFrames)
 		{
 			static_assert(HasKernel(), "Multiplication not implemented for InChannel/OutChannel combination");
 
@@ -113,9 +113,9 @@ namespace NeuralAudio
 				const float w01 = weights[3], w11 = weights[4], w21 = weights[5];
 				const float w02 = weights[6], w12 = weights[7], w22 = weights[8];
 
-				for (int frame = 0; frame < numFrames; frame++)
+				for (size_t frame = 0; frame < numFrames; frame++)
 				{
-					const int offset = frame * 3;
+					const size_t offset = frame * 3;
 					const float* in = &inData[offset];
 					float* out = &outData[offset];
 

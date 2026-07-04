@@ -132,25 +132,26 @@ namespace NeuralAudio
 			{
 				// Based on @jfsantos NAM Core implementation - https://github.com/sdatkinson/NeuralAmpModelerCore/pull/277
 
-				constexpr int T = 4;
-				const int nF4 = (numFrames / T) * T;
+				constexpr size_t T = 4;
+				const size_t nF4 = (numFrames / T) * T;
 
-				for (int f = 0; f < nF4; f += T)
+				for (size_t f = 0; f < nF4; f += T)
 				{
 					float a[T][InChannels]{};
 
-					for (int k = 0; k < KernelSize; k++)
+					for (size_t k = 0; k < KernelSize; k++)
 					{
 						const float* W = this->weights[k].data();
-						const auto offset = Dilation * ((int)k + 1 - KernelSize);
+						const auto offset = Dilation * (k + 1 - KernelSize);
 						const auto inBlock = channelBuffer.buffer.middleCols(channelBuffer.bufferStart + offset + f, T);
 						const float* hb = inBlock.data();
 
-						for (int cp = 0; cp < InChannels; cp++)
+						for (size_t cp = 0; cp < InChannels; cp++)
 						{
 							const float* Wcol = W + cp * InChannels;
 							const float h0 = hb[cp], h1 = hb[InChannels + cp], h2 = hb[2 * InChannels + cp], h3 = hb[3 * InChannels + cp];
-							for (int o = 0; o < InChannels; o++)
+
+							for (size_t o = 0; o < InChannels; o++)
 							{
 								a[0][o] += Wcol[o] * h0;
 								a[1][o] += Wcol[o] * h1;
@@ -159,20 +160,23 @@ namespace NeuralAudio
 							}
 						}
 					}
-					for (int ti = 0; ti < T; ti++)
+
+					for (size_t ti = 0; ti < T; ti++)
 						std::memcpy(outputPtr + static_cast<size_t>(f + ti) * InChannels, a[ti], InChannels * sizeof(float));
 				}
 
 				// Scalar tail for any frames past the T-aligned boundary.
-				for (int f = nF4; f < numFrames; f++)
+				for (size_t f = nF4; f < numFrames; f++)
 				{
 					float* zf = outputPtr + static_cast<size_t>(f) * InChannels;
-					for (int o = 0; o < InChannels; o++)
+
+					for (size_t o = 0; o < InChannels; o++)
 						zf[o] = 0.0f;
-					for (int k = 0; k < KernelSize; k++)
+
+					for (size_t k = 0; k < KernelSize; k++)
 					{
 						const float* W = this->weights[k].data();
-						const auto offset = Dilation * ((int)k + 1 - KernelSize);
+						const auto offset = Dilation * (k + 1 - KernelSize);
 						const auto inBlock = channelBuffer.buffer.middleCols(channelBuffer.bufferStart + offset + f, T);
 						const float* h = inBlock.data();
 
@@ -180,7 +184,8 @@ namespace NeuralAudio
 						{
 							const float hv = h[cp];
 							const float* Wcol = W + cp * InChannels;
-							for (int o = 0; o < InChannels; o++)
+
+							for (size_t o = 0; o < InChannels; o++)
 								zf[o] += Wcol[o] * hv;
 						}
 					}
