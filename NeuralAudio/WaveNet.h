@@ -576,6 +576,8 @@ namespace NeuralAudio
 
 			auto condition = Eigen::Map<const Eigen::Matrix<float, 1, -1>>(&input, 1, 1);
 
+			headArray.setZero();
+
 			ForEachIndex<sizeof...(LayerArrays)>([&](auto layerIndex)
 				{
 					if constexpr (layerIndex == 0)
