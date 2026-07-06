@@ -7,6 +7,7 @@
 #include <Eigen/Core>
 #include "TemplateHelper.h"
 #include "Activation.h"
+#include "MatMul.h"
 
 #ifndef WAVENET_MAX_NUM_FRAMES
 #define WAVENET_MAX_NUM_FRAMES 64
@@ -123,19 +124,107 @@ namespace NeuralAudio
 		template<typename Derived>
 		inline void Process(Eigen::MatrixBase<Derived> const & output, const size_t numFrames) const
 		{
-			for (size_t k = 0; k < KernelSize; k++)
+			float* outputPtr = &const_cast<Eigen::MatrixBase<Derived>&>(output)(0, 0);
+			const float* biasPtr = bias.data();
+
+#if ENABLE_MULTIFRAME_8X8_CONVOLUTION
+			if constexpr ((InChannels == 8) && (OutChannels == 8))
 			{
-				auto offset = Dilation * ((int)k + 1 - KernelSize);
+				// Based on @jfsantos NAM Core implementation - https://github.com/sdatkinson/NeuralAmpModelerCore/pull/277
 
-				auto inBlock = channelBuffer.buffer.middleCols(channelBuffer.bufferStart + offset, numFrames);
+				constexpr size_t T = 4;
+				const size_t nF4 = (numFrames / T) * T;
 
-				if (k == 0)
-					const_cast<Eigen::MatrixBase<Derived>&>(output).noalias() = weights[k] * inBlock;
-				else
-					const_cast<Eigen::MatrixBase<Derived>&>(output).noalias() += weights[k] * inBlock;
+				for (size_t f = 0; f < nF4; f += T)
+				{
+					float a[T][InChannels]{};
+
+					for (size_t k = 0; k < KernelSize; k++)
+					{
+						const float* W = this->weights[k].data();
+						const auto offset = Dilation * (k + 1 - KernelSize);
+						const auto inBlock = channelBuffer.buffer.middleCols(channelBuffer.bufferStart + offset + f, T);
+						const float* hb = inBlock.data();
+
+						for (size_t cp = 0; cp < InChannels; cp++)
+						{
+							const float* Wcol = W + cp * InChannels;
+							const float h0 = hb[cp], h1 = hb[InChannels + cp], h2 = hb[2 * InChannels + cp], h3 = hb[3 * InChannels + cp];
+
+							for (size_t o = 0; o < InChannels; o++)
+							{
+								a[0][o] += Wcol[o] * h0;
+								a[1][o] += Wcol[o] * h1;
+								a[2][o] += Wcol[o] * h2;
+								a[3][o] += Wcol[o] * h3;
+							}
+						}
+					}
+
+					for (size_t ti = 0; ti < T; ti++)
+						std::memcpy(outputPtr + static_cast<size_t>(f + ti) * InChannels, a[ti], InChannels * sizeof(float));
+				}
+
+				// Scalar tail for any frames past the T-aligned boundary.
+				for (size_t f = nF4; f < numFrames; f++)
+				{
+					float* zf = outputPtr + static_cast<size_t>(f) * InChannels;
+
+					for (size_t o = 0; o < InChannels; o++)
+						zf[o] = 0.0f;
+
+					for (size_t k = 0; k < KernelSize; k++)
+					{
+						const float* W = this->weights[k].data();
+						const auto offset = Dilation * (k + 1 - KernelSize);
+						const auto inBlock = channelBuffer.buffer.middleCols(channelBuffer.bufferStart + offset + f, T);
+						const float* h = inBlock.data();
+
+						for (int cp = 0; cp < InChannels; cp++)
+						{
+							const float hv = h[cp];
+							const float* Wcol = W + cp * InChannels;
+
+							for (size_t o = 0; o < InChannels; o++)
+								zf[o] += Wcol[o] * hv;
+						}
+					}
+				}
+			}
+			else
+#endif
+			{
+				for (size_t k = 0; k < KernelSize; k++)
+				{
+					const float* weightPtr = this->weights[k].data();
+
+					const auto offset = Dilation * ((int)k + 1 - KernelSize);
+
+					const auto inBlock = channelBuffer.buffer.middleCols(channelBuffer.bufferStart + offset, numFrames);
+					const float* inputPtr = inBlock.data();
+
+					if constexpr (MatMul<InChannels, OutChannels>::HasKernel())
+					{
+						if (k == 0)	// Maybe move this out of loop?
+						{
+							MatMul<InChannels, OutChannels>::MultiplyInitColwise(inputPtr, outputPtr, weightPtr, biasPtr, numFrames);
+						}
+						else
+						{
+							MatMul<InChannels, OutChannels>::MultiplyAccumlulate(inputPtr, outputPtr, weightPtr, numFrames);
+						}
+					}
+					else
+					{
+						if (k == 0)
+							const_cast<Eigen::MatrixBase<Derived>&>(output).noalias() = weights[k] * inBlock;
+						else
+							const_cast<Eigen::MatrixBase<Derived>&>(output).noalias() += weights[k] * inBlock;
+					}
+				}
 			}
 
-			if constexpr (DoBias)
+			if constexpr (DoBias && !MatMul<InChannels, OutChannels>::HasKernel())
 				const_cast<Eigen::MatrixBase<Derived>&>(output).colwise() += bias;
 		}
 
@@ -169,26 +258,47 @@ namespace NeuralAudio
 		template<typename Derived, typename Derived2>
 		void Process(const Eigen::MatrixBase<Derived>& input, Eigen::MatrixBase<Derived2> const& output) const
 		{
-			if constexpr (DoBias)
+			if constexpr (MatMul<InSize, OutSize>::HasKernel())
 			{
-				const_cast<Eigen::MatrixBase<Derived2>&>(output).noalias() = (weights * input).colwise() + bias;
+				if constexpr (DoBias)
+				{
+					MatMul<InSize, OutSize>::MultiplyInitColwise(&input(0, 0), &const_cast<Eigen::MatrixBase<Derived2>&>(output)(0, 0), weights.data(), bias.data(), output.cols());
+				}
+				else
+				{
+					MatMul<InSize, OutSize>::MultiplyInitZero(&input(0, 0), &const_cast<Eigen::MatrixBase<Derived2>&>(output)(0, 0), weights.data(), output.cols());
+				}
 			}
 			else
 			{
-				const_cast<Eigen::MatrixBase<Derived2>&>(output).noalias() = weights * input;
+				if constexpr (DoBias)
+				{
+					const_cast<Eigen::MatrixBase<Derived2>&>(output).noalias() = (weights * input).colwise() + bias;
+				}
+				else
+				{
+					const_cast<Eigen::MatrixBase<Derived2>&>(output).noalias() = weights * input;
+				}
 			}
 		}
 
 		template<typename Derived, typename Derived2>
 		void ProcessAcc(const Eigen::MatrixBase<Derived>& input, Eigen::MatrixBase<Derived2> const& output) const
 		{
-			if constexpr (DoBias)
+			if constexpr (!DoBias && MatMul<InSize, OutSize>::HasKernel())
 			{
-				const_cast<Eigen::MatrixBase<Derived2>&>(output).noalias() += (weights * input).colwise() + bias;
+				MatMul<InSize, OutSize>::MultiplyAccumlulate(&input(0, 0), &const_cast<Eigen::MatrixBase<Derived2>&>(output)(0, 0), weights.data(), output.cols());
 			}
 			else
 			{
-				const_cast<Eigen::MatrixBase<Derived2>&>(output).noalias() += weights * input;
+				if constexpr (DoBias)
+				{
+					const_cast<Eigen::MatrixBase<Derived2>&>(output).noalias() += (weights * input).colwise() + bias;
+				}
+				else
+				{
+					const_cast<Eigen::MatrixBase<Derived2>&>(output).noalias() += weights * input;
+				}
 			}
 		}
 
@@ -465,6 +575,8 @@ namespace NeuralAudio
 			float input = 0;
 
 			auto condition = Eigen::Map<const Eigen::Matrix<float, 1, -1>>(&input, 1, 1);
+
+			headArray.setZero();
 
 			ForEachIndex<sizeof...(LayerArrays)>([&](auto layerIndex)
 				{

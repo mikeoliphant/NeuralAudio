@@ -43,12 +43,20 @@ else()
     message(STATUS "NOT building Internal static WaveNet models")
 endif()
 
-option(BUILD_STATIC_INTERNAL_NAMA2 "Build Internal static A2 WaveNet models" OFF)
+option(BUILD_STATIC_INTERNAL_NAMA2 "Build Internal static A2 WaveNet models" ON)
 if(BUILD_STATIC_INTERNAL_NAMA2)
     message(STATUS "Building Internal static A2 WaveNet models")
     add_definitions(-DBUILD_STATIC_INTERNAL_NAMA2)
 else()
     message(STATUS "NOT building Internal static A2 WaveNet models")
+endif()
+
+option(ENABLE_MULTIFRAME_8X8_CONVOLUTION "Enable multi-frame 8x8 convolution" OFF)
+if(ENABLE_MULTIFRAME_8X8_CONVOLUTION)
+    message(STATUS "Using multi-frame 8x8 convolution")
+    add_definitions(-DENABLE_MULTIFRAME_8X8_CONVOLUTION)
+else()
+    message(STATUS "NOT using multi-frame 8x8 convolution")
 endif()
 
 set(WAVENET_MATH "FastMath" CACHE STRING "WaveNet math functions")
@@ -104,6 +112,7 @@ set(SOURCES
 	RTNeuralLoader.cpp
 	RTNeuralLoader.h
 	Activation.h
+	MatMul.h
 	WaveNet.h
 	WaveNetDynamic.h
 	LSTM.h

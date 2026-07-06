@@ -100,6 +100,8 @@ namespace NeuralAudio
 		template <typename Matrix>
 		static void LeakyReLU(Matrix* x)
 		{
+			//*x = (x->array() < 0.0f).select(x->array() * 0.01f, x->array());
+
 			float* data = x->data();
 			size_t size = x->rows() * x->cols();
 
@@ -131,6 +133,12 @@ namespace NeuralAudio
 		static inline float Tanh(const float x)
 		{
 			return Eigen::numext::tanh(x);
+		}
+
+		template <typename Matrix>
+		static void LeakyReLU(Matrix* x)
+		{
+			*x = (x->array() < 0.0f).select(x->array() * 0.01f, x->array());
 		}
 
 		static inline float Sigmoid(float x)
