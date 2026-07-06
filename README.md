@@ -2,18 +2,16 @@
 
 NeuralAudio is a C++ library designed to make it easy to use neural network machine learning models (ie: guitar amplifier captures/profiles) in real-time audio applications.
 
-# Supported Models
+# License
+
+This repository is licensed under the [MIT license](https://github.com/mikeoliphant/NeuralAudio/blob/main/LICENSE). It is a liberal license, but please make sure that you comply with the terms - as well as the terms of [this project's dependencies](https://github.com/mikeoliphant/NeuralAudio/blob/main/CREDITS.md). I would also appreciate it if you would let me know if you are using this library.
+
+# Supported Models and Underlying Libraries
 
 NeuralAudio currently supports the following model types:
 
 - [Neural Amp Modeler](https://github.com/sdatkinson/neural-amp-modeler) (NAM) WaveNet and LSTM models, A1 and A2 support
 - [RTNeural](https://github.com/jatinchowdhury18/RTNeural) keras models (LSTM, GRU)
-
-# License
-
-This repository is licensed under the [MIT license](https://github.com/mikeoliphant/NeuralAudio/blob/main/LICENSE). It is a liberal license, but please make sure that you comply with the terms - as well as the terms of [this project's dependencies](https://github.com/mikeoliphant/NeuralAudio/blob/main/CREDITS.md). I would also appreciate it if you would let me know if you are using this library.
-
-# Underlying Libraries
 
 For WaveNet, the internal implmeentation supports optimized static implemenationas the offical NAM A1 and A2 network architectures:  A1 "Standard", "Lite", "Feather", "Nano" and A2 "Lite" and "Full".
 
@@ -67,7 +65,7 @@ To set a known audio input level (ie: from an audio interface), use ```loader.Se
 
 ## Model load behavior
 
-By default, models are loaded using the internal NeuralAudio implementation. If you would like to force the use of the NAM Core or RTNeural implementations, you can use:
+By default, models are loaded using the internal NeuralAudio implementation (if possible). If you would like to force the use of the NAM Core or RTNeural implementations, you can use:
 
 ```
 loader.SetWaveNetLoadMode(loadMode);
