@@ -15,13 +15,13 @@ This repository is licensed under the [MIT license](https://github.com/mikeoliph
 
 # Underlying Libraries
 
-NAM A2 models currently use the NAM Core implementation (and consequently require building with NAM Core enabled).
-
-For A1 WaveNet, the internal implmeentation supports optimized static models of the offical NAM A1 network architectures:  "Standard", "Lite", "Feather", "Nano".
+For WaveNet, the internal implmeentation supports optimized static implemenationas the offical NAM A1 and A2 network architectures:  A1 "Standard", "Lite", "Feather", "Nano" and A2 "Lite" and "Full".
 
 For A1 LSTM, the internal implementation supports optimized static models architectures for 1x8, 1x12, 1x16, 1x24, 2x8, 2x12, and 2x16 models.
 
-All A1 NAM files with WaveNet and LSTM architectures not supported internally will fall back on a less performant dynamic implementation (although still faster than NAM Core).
+All A1 NAM files with WaveNet and LSTM architectures not supported statically will fall back on a less performant dynamic implementation.
+
+All non-standard A2 models currently use the NAM Core implementation (and consequently require building with NAM Core enabled).
 
 All keras models not supported internally will fall back to the RTNeural implmentation.
 
