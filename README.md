@@ -15,7 +15,7 @@ NeuralAudio currently supports the following model types:
 
 For WaveNet, the internal implmeentation supports optimized static implemenationas the offical NAM A1 and A2 network architectures:  A1 "Standard", "Lite", "Feather", "Nano" and A2 "Lite" and "Full".
 
-For A1 LSTM, the internal implementation supports optimized static models architectures for 1x8, 1x12, 1x16, 1x24, 2x8, 2x12, and 2x16 models.
+For LSTM, the internal implementation supports optimized static models architectures for 1x8, 1x12, 1x16, 1x24, 2x8, 2x12, and 2x16 models.
 
 All A1 NAM files with WaveNet and LSTM architectures not supported statically will fall back on a less performant dynamic implementation.
 
