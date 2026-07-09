@@ -137,7 +137,7 @@ namespace NeuralAudio
 			{
 				const float w0 = weights[0], w1 = weights[1], w2 = weights[2];
 
-				for (int frame = 0; frame < numFrames; frame++)
+				for (size_t frame = 0; frame < numFrames; frame++)
 				{
 					const int offset = frame * 3;
 					const float* in = &inData[offset];
