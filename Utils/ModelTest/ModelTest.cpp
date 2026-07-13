@@ -56,7 +56,7 @@ NeuralModel* LoadModel(std::filesystem::path modelPath, NeuralModelLoader& loade
 	return nullptr;
 }
 
-static std::tuple<double, double> BenchModel(NeuralModel* model, int blockSize, int numBlocks)
+static double BenchModel(NeuralModel* model, int blockSize, int numBlocks)
 {
 	std::vector<float> inData;
 	inData.resize(blockSize);
@@ -66,26 +66,16 @@ static std::tuple<double, double> BenchModel(NeuralModel* model, int blockSize, 
 
 	auto start = std::chrono::high_resolution_clock::now();
 
-	double maxBlock = 0;
-
 	for (int block = 0; block < numBlocks; block++)
 	{
-		auto blockStart = std::chrono::high_resolution_clock::now();
-
 		model->Process(inData.data(), outData.data(), blockSize);
-
-		auto blockEnd = std::chrono::high_resolution_clock::now();
-
-		maxBlock = std::max(maxBlock, std::chrono::duration_cast<std::chrono::duration<double>> (blockEnd - blockStart).count());
 	}
 
 	auto end = std::chrono::high_resolution_clock::now();
 
 	double tot = std::chrono::duration_cast<std::chrono::duration<double>> (end - start).count();
 
-	maxBlock *= numBlocks;
-
-	return std::tie(tot, maxBlock);
+	return tot;
 }
 
 static double ComputeError(NeuralModel* model1, NeuralModel* model2, int blockSize, int numBlocks)
@@ -127,6 +117,11 @@ static double ComputeError(NeuralModel* model1, NeuralModel* model2, int blockSi
 	return sqrt(totErr / (double)(blockSize * numBlocks));
 }
 
+void PrintBench(std::string name, double time, int dataSize)
+{
+	std::cout << name << ": " << time << " (" << (((float)dataSize / 48000.0f) / time) << "xRT)" << std::endl;
+}
+
 void RunNAMTests(std::filesystem::path modelPath, NeuralModelLoader& loader, int blockSize)
 {
 	std::cout << "Model: " << modelPath << std::endl;
@@ -144,15 +139,15 @@ void RunNAMTests(std::filesystem::path modelPath, NeuralModelLoader& loader, int
 
 	double rms;
 
-	std::tuple<double, double> internal;
-	std::tuple<double, double> rtNeural;
-	std::tuple<double, double> namCore;
+	double internal;
+	double rtNeural;
+	double namCore;
 
 	if (internalModel != nullptr)
 	{
 		internal = BenchModel(internalModel, blockSize, numBlocks);
 
-		std::cout << "Internal: " << std::get<0>(internal) << " (" << std::get<1>(internal) << ")" << std::endl;
+		PrintBench("Internal", internal, dataSize);
 	}
 	else
 	{
@@ -161,28 +156,24 @@ void RunNAMTests(std::filesystem::path modelPath, NeuralModelLoader& loader, int
 
 	if (namCoreModel != nullptr)
 	{
-		std::cout << std::endl;
-
 		namCore = BenchModel(namCoreModel, blockSize, numBlocks);
 
-		std::cout << "NAM Core: " << std::get<0>(namCore) << " (" << std::get<1>(namCore) << ")" << std::endl;
+		PrintBench("NAM Core", namCore, dataSize);
 
 		if (internalModel != nullptr)
 		{
 			rms = ComputeError(namCoreModel, internalModel, blockSize, numBlocks);
 
 			std::cout << "NAM vs Internal RMS err: " << rms << std::endl;
-			std::cout << "Internal is: " << (std::get<0>(namCore) / std::get<0>(internal)) << "x NAM" << std::endl;
+			std::cout << "Internal is: " << (namCore / internal) << "x NAM" << std::endl;
 		}
 	}
 
 	if (rtNeuralModel != nullptr)
 	{
-		std::cout << std::endl;
-
 		rtNeural = BenchModel(rtNeuralModel, blockSize, numBlocks);
 
-		std::cout << "RTNeural: " << std::get<0>(rtNeural) << " (" << std::get<1>(rtNeural) << ")" << std::endl;
+		PrintBench("RTNeural", rtNeural, dataSize);
 
 		if (namCoreModel != nullptr)
 		{
@@ -191,7 +182,7 @@ void RunNAMTests(std::filesystem::path modelPath, NeuralModelLoader& loader, int
 
 			if (namCoreModel != nullptr)
 			{
-				std::cout << "RTNeural is: " << (std::get<0>(namCore) / std::get<0>(rtNeural)) << "x NAM" << std::endl;
+				std::cout << "RTNeural is: " << (namCore / rtNeural) << "x NAM" << std::endl;
 			}
 		}
 	}
@@ -216,12 +207,12 @@ void RunKerasTests(std::filesystem::path modelPath, NeuralModelLoader& loader, i
 	std::cout << "Internal vs RTNeural RMS err: " << rms << std::endl;
 	std::cout << std::endl;
 
-	auto internal = BenchModel(internalModel, blockSize, numBlocks);
-	auto rt = BenchModel(rtNeuralModel, blockSize, numBlocks);
+	double internal = BenchModel(internalModel, blockSize, numBlocks);
+	double rt = BenchModel(rtNeuralModel, blockSize, numBlocks);
 
-	std::cout << "RTNeural: " << std::get<0>(rt) << " (" << std::get<1>(rt) << ")" << std::endl;
-	std::cout << "Internal: " << std::get<0>(internal) << " (" << std::get<1>(internal) << ")" << std::endl;
-	std::cout << "Internal is: " << (std::get<0>(rt) / std::get<0>(internal)) << "x RTNeural" << std::endl;
+	PrintBench("Internal", internal, dataSize);
+	PrintBench("RTNeural", rt, dataSize);
+	std::cout << "Internal is: " << (rt / internal) << "x RTNeural" << std::endl;
 
 	std::cout << std::endl;
 }
