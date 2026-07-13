@@ -89,6 +89,36 @@ namespace NeuralAudio
 			return sampleRate;
 		}
 
+		virtual bool HasLoudness() const
+		{
+			return hasLoudnessKnown_;
+		}
+
+		virtual bool HasInputLevel() const
+		{
+			return hasInputLevelKnown_;
+		}
+
+		virtual bool HasOutputLevel() const
+		{
+			return hasOutputLevelKnown_;
+		}
+
+		virtual float GetLoudnessDB() const
+		{
+			return modelLoudnessDB;
+		}
+
+		virtual float GetInputLevelDBu() const
+		{
+			return modelInputLevelDBu;
+		}
+
+		virtual float GetOutputLevelDBu() const
+		{
+			return modelOutputLevelDBu;
+		}
+
 		virtual int GetReceptiveFieldSize()
 		{
 			return -1;	// No fixed receptive field size (ie: for LSTM)
@@ -133,6 +163,9 @@ namespace NeuralAudio
 		float sampleRate = 48000;
 		std::string modelVersion = "";
 		std::vector<std::pair<std::string, std::string>> metadata;
+		bool hasLoudnessKnown_ = false;
+		bool hasInputLevelKnown_ = false;
+		bool hasOutputLevelKnown_ = false;
 	};
 
 	class NeuralModelLoader

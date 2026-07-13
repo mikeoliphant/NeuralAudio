@@ -57,6 +57,31 @@ namespace NeuralAudio
 
 			namModel->SetPrewarmOnReset(true);
 
+			// Mirror Has* flags from the underlying NAM core DSP, so callers can
+			// distinguish models whose metadata is truly known from those left at
+			// hard-coded defaults. ReadNAMConfig above already sets the flags when
+			// the JSON metadata block carries loudness/input_level_dbu/output_level_dbu;
+			// this covers the case where the values were injected via the NAM core
+			// itself (dsp::SetLoudness/SetInputLevel/SetOutputLevel).
+			if (namModel)
+			{
+				if (namModel->HasLoudness())
+				{
+					hasLoudnessKnown_ = true;
+					modelLoudnessDB = (float)namModel->GetLoudness();
+				}
+				if (namModel->HasInputLevel())
+				{
+					hasInputLevelKnown_ = true;
+					modelInputLevelDBu = (float)namModel->GetInputLevel();
+				}
+				if (namModel->HasOutputLevel())
+				{
+					hasOutputLevelKnown_ = true;
+					modelOutputLevelDBu = (float)namModel->GetOutputLevel();
+				}
+			}
+
 			return true;
 		}
 

@@ -43,16 +43,19 @@ namespace NeuralAudio
 					if (metadataJson.contains("loudness") && metadataJson.at("loudness").is_number())
 					{
 						modelLoudnessDB = (float)metadataJson.at("loudness");
+						hasLoudnessKnown_ = true;
 					}
 
 					if (metadataJson.contains("input_level_dbu") && metadataJson.at("input_level_dbu").is_number())
 					{
 						modelInputLevelDBu = metadataJson.at("input_level_dbu");
+						hasInputLevelKnown_ = true;
 					}
 
 					if (metadataJson.contains("output_level_dbu") && metadataJson.at("output_level_dbu").is_number())
 					{
 						modelOutputLevelDBu = metadataJson.at("output_level_dbu");
+						hasOutputLevelKnown_ = true;
 					}
 				}
 			}
