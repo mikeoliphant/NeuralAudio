@@ -323,7 +323,13 @@ namespace NeuralAudio
 
 	private:
 		ChannelBuffer<float, OutSize, InSize> weights;
-		Eigen::Vector<float, OutSize> bias;
+
+		// Avoid allocation for unused bias
+		using BiasType = typename std::conditional<DoBias,
+			Eigen::Vector<float, OutSize>,
+			Empty>::type;
+		
+		BiasType bias;
 	};
 
 	template <int ConditionSize, int Channels, int KernelSize, int Dilation, EActivationType Activation>
