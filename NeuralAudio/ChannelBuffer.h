@@ -23,7 +23,12 @@ namespace NeuralAudio
 				return nullptr;
 			}
 			virtual const T* GetDataConst() const { return nullptr; }
-			virtual const T* GetDataConst(size_t startCol) const { return nullptr; }
+			virtual const T* GetDataConst(size_t startCol) const
+			{
+				(void)startCol;
+
+				return nullptr;
+			}
 			virtual void SetZero() {}
 	};
 
@@ -67,12 +72,12 @@ namespace NeuralAudio
 				}
 			}
 
-			T& operator()(T row, T col)
+			T& operator()(size_t row, size_t col)
 			{
 				return data[col][row];
 			}
 
-			const T& operator()(T row, T col) const
+			const T& operator()(size_t row, size_t col) const
 			{
 				return data[col][row];
 			}
@@ -179,22 +184,22 @@ namespace NeuralAudio
 
 			T* GetData()
 			{				
-				return buffer->GetData();
+				return buffer->GetData(startCol);
 			}
 
 			const T* GetDataConst() const
 			{
-				return buffer->GetDataConst();
+				return buffer->GetDataConst(startCol);
 			}
 
 			T* GetData(size_t startCol)
 			{
-				return buffer->GetData(startCol);
+				return buffer->GetData(this->startCol + startCol);
 			}
 
 			const T* GetDataConst(size_t startCol) const
 			{
-				return buffer->GetDataConst(startCol);
+				return buffer->GetDataConst(this->startCol + startCol);
 			}
 
 			Eigen::Map<Eigen::Matrix<float, Channels, Eigen::Dynamic>> GetEigenMap()
@@ -212,7 +217,7 @@ namespace NeuralAudio
 				const T* srcPtr = srcSpan.GetDataConst();
 				T* destPtr = GetData();
 
-				memcpy(destPtr, srcPtr, Channels * numCols);
+				memmove(destPtr, srcPtr, Channels * numCols);
 			}
 
 			void AddData(const ChannelRowSpan<T, Channels>& srcSpan)

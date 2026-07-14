@@ -3,6 +3,7 @@
 // Based on WaveNet model structure from https://github.com/sdatkinson/NeuralAmpModelerCore
 // with some template ideas from https://github.com/jatinchowdhury18/RTNeural-NAM
 
+#include <array>
 #include <Eigen/Dense>
 #include <Eigen/Core>
 #include "TemplateHelper.h"
@@ -37,8 +38,6 @@ namespace NeuralAudio
 
 		void AllocBuffer(int allocNum)
 		{
-			long size = BufferSize;
-
 			buffer.SetZero();
 
 			//if (offset > (size - (ReceptiveFieldSize + WAVENET_MAX_NUM_FRAMES)))
@@ -53,7 +52,7 @@ namespace NeuralAudio
 #if (LAYER_ARRAY_BUFFER_PADDING == 0)
 			bufferStart = ReceptiveFieldSize;
 #else
-			bufferStart = size - (WAVENET_MAX_NUM_FRAMES * ((allocNum % LAYER_ARRAY_BUFFER_PADDING) + 1));	// Do the modulo to handle cases where LAYER_ARRAY_BUFFER_PADDING is not big enough to handle offset
+			bufferStart = BufferSize - (WAVENET_MAX_NUM_FRAMES * ((allocNum % LAYER_ARRAY_BUFFER_PADDING) + 1));	// Do the modulo to handle cases where LAYER_ARRAY_BUFFER_PADDING is not big enough to handle offset
 #endif
 		}
 
@@ -67,11 +66,9 @@ namespace NeuralAudio
 
 		void RewindBuffer()
 		{
-			size_t start = ReceptiveFieldSize;
+			buffer.Slice(0, ReceptiveFieldSize).CopyData(buffer.Slice(bufferStart - ReceptiveFieldSize, ReceptiveFieldSize));
 
-			buffer.Slice(start - ReceptiveFieldSize, ReceptiveFieldSize).CopyData(buffer.Slice(bufferStart - ReceptiveFieldSize, ReceptiveFieldSize));
-
-			bufferStart = start;
+			bufferStart = ReceptiveFieldSize;
 		}
 
 		void CopyBuffer()
@@ -101,8 +98,6 @@ namespace NeuralAudio
 
 		void SetWeights(std::vector<float>::iterator& inWeights)
 		{
-			weights.resize(KernelSize);
-
 			for (size_t i = 0; i < OutChannels; i++)
 				for (size_t j = 0; j < InChannels; j++)
 					for (size_t k = 0; k < KernelSize; k++)
@@ -141,7 +136,7 @@ namespace NeuralAudio
 					{
 						const float* W = this->weights[k].GetData();
 						const auto offset = Dilation * (k + 1 - KernelSize);
-						const float* hb = channelBuffer.buffer.Slice(channelBuffer.bufferStart + offset + f, tileSize).GetData();
+						const float* hb = channelBuffer.buffer.GetDataConst(channelBuffer.bufferStart + offset + f);
 
 						for (size_t cp = 0; cp < InChannels; cp++)
 						{
@@ -174,7 +169,7 @@ namespace NeuralAudio
 					{
 						const float* W = this->weights[k].GetData();
 						const auto offset = Dilation * (k + 1 - KernelSize);
-						const float* h = channelBuffer.buffer.Slice(channelBuffer.bufferStart + offset + f, tileSize).GetData();
+						const float* h = channelBuffer.buffer.GetDataConst(channelBuffer.bufferStart + offset + f);
 
 						for (int cp = 0; cp < InChannels; cp++)
 						{
@@ -240,7 +235,7 @@ namespace NeuralAudio
 		}
 
 	private:
-		std::vector<ChannelBuffer<float, OutChannels, InChannels>> weights;
+		std::array<ChannelBuffer<float, OutChannels, InChannels>, KernelSize> weights;
 
 		// Avoid allocation for unused bias
 		using BiasType = typename std::conditional<DoBias,
@@ -316,7 +311,7 @@ namespace NeuralAudio
 				}
 				else
 				{
-					output.GetEigenMap().noalias() += (weights.GetEigenMapConst() * input.GetEigenMapConst());
+					output.GetEigenMap().noalias() += weights.GetEigenMapConst() * input.GetEigenMapConst();
 				}
 			}
 		}
