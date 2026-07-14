@@ -7,6 +7,7 @@
 #include <Eigen/Core>
 #include "TemplateHelper.h"
 #include "Activation.h"
+#include "ChannelBuffer.h"
 #include "MatMul.h"
 
 #ifndef WAVENET_MAX_NUM_FRAMES
@@ -26,30 +27,19 @@ enum EActivationType
 namespace NeuralAudio
 {
 	template <int Channels, int ReceptiveFieldSize>
-	class ChannelBuffer
+	class ChannelHistoryBuffer
 	{
 	public:
 		static constexpr auto BufferSize = ReceptiveFieldSize + ((LAYER_ARRAY_BUFFER_PADDING + 1) * WAVENET_MAX_NUM_FRAMES);
-		static constexpr bool TooBigForStatic = ((Channels * BufferSize) * 4) > EIGEN_STACK_ALLOCATION_LIMIT;
 
-		using ChannelBufferType = typename std::conditional<TooBigForStatic,
-			Eigen::Matrix<float, Channels, -1>,
-			Eigen::Matrix<float, Channels, BufferSize>>::type;
-
-		ChannelBufferType buffer;
-		//Eigen::Matrix<float, Channels, -1> layerBuffer;
+		ChannelBuffer<float, Channels, BufferSize> buffer;
 		size_t bufferStart;
 
 		void AllocBuffer(int allocNum)
 		{
 			long size = BufferSize;
 
-			if constexpr (TooBigForStatic)
-			{
-				buffer.resize(Channels, size);
-			}
-
-			buffer.setZero();
+			buffer.SetZero();
 
 			//if (offset > (size - (ReceptiveFieldSize + WAVENET_MAX_NUM_FRAMES)))
 			//{
@@ -71,7 +61,7 @@ namespace NeuralAudio
 		{
 			bufferStart += numFrames;
 
-			if ((bufferStart + WAVENET_MAX_NUM_FRAMES) > (size_t)buffer.cols())
+			if ((bufferStart + WAVENET_MAX_NUM_FRAMES) > (size_t)buffer.GetNumCols())
 				RewindBuffer();
 		}
 
@@ -79,26 +69,30 @@ namespace NeuralAudio
 		{
 			size_t start = ReceptiveFieldSize;
 
-			buffer.middleCols(start - ReceptiveFieldSize, ReceptiveFieldSize) = buffer.middleCols(bufferStart - ReceptiveFieldSize, ReceptiveFieldSize);
+			buffer.Slice(start - ReceptiveFieldSize, ReceptiveFieldSize).CopyData(buffer.Slice(bufferStart - ReceptiveFieldSize, ReceptiveFieldSize));
 
 			bufferStart = start;
 		}
 
 		void CopyBuffer()
 		{
+			auto slice = buffer.Slice(bufferStart, 1);
+
 			for (size_t offset = 1; offset < ReceptiveFieldSize + 1; offset++)
 			{
-				buffer.col(bufferStart - offset) = buffer.col(bufferStart);
+				buffer.Slice(bufferStart - offset, 1).CopyData(slice);
 			}
 		}
 	};
+
+	struct Empty {};
 
 	template <int InChannels, int OutChannels, int KernelSize, bool DoBias, int Dilation>
 	class Conv1DT
 	{
 	public:
 		static constexpr auto ReceptiveFieldSize = (KernelSize - 1) * Dilation;
-		ChannelBuffer<InChannels, ReceptiveFieldSize> channelBuffer;
+		ChannelHistoryBuffer<InChannels, ReceptiveFieldSize> channelBuffer;
 
 		size_t GetNumWeights()
 		{
@@ -114,37 +108,40 @@ namespace NeuralAudio
 					for (size_t k = 0; k < KernelSize; k++)
 						weights[k](i, j) = *(inWeights++);
 
-			if (DoBias)
+			if constexpr (DoBias)
 			{
 				for (size_t i = 0; i < OutChannels; i++)
 					bias(i) = *(inWeights++);
 			}
 		}
 
-		template<typename Derived>
-		inline void Process(Eigen::MatrixBase<Derived> const & output, const size_t numFrames) const
+		auto GetInputBuffer(size_t numFrames)
 		{
-			float* outputPtr = &const_cast<Eigen::MatrixBase<Derived>&>(output)(0, 0);
-			const float* biasPtr = bias.data();
+			return channelBuffer.buffer.Slice(channelBuffer.bufferStart, numFrames);
+		}
+
+		inline void Process(ChannelRowSpan<float, OutChannels> output)
+		{
+			const size_t numFrames = output.GetNumCols();
+			float* outputPtr = output.GetData();
 
 #if ENABLE_MULTIFRAME_8X8_CONVOLUTION
-			if constexpr ((InChannels == 8) && (OutChannels == 8))
+			if constexpr ((InChannels == 8) && (OutChannels == 8) && DoBias)
 			{
 				// Based on @jfsantos NAM Core implementation - https://github.com/sdatkinson/NeuralAmpModelerCore/pull/277
 
-				constexpr size_t T = 4;
-				const size_t nF4 = (numFrames / T) * T;
+				constexpr size_t tileSize = 4;
+				const size_t nF4 = (numFrames / tileSize) * tileSize;
 
-				for (size_t f = 0; f < nF4; f += T)
+				for (size_t f = 0; f < nF4; f += tileSize)
 				{
-					float a[T][InChannels]{};
+					float a[tileSize][InChannels]{};
 
 					for (size_t k = 0; k < KernelSize; k++)
 					{
-						const float* W = this->weights[k].data();
+						const float* W = this->weights[k].GetData();
 						const auto offset = Dilation * (k + 1 - KernelSize);
-						const auto inBlock = channelBuffer.buffer.middleCols(channelBuffer.bufferStart + offset + f, T);
-						const float* hb = inBlock.data();
+						const float* hb = channelBuffer.buffer.Slice(channelBuffer.bufferStart + offset + f, tileSize).GetData();
 
 						for (size_t cp = 0; cp < InChannels; cp++)
 						{
@@ -161,11 +158,11 @@ namespace NeuralAudio
 						}
 					}
 
-					for (size_t ti = 0; ti < T; ti++)
+					for (size_t ti = 0; ti < tileSize; ti++)
 						std::memcpy(outputPtr + static_cast<size_t>(f + ti) * InChannels, a[ti], InChannels * sizeof(float));
 				}
 
-				// Scalar tail for any frames past the T-aligned boundary.
+				// Scalar tail for any frames past the tile-aligned boundary.
 				for (size_t f = nF4; f < numFrames; f++)
 				{
 					float* zf = outputPtr + static_cast<size_t>(f) * InChannels;
@@ -175,10 +172,9 @@ namespace NeuralAudio
 
 					for (size_t k = 0; k < KernelSize; k++)
 					{
-						const float* W = this->weights[k].data();
+						const float* W = this->weights[k].GetData();
 						const auto offset = Dilation * (k + 1 - KernelSize);
-						const auto inBlock = channelBuffer.buffer.middleCols(channelBuffer.bufferStart + offset + f, T);
-						const float* h = inBlock.data();
+						const float* h = channelBuffer.buffer.Slice(channelBuffer.bufferStart + offset + f, tileSize).GetData();
 
 						for (int cp = 0; cp < InChannels; cp++)
 						{
@@ -194,20 +190,35 @@ namespace NeuralAudio
 			else
 #endif
 			{
+				const float* biasPtr = nullptr;
+				
+				if constexpr (DoBias)
+				{
+					biasPtr = bias.data();
+				}
+
 				for (size_t k = 0; k < KernelSize; k++)
 				{
-					const float* weightPtr = this->weights[k].data();
+					const float* weightPtr = this->weights[k].GetDataConst();
 
 					const auto offset = Dilation * ((int)k + 1 - KernelSize);
 
-					const auto inBlock = channelBuffer.buffer.middleCols(channelBuffer.bufferStart + offset, numFrames);
-					const float* inputPtr = inBlock.data();
+					const auto inBlock = channelBuffer.buffer.SliceConst(channelBuffer.bufferStart + offset, numFrames);
 
-					if constexpr (MatMul<InChannels, OutChannels>::HasKernel())
+					if constexpr (DoBias && MatMul<InChannels, OutChannels>::HasKernel())
 					{
+						const float* inputPtr = inBlock.GetDataConst();
+
 						if (k == 0)	// Maybe move this out of loop?
 						{
-							MatMul<InChannels, OutChannels>::MultiplyInitColwise(inputPtr, outputPtr, weightPtr, biasPtr, numFrames);
+							if constexpr (DoBias)
+							{
+								MatMul<InChannels, OutChannels>::MultiplyInitColwise(inputPtr, outputPtr, weightPtr, biasPtr, numFrames);
+							}
+							else
+							{
+								MatMul<InChannels, OutChannels>::MultiplyInitZero(inputPtr, outputPtr, weightPtr, numFrames);
+							}
 						}
 						else
 						{
@@ -217,20 +228,26 @@ namespace NeuralAudio
 					else
 					{
 						if (k == 0)
-							const_cast<Eigen::MatrixBase<Derived>&>(output).noalias() = weights[k] * inBlock;
+							output.GetEigenMap().noalias() = weights[k].GetEigenMapConst() * inBlock.GetEigenMapConst();
 						else
-							const_cast<Eigen::MatrixBase<Derived>&>(output).noalias() += weights[k] * inBlock;
+							output.GetEigenMap().noalias() += weights[k].GetEigenMapConst() * inBlock.GetEigenMapConst();
 					}
 				}
 			}
 
 			if constexpr (DoBias && !MatMul<InChannels, OutChannels>::HasKernel())
-				const_cast<Eigen::MatrixBase<Derived>&>(output).colwise() += bias;
+				output.GetEigenMap().colwise() += bias;
 		}
 
 	private:
-		std::vector<Eigen::Matrix<float, OutChannels, InChannels>> weights;
-		Eigen::Vector<float, OutChannels> bias;
+		std::vector<ChannelBuffer<float, OutChannels, InChannels>> weights;
+
+		// Avoid allocation for unused bias
+		using BiasType = typename std::conditional<DoBias,
+			Eigen::Vector<float, OutChannels>,
+			Empty>::type;
+
+		BiasType bias;
 	};
 
 	template <int InSize, int OutSize, bool DoBias>
@@ -255,55 +272,57 @@ namespace NeuralAudio
 			}
 		}
 
-		template<typename Derived, typename Derived2>
-		void Process(const Eigen::MatrixBase<Derived>& input, Eigen::MatrixBase<Derived2> const& output) const
+		void Process(const ChannelRowSpan<float, InSize> input, ChannelRowSpan<float, OutSize> output)
 		{
+			size_t numFrames = output.GetNumCols();
+
 			if constexpr (MatMul<InSize, OutSize>::HasKernel())
 			{
 				if constexpr (DoBias)
 				{
-					MatMul<InSize, OutSize>::MultiplyInitColwise(&input(0, 0), &const_cast<Eigen::MatrixBase<Derived2>&>(output)(0, 0), weights.data(), bias.data(), output.cols());
+					MatMul<InSize, OutSize>::MultiplyInitColwise(input.GetDataConst(), output.GetData(), weights.GetDataConst(), bias.data(), numFrames);
 				}
 				else
 				{
-					MatMul<InSize, OutSize>::MultiplyInitZero(&input(0, 0), &const_cast<Eigen::MatrixBase<Derived2>&>(output)(0, 0), weights.data(), output.cols());
+					MatMul<InSize, OutSize>::MultiplyInitZero(input.GetDataConst(), output.GetData(), weights.GetDataConst(), numFrames);
 				}
 			}
 			else
 			{
 				if constexpr (DoBias)
 				{
-					const_cast<Eigen::MatrixBase<Derived2>&>(output).noalias() = (weights * input).colwise() + bias;
+					output.GetEigenMap().noalias() = (weights.GetEigenMapConst() * input.GetEigenMapConst()).colwise() + bias;
 				}
 				else
 				{
-					const_cast<Eigen::MatrixBase<Derived2>&>(output).noalias() = weights * input;
+					output.GetEigenMap().noalias() = weights.GetEigenMapConst() * input.GetEigenMapConst();
 				}
 			}
 		}
 
-		template<typename Derived, typename Derived2>
-		void ProcessAcc(const Eigen::MatrixBase<Derived>& input, Eigen::MatrixBase<Derived2> const& output) const
+		void ProcessAcc(const ChannelRowSpan<float, InSize> input, ChannelRowSpan<float, OutSize> output)
 		{
+			size_t numFrames = output.GetNumCols();
+
 			if constexpr (!DoBias && MatMul<InSize, OutSize>::HasKernel())
 			{
-				MatMul<InSize, OutSize>::MultiplyAccumlulate(&input(0, 0), &const_cast<Eigen::MatrixBase<Derived2>&>(output)(0, 0), weights.data(), output.cols());
+				MatMul<InSize, OutSize>::MultiplyAccumlulate(input.GetDataConst(), output.GetData(), weights.GetDataConst(), numFrames);
 			}
 			else
 			{
 				if constexpr (DoBias)
 				{
-					const_cast<Eigen::MatrixBase<Derived2>&>(output).noalias() += (weights * input).colwise() + bias;
+					output.GetEigenMap().noalias() += (weights.GetEigenMapConst() * input.GetEigenMapConst()) + bias;
 				}
 				else
 				{
-					const_cast<Eigen::MatrixBase<Derived2>&>(output).noalias() += weights * input;
+					output.GetEigenMap().noalias() += (weights.GetEigenMapConst() * input.GetEigenMapConst());
 				}
 			}
 		}
 
 	private:
-		Eigen::Matrix<float, OutSize, InSize> weights;
+		ChannelBuffer<float, OutSize, InSize> weights;
 		Eigen::Vector<float, OutSize> bias;
 	};
 
@@ -314,14 +333,14 @@ namespace NeuralAudio
 		Conv1DT<Channels, Channels, KernelSize, true, Dilation> conv1D;
 		DenseLayerT<ConditionSize, Channels, false> inputMixin;
 		DenseLayerT<Channels, Channels, true> oneByOne;
-		Eigen::Matrix<float, Channels, WAVENET_MAX_NUM_FRAMES> state;
+		ChannelBuffer<float, Channels, WAVENET_MAX_NUM_FRAMES> state;
 
 	public:
 		static constexpr auto ReceptiveFieldSize = (KernelSize - 1) * Dilation;
 
 		WaveNetLayerT()
 		{
-			state.setZero();
+			state.SetZero();
 		}
 
 		void AllocBuffer(int allocNum)
@@ -339,9 +358,14 @@ namespace NeuralAudio
 			return conv1D.GetNumWeights() + inputMixin.GetNumWeights() + oneByOne.GetNumWeights();
 		}
 
-		auto& GetInputBuffer()
+		auto GetInputBuffer(size_t numFrames)
 		{
-			return conv1D.channelBuffer;
+			return conv1D.channelBuffer.buffer.Slice(conv1D.channelBuffer.bufferStart, numFrames);
+		}
+
+		void CopyBuffer()
+		{
+			conv1D.channelBuffer.CopyBuffer();
 		}
 
 		void SetWeights(std::vector<float>::iterator& weights)
@@ -351,29 +375,32 @@ namespace NeuralAudio
 			oneByOne.SetWeights(weights);
 		}
 
-		template<typename Derived, typename Derived2, typename Derived3>
-		void Process(const Eigen::MatrixBase<Derived>& condition, Eigen::MatrixBase<Derived2> const& headInput, Eigen::MatrixBase<Derived3> const& output, const size_t outputStart, const size_t numFrames)
+		void Process(const ChannelRowSpan<float, ConditionSize> condition, ChannelRowSpan<float, Channels> headInput, ChannelRowSpan<float, Channels> output)
 		{
-			auto block = state.leftCols(numFrames);
+			size_t numFrames = output.GetNumCols();
 
-			conv1D.Process(block, numFrames);
+			auto block = state.Slice(numFrames);
+
+			conv1D.Process(block);
 
 			inputMixin.ProcessAcc(condition, block);
 
-			if constexpr (Activation == EActivationType::Tanh)
+			//if constexpr (Activation == EActivationType::Tanh)
+			//{
+			//	WAVENET_MATH::Tanh(&block);
+			//}
+			//else
+			
+			if constexpr (Activation == EActivationType::LeakyReLU)
 			{
-				WAVENET_MATH::Tanh(&block);
-			}
-			else if constexpr (Activation == EActivationType::LeakyReLU)
-			{
-				WAVENET_MATH::LeakyReLU(&block);
+				WAVENET_MATH::LeakyReLU(block.GetData(), block.GetNumChannels() * block.GetNumCols());
 			}
 
-			const_cast<Eigen::MatrixBase<Derived2>&>(headInput).leftCols(numFrames).noalias() += block;
+			headInput.AddData(block);
 
-			oneByOne.Process(block, const_cast<Eigen::MatrixBase<Derived3>&>(output).middleCols(outputStart, numFrames));
+			oneByOne.Process(block, output);
 
-			const_cast<Eigen::MatrixBase<Derived3>&>(output).middleCols(outputStart, numFrames).noalias() += conv1D.channelBuffer.buffer.middleCols(conv1D.channelBuffer.bufferStart, numFrames);
+			output.AddData(conv1D.GetInputBuffer(numFrames));
 		}
 	};
 
@@ -411,8 +438,8 @@ namespace NeuralAudio
 		static constexpr auto NumChannelsP = Channels;
 		static constexpr auto HeadSizeP = HeadSize;
 
-		Eigen::Matrix<float, Channels, WAVENET_MAX_NUM_FRAMES> arrayOutputs;
-		Eigen::Matrix<float, HeadSize, WAVENET_MAX_NUM_FRAMES> headOutputs;
+		ChannelBuffer<float, Channels, WAVENET_MAX_NUM_FRAMES> arrayOutputs;
+		ChannelBuffer<float, HeadSize, WAVENET_MAX_NUM_FRAMES> headOutputs;
 		int ReceptiveFieldSize = 0;	// This should be a static constexpr, but I haven't sorted out the right template magic
 
 		WaveNetLayerArrayT()
@@ -463,51 +490,56 @@ namespace NeuralAudio
 			headRechannel.SetWeights(weights);
 		}
 
-		template<typename Derived, typename Derived2, typename Derived3>
-		void Prewarm(const Eigen::MatrixBase<Derived>& layerInputs, const Eigen::MatrixBase<Derived2>& condition, Eigen::MatrixBase<Derived3> const& headInputs)
+		void Prewarm(const ChannelRowSpan<float, InputSize> layerInputs, const ChannelRowSpan<float, ConditionSize> condition, ChannelRowSpan<float, Channels> headInputs)
 		{
-			rechannel.Process(layerInputs.leftCols(1), std::get<0>(layers).GetInputBuffer().buffer.middleCols(std::get<0>(layers).GetInputBuffer().bufferStart, 1));
+			rechannel.Process(layerInputs, std::get<0>(layers).GetInputBuffer(1));
 
 			ForEachIndex<numLayers>([&](auto layerIndex)
 				{
-					std::get<layerIndex>(layers).GetInputBuffer().CopyBuffer();
+					std::get<layerIndex>(layers).CopyBuffer();
 
 					if constexpr (layerIndex == lastLayer)
 					{
-						std::get<layerIndex>(layers).Process(condition, headInputs, arrayOutputs, 0, 1);
+						std::get<layerIndex>(layers).Process(condition, headInputs, arrayOutputs.Slice(1));
 					}
 					else
 					{
-						std::get<layerIndex>(layers).Process(condition, headInputs, std::get<layerIndex + 1>(layers).GetInputBuffer().buffer, std::get<layerIndex + 1>(layers).GetInputBuffer().bufferStart, 1);
+						std::get<layerIndex>(layers).Process(condition, headInputs, std::get<layerIndex + 1>(layers).GetInputBuffer(1));
 					}
 				});
 
-			headRechannel.channelBuffer.buffer.middleCols(headRechannel.channelBuffer.bufferStart, 1).noalias() = headInputs.leftCols(1);	// Should be able to avoid this copy
+			//headRechannel.channelBuffer.buffer.middleCols(headRechannel.channelBuffer.bufferStart, 1).noalias() = headInputs.leftCols(1);	// Should be able to avoid this copy
+
+			headRechannel.GetInputBuffer(1).CopyData(headInputs.Slice(1));
 			headRechannel.channelBuffer.CopyBuffer();
-			headRechannel.Process(headOutputs.leftCols(1), 1);
+			headRechannel.Process(headOutputs.Slice(1));
 		}
 
-		template<typename Derived, typename Derived2, typename Derived3>
-		void Process(const Eigen::MatrixBase<Derived>& layerInputs, const Eigen::MatrixBase<Derived2>& condition, Eigen::MatrixBase<Derived3> const& headInputs, const size_t numFrames)
+		void Process(const ChannelRowSpan<float, InputSize> layerInputs, const ChannelRowSpan<float, ConditionSize> condition, ChannelRowSpan<float, Channels> headInputs)
 		{
-			rechannel.Process(layerInputs.leftCols(numFrames), std::get<0>(layers).GetInputBuffer().buffer.middleCols(std::get<0>(layers).GetInputBuffer().bufferStart, numFrames));
+			size_t numFrames = condition.GetNumCols();
+
+			rechannel.Process(layerInputs, std::get<0>(layers).GetInputBuffer(numFrames));
 
 			ForEachIndex<numLayers>([&](auto layerIndex)
 				{
 					if constexpr (layerIndex == lastLayer)
 					{
-						std::get<layerIndex>(layers).Process(condition, headInputs, arrayOutputs, 0, numFrames);
+						std::get<layerIndex>(layers).Process(condition, headInputs, arrayOutputs.Slice(numFrames));
 					}
 					else
 					{
-						std::get<layerIndex>(layers).Process(condition, headInputs,	std::get<layerIndex + 1>(layers).GetInputBuffer().buffer, std::get<layerIndex + 1>(layers).GetInputBuffer().bufferStart, numFrames);
+						std::get<layerIndex>(layers).Process(condition, headInputs,	std::get<layerIndex + 1>(layers).GetInputBuffer(numFrames));
 					}
 
 					std::get<layerIndex>(layers).AdvanceFrames(numFrames);
 				});
 
-			headRechannel.channelBuffer.buffer.middleCols(headRechannel.channelBuffer.bufferStart, numFrames).noalias() = headInputs.leftCols(numFrames);	// Should be able to avoid this copy
-			headRechannel.Process(headOutputs.leftCols(numFrames), numFrames);
+
+			//headRechannel.channelBuffer.buffer.middleCols(headRechannel.channelBuffer.bufferStart, numFrames).noalias() = headInputs.leftCols(numFrames);	// Should be able to avoid this copy
+
+			headRechannel.GetInputBuffer(numFrames).CopyData(headInputs);
+			headRechannel.Process(headOutputs.Slice(numFrames));
 			headRechannel.channelBuffer.AdvanceFrames(numFrames);
 		}
 	};
@@ -572,64 +604,61 @@ namespace NeuralAudio
 
 		void Prewarm()
 		{
-			float input = 0;
+			condition.GetData()[0] = 0;
 
-			auto condition = Eigen::Map<const Eigen::Matrix<float, 1, -1>>(&input, 1, 1);
+			headArray.SetZero();
 
-			headArray.setZero();
+			auto conditionSpan = condition.Slice(1);
+			auto headArraySpan = headArray.Slice(1);
 
 			ForEachIndex<sizeof...(LayerArrays)>([&](auto layerIndex)
 				{
 					if constexpr (layerIndex == 0)
 					{
-						std::get<layerIndex>(layerArrays).Prewarm(condition, condition, headArray);
+						std::get<layerIndex>(layerArrays).Prewarm(conditionSpan, conditionSpan, headArraySpan);
 					}
 					else
 					{
-						std::get<layerIndex>(layerArrays).Prewarm(std::get<layerIndex - 1>(layerArrays).arrayOutputs, condition, std::get<layerIndex - 1>(layerArrays).headOutputs);
+						std::get<layerIndex>(layerArrays).Prewarm(std::get<layerIndex - 1>(layerArrays).arrayOutputs.Slice(1), conditionSpan, std::get<layerIndex - 1>(layerArrays).headOutputs.Slice(1));
 					}
 				});
 		}
 
 		void Process(const float* input, float* output, const size_t numFrames)
 		{
-			//numRewinds = 0;
+			memcpy(condition.GetData(), input, numFrames);
 
-			auto condition = Eigen::Map<const Eigen::Matrix<float, 1, -1>>(input, 1, numFrames);
+			headArray.SetZero();
 
-			headArray.setZero();
+			auto conditionSpan = condition.Slice(numFrames);
+			auto headArraySpan = headArray.Slice(numFrames);
 
 			ForEachIndex<sizeof...(LayerArrays)>([&](auto layerIndex)
 				{
 					if constexpr (layerIndex == 0)
 					{
-						std::get<layerIndex>(layerArrays).Process(condition, condition, headArray, numFrames);
+						std::get<layerIndex>(layerArrays).Process(conditionSpan, conditionSpan, headArraySpan);
 					}
 					else
 					{
-						std::get<layerIndex>(layerArrays).Process(std::get<layerIndex - 1>(layerArrays).arrayOutputs, condition, std::get<layerIndex - 1>(layerArrays).headOutputs, numFrames);
+						std::get<layerIndex>(layerArrays).Process(std::get<layerIndex - 1>(layerArrays).arrayOutputs.Slice(numFrames), conditionSpan, std::get<layerIndex - 1>(layerArrays).headOutputs.Slice(numFrames));
 					}
 				});
 
-			const auto finalHeadArray = std::get<sizeof...(LayerArrays) - 1>(layerArrays).headOutputs;
+			const auto finalHeadArray = std::get<sizeof...(LayerArrays) - 1>(layerArrays).headOutputs.GetData();
 
-			auto out = Eigen::Map<Eigen::Matrix<float, 1, -1>>(output, 1, numFrames);
-
-			out.noalias() = headScale * finalHeadArray.leftCols(numFrames);
-
-			//if (numRewinds > maxRewinds)
-			//{
-			//	maxRewinds = numRewinds;
-
-			//	std::cout << "New Max Rewinds: " << maxRewinds << std::endl;
-			//}
+			for (size_t i = 0; i < numFrames; i++)
+			{
+				output[i] = headScale * finalHeadArray[i];
+			}
 		}
 
 	private:
 		static constexpr auto headLayerChannels = std::tuple_element_t<0, std::tuple<LayerArrays...>>::NumChannelsP;
 
 		std::tuple<LayerArrays...> layerArrays;
-		Eigen::Matrix<float, headLayerChannels, WAVENET_MAX_NUM_FRAMES> headArray;
+		ChannelBuffer<float, 1, WAVENET_MAX_NUM_FRAMES> condition;
+		ChannelBuffer<float, headLayerChannels, WAVENET_MAX_NUM_FRAMES> headArray;
 		float headScale;
 	};
 }

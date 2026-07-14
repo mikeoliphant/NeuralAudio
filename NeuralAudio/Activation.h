@@ -97,13 +97,12 @@ namespace NeuralAudio
 			return  0.5f * (Tanh(x * 0.5f) + 1);
 		}
 
-		template <typename Matrix>
-		static void LeakyReLU(Matrix* x)
+		static void LeakyReLU(float *data, size_t size)
 		{
 			//*x = (x->array() < 0.0f).select(x->array() * 0.01f, x->array());
 
-			float* data = x->data();
-			size_t size = x->rows() * x->cols();
+			//float* data = channelData.GetData();
+			//size_t size = Channels * channelData.NumCols();
 
 			for (size_t pos = 0; pos < size; pos++)
 			{
