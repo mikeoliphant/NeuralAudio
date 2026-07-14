@@ -82,12 +82,7 @@ namespace NeuralAudio
 				return data[col][row];
 			}
 
-			ChannelRowSpan<T, Channels> Slice(size_t startCol, size_t numCols)
-			{
-				return ChannelRowSpan<T, Channels>(this, startCol, numCols);
-			}
-
-			const ChannelRowSpan<T, Channels> SliceConst(size_t startCol, size_t numCols)
+			const ChannelRowSpan<T, Channels> Slice(size_t startCol, size_t numCols)
 			{
 				return ChannelRowSpan<T, Channels>(this, startCol, numCols);
 			}

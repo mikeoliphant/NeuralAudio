@@ -115,7 +115,7 @@ namespace NeuralAudio
 			return channelBuffer.buffer.Slice(channelBuffer.bufferStart, numFrames);
 		}
 
-		inline void Process(ChannelRowSpan<float, OutChannels> output)
+		inline void Process(const ChannelRowSpan<float, OutChannels>& output)
 		{
 			const size_t numFrames = output.GetNumCols();
 			float* outputPtr = output.GetData();
@@ -198,7 +198,7 @@ namespace NeuralAudio
 
 					const auto offset = Dilation * ((int)k + 1 - KernelSize);
 
-					const auto inBlock = channelBuffer.buffer.SliceConst(channelBuffer.bufferStart + offset, numFrames);
+					const auto inBlock = channelBuffer.buffer.Slice(channelBuffer.bufferStart + offset, numFrames);
 
 					if constexpr (DoBias && MatMul<InChannels, OutChannels>::HasKernel())
 					{
@@ -267,7 +267,7 @@ namespace NeuralAudio
 			}
 		}
 
-		void Process(const ChannelRowSpan<float, InSize>& input, const ChannelRowSpan<float, OutSize>& output)
+		void Process(const ChannelRowSpan<float, InSize>& input, const ChannelRowSpan<float, OutSize>& output) const
 		{
 			size_t numFrames = output.GetNumCols();
 
@@ -295,7 +295,7 @@ namespace NeuralAudio
 			}
 		}
 
-		void ProcessAcc(const ChannelRowSpan<float, InSize>& input, const ChannelRowSpan<float, OutSize>& output)
+		void ProcessAcc(const ChannelRowSpan<float, InSize>& input, const ChannelRowSpan<float, OutSize>& output) const
 		{
 			size_t numFrames = output.GetNumCols();
 
