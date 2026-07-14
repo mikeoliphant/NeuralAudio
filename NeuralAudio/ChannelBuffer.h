@@ -92,17 +92,12 @@ namespace NeuralAudio
 				return ChannelRowSpan<T, Channels>(this, startCol, numCols);
 			}
 
-			ChannelRowSpan<T, Channels> Slice(size_t numCols)
+			const ChannelRowSpan<T, Channels> Slice(size_t numCols)
 			{					
 				return ChannelRowSpan<T, Channels>(this, numCols);
 			}
 
-			const ChannelRowSpan<T, Channels> SliceConst(size_t numCols)
-			{
-				return ChannelRowSpan<T, Channels>(this, numCols);
-			}
-
-			Eigen::Map<Eigen::Matrix<float, Channels, Cols>> GetEigenMap()
+			const Eigen::Map<Eigen::Matrix<float, Channels, Cols>> GetEigenMap()
 			{
 				return Eigen::Map<Eigen::Matrix<float, Channels, Cols>>(GetData(), Channels, GetNumCols());
 			}
@@ -152,22 +147,12 @@ namespace NeuralAudio
 
 			}
 
-			ChannelRowSpan<T, Channels> Slice(size_t startCol, size_t numCols)
+			const ChannelRowSpan<T, Channels> Slice(size_t startCol, size_t numCols) const
 			{
 				return ChannelRowSpan<T, Channels>(buffer, this->startCol + startCol, numCols);
 			}
 
-			const ChannelRowSpan<T, Channels> SliceConst(size_t startCol, size_t numCols) const
-			{
-				return ChannelRowSpan<T, Channels>(buffer, this->startCol + startCol, numCols);
-			}
-
-			ChannelRowSpan<T, Channels> Slice(size_t numCols)
-			{
-				return ChannelRowSpan<T, Channels>(buffer, this->startCol, numCols);
-			}
-
-			const ChannelRowSpan<T, Channels> SliceConst(size_t numCols)
+			const ChannelRowSpan<T, Channels> Slice(size_t numCols) const
 			{
 				return ChannelRowSpan<T, Channels>(buffer, this->startCol, numCols);
 			}
@@ -182,7 +167,7 @@ namespace NeuralAudio
 				return Channels;
 			}
 
-			T* GetData()
+			T* GetData() const
 			{				
 				return buffer->GetData(startCol);
 			}
@@ -192,7 +177,7 @@ namespace NeuralAudio
 				return buffer->GetDataConst(startCol);
 			}
 
-			T* GetData(size_t startCol)
+			T* GetData(size_t startCol) const
 			{
 				return buffer->GetData(this->startCol + startCol);
 			}
@@ -202,7 +187,7 @@ namespace NeuralAudio
 				return buffer->GetDataConst(this->startCol + startCol);
 			}
 
-			Eigen::Map<Eigen::Matrix<float, Channels, Eigen::Dynamic>> GetEigenMap()
+			Eigen::Map<Eigen::Matrix<float, Channels, Eigen::Dynamic>> GetEigenMap() const
 			{
 				return Eigen::Map<Eigen::Matrix<float, Channels, Eigen::Dynamic>>(GetData(), Channels, numCols);
 			}
@@ -212,7 +197,7 @@ namespace NeuralAudio
 				return Eigen::Map<const Eigen::Matrix<float, Channels, Eigen::Dynamic>>(GetDataConst(), Channels, numCols);
 			}
 
-			void CopyData(const ChannelRowSpan<T, Channels>& srcSpan)
+			void CopyData(const ChannelRowSpan<T, Channels>& srcSpan) const
 			{
 				const T* srcPtr = srcSpan.GetDataConst();
 				T* destPtr = GetData();
@@ -220,7 +205,7 @@ namespace NeuralAudio
 				memmove(destPtr, srcPtr, Channels * numCols);
 			}
 
-			void AddData(const ChannelRowSpan<T, Channels>& srcSpan)
+			void AddData(const ChannelRowSpan<T, Channels>& srcSpan) const
 			{
 				const T* srcPtr = srcSpan.GetDataConst();
 				T* destPtr = GetData();
@@ -232,7 +217,7 @@ namespace NeuralAudio
 			}
 
 		private:
-			ChannelBufferBase<T, Channels>* buffer;
+			ChannelBufferBase<T, Channels>* const buffer;
 			const size_t startCol;
 			const size_t numCols;
 	};

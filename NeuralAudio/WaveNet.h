@@ -267,7 +267,7 @@ namespace NeuralAudio
 			}
 		}
 
-		void Process(const ChannelRowSpan<float, InSize> input, ChannelRowSpan<float, OutSize> output)
+		void Process(const ChannelRowSpan<float, InSize>& input, const ChannelRowSpan<float, OutSize>& output)
 		{
 			size_t numFrames = output.GetNumCols();
 
@@ -295,7 +295,7 @@ namespace NeuralAudio
 			}
 		}
 
-		void ProcessAcc(const ChannelRowSpan<float, InSize> input, ChannelRowSpan<float, OutSize> output)
+		void ProcessAcc(const ChannelRowSpan<float, InSize>& input, const ChannelRowSpan<float, OutSize>& output)
 		{
 			size_t numFrames = output.GetNumCols();
 
@@ -376,7 +376,7 @@ namespace NeuralAudio
 			oneByOne.SetWeights(weights);
 		}
 
-		void Process(const ChannelRowSpan<float, ConditionSize> condition, ChannelRowSpan<float, Channels> headInput, ChannelRowSpan<float, Channels> output)
+		void Process(const ChannelRowSpan<float, ConditionSize>& condition, const ChannelRowSpan<float, Channels>& headInput, const ChannelRowSpan<float, Channels>& output)
 		{
 			size_t numFrames = output.GetNumCols();
 
@@ -491,7 +491,7 @@ namespace NeuralAudio
 			headRechannel.SetWeights(weights);
 		}
 
-		void Prewarm(const ChannelRowSpan<float, InputSize> layerInputs, const ChannelRowSpan<float, ConditionSize> condition, ChannelRowSpan<float, Channels> headInputs)
+		void Prewarm(const ChannelRowSpan<float, InputSize>& layerInputs, const ChannelRowSpan<float, ConditionSize>& condition, const ChannelRowSpan<float, Channels>& headInputs)
 		{
 			rechannel.Process(layerInputs, std::get<0>(layers).GetInputBuffer(1));
 
@@ -516,7 +516,7 @@ namespace NeuralAudio
 			headRechannel.Process(headOutputs.Slice(1));
 		}
 
-		void Process(const ChannelRowSpan<float, InputSize> layerInputs, const ChannelRowSpan<float, ConditionSize> condition, ChannelRowSpan<float, Channels> headInputs)
+		void Process(const ChannelRowSpan<float, InputSize>& layerInputs, const ChannelRowSpan<float, ConditionSize>& condition, const ChannelRowSpan<float, Channels>& headInputs)
 		{
 			size_t numFrames = condition.GetNumCols();
 
