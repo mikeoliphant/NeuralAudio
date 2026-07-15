@@ -360,9 +360,9 @@ namespace NeuralAudio
 
 			if (newModel == nullptr)
 			{
-#ifdef BUILD_NAMCORE
 				std::string version = modelJson.at("version");
 
+#ifdef BUILD_NAMCORE
 				bool loadA2WithNAMCore = true;
 
 #ifdef BUILD_STATIC_INTERNAL_NAMA2
@@ -377,8 +377,8 @@ namespace NeuralAudio
 
 					newModel = model;
 				}
-			}
 #endif
+			}
 
 			auto& config = modelJson.at("config");
 
