@@ -198,11 +198,9 @@ namespace NeuralAudio
 
 					const auto offset = Dilation * ((int)k + 1 - KernelSize);
 
-					const auto inBlock = channelBuffer.buffer.Slice(channelBuffer.bufferStart + offset, numFrames);
-
 					if constexpr (DoBias && MatMul<InChannels, OutChannels>::HasKernel())
 					{
-						const float* inputPtr = inBlock.GetDataConst();
+						const float* inputPtr = channelBuffer.buffer.GetDataConst(channelBuffer.bufferStart + offset);
 
 						if (k == 0)	// Maybe move this out of loop?
 						{
@@ -222,6 +220,8 @@ namespace NeuralAudio
 					}
 					else
 					{
+						const auto inBlock = channelBuffer.buffer.Slice(channelBuffer.bufferStart + offset, numFrames);
+
 						if (k == 0)
 							output.GetEigenMap().noalias() = weights[k].GetEigenMapConst() * inBlock.GetEigenMapConst();
 						else
