@@ -2,7 +2,7 @@
 
 namespace NeuralAudio
 {
-	template <int InChannels, int OutChannels>
+	template <size_t InChannels, size_t OutChannels>
 	struct MatMul
 	{
 		#define IsKernel(In, Out) ((InChannels == In) && (OutChannels == Out))
@@ -239,7 +239,7 @@ namespace NeuralAudio
 
 				for (size_t frame = 0; frame < numFrames; frame++)
 				{
-					const int offset = frame * 3;
+					const size_t offset = frame * InChannels;
 					const float* in = &inData[offset];
 
 					float a0 = outData[frame] + w0 * in[0];
@@ -254,7 +254,7 @@ namespace NeuralAudio
 
 				for (size_t frame = 0; frame < numFrames; frame++)
 				{
-					const size_t offset = frame * 3;
+					const size_t offset = frame * InChannels;
 					float* out = &outData[offset];
 
 					const float in = inData[frame];
