@@ -51,7 +51,7 @@ jobs:
       working-directory: ${{github.workspace}}/build
       env:
         CXX: g++-15
-        CXXFLAGS: "-Wall -O3 -march=${{ matrix.native_arch }} -static-libstdc++ -static-libgcc"      
+        CXXFLAGS: "-Wall -O3 -ffast-math -march=${{ matrix.native_arch }} -static-libstdc++ -static-libgcc"      
       run: |
         cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_UTILS=ON -DBUILD_NAMCORE=ON -DBUILD_INTERNAL_STATIC_WAVENET=ON -DBUILD_INTERNAL_STATIC_LSTM=ON -DENABLE_MULTIFRAME_8X8_CONVOLUTION=ON
         cmake --build . --config $BUILD_TYPE -j4
@@ -93,7 +93,7 @@ jobs:
     - name: Build
       working-directory: ${{github.workspace}}/build
       env:
-        CXXFLAGS: "-Wall -O3 -static-libstdc++ -static-libgcc"
+        CXXFLAGS: "-Wall -O3 -ffast-math -static-libstdc++ -static-libgcc"
       run: |
         cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_UTILS=ON -DBUILD_NAMCORE=ON -DBUILD_INTERNAL_STATIC_WAVENET=ON -DBUILD_INTERNAL_STATIC_LSTM=ON -DENABLE_MULTIFRAME_8X8_CONVOLUTION=ON -DCMAKE_TOOLCHAIN_FILE=/home/develop/opt/x-tools/aarch64-rpi3-linux-gnu/aarch64-${{ matrix.native_arch }}-linux-gnu.toolchain.cmake
         cmake --build . --config $BUILD_TYPE -j4
