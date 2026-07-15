@@ -386,20 +386,22 @@ namespace NeuralAudio
 
 			inputMixin.ProcessAcc(condition, block);
 
-			//if constexpr (Activation == EActivationType::Tanh)
-			//{
-			//	WAVENET_MATH::Tanh(&block);
-			//}
-			//else
-			
-			if constexpr (Activation == EActivationType::LeakyReLU)
+			if constexpr (Activation == EActivationType::Tanh)
+			{
+				WAVENET_MATH::Tanh(block.GetData(), block.GetNumChannels() * block.GetNumCols());
+			}
+			else if constexpr (Activation == EActivationType::LeakyReLU)
 			{
 				WAVENET_MATH::LeakyReLU(block.GetData(), block.GetNumChannels() * block.GetNumCols());
 			}
 
+			//headInput.GetEigenMap().noalias() += block.GetEigenMapConst();
+
 			headInput.AddData(block);
 
 			oneByOne.Process(block, output);
+
+			//output.GetEigenMap().noalias() += conv1D.GetInputBuffer(numFrames).GetEigenMapConst();
 
 			output.AddData(conv1D.GetInputBuffer(numFrames));
 		}
@@ -627,7 +629,7 @@ namespace NeuralAudio
 
 		void Process(const float* input, float* output, const size_t numFrames)
 		{
-			memcpy(condition.GetData(), input, numFrames);
+			std::memcpy(condition.GetData(), input, numFrames * sizeof(float));
 
 			headArray.SetZero();
 
@@ -646,7 +648,7 @@ namespace NeuralAudio
 					}
 				});
 
-			const auto finalHeadArray = std::get<sizeof...(LayerArrays) - 1>(layerArrays).headOutputs.GetData();
+			const float* finalHeadArray = std::get<sizeof...(LayerArrays) - 1>(layerArrays).headOutputs.GetData();
 
 			for (size_t i = 0; i < numFrames; i++)
 			{

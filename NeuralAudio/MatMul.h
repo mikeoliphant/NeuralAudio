@@ -5,7 +5,9 @@ namespace NeuralAudio
 	template <int InChannels, int OutChannels>
 	struct MatMul
 	{
-		static constexpr bool HasKernel() { return ((InChannels == 3) && ((OutChannels == 3) || (OutChannels == 1))); }
+		#define IsKernel(In, Out) ((InChannels == In) && (OutChannels == Out))
+
+		static constexpr bool HasKernel() { return (IsKernel(3, 3) || IsKernel(3, 1) || IsKernel(1, 3)); }
 
 		// 3x3 implementation inspired by @jfsantos NAM Core a2fast - https://github.com/sdatkinson/NeuralAmpModelerCore/blob/main/NAM/wavenet/a2_fast.cpp
 
@@ -13,7 +15,7 @@ namespace NeuralAudio
 		{
 			static_assert(HasKernel(), "Multiplication not implemented for InChannel/OutChannel combination");
 
-			if constexpr ((InChannels == 3) && (OutChannels == 3))
+			if constexpr (IsKernel(3, 3))
 			{
 				const float w00 = weights[0], w10 = weights[1], w20 = weights[2];
 				const float w01 = weights[3], w11 = weights[4], w21 = weights[5];
@@ -39,7 +41,7 @@ namespace NeuralAudio
 					out[2] = a2;
 				}
 			}
-			else if constexpr ((InChannels == 3) && (OutChannels == 1))
+			else if constexpr (IsKernel(3, 1))
 			{
 				const float w0 = weights[0], w1 = weights[1], w2 = weights[2];
 
@@ -48,10 +50,26 @@ namespace NeuralAudio
 					const size_t offset = frame * 3;
 					const float* in = &inData[offset];
 
-					float a0 = w0 * in[frame * 3];
+					float a0 = w0 * in[0];
 					a0 += w1 * in[1];
 					a0 += w2 * in[2];
 					outData[frame] = a0;
+				}
+			}
+			else if constexpr (IsKernel(1, 3))
+			{
+				const float w0 = weights[0], w1 = weights[1], w2 = weights[2];
+
+				for (size_t frame = 0; frame < numFrames; frame++)
+				{
+					const size_t offset = frame * 3;
+					float* out = &outData[offset];
+
+					const float in = inData[frame];
+
+					out[0] = w0 * in;
+					out[1] = w1 * in;
+					out[2] = w2 * in;
 				}
 			}
 		}
@@ -60,7 +78,7 @@ namespace NeuralAudio
 		{
 			static_assert(HasKernel(), "Multiplication not implemented for InChannel/OutChannel combination");
 
-			if constexpr ((InChannels == 3) && (OutChannels == 3))
+			if constexpr (IsKernel(3, 3))
 			{
 				const float w00 = weights[0], w10 = weights[1], w20 = weights[2];
 				const float w01 = weights[3], w11 = weights[4], w21 = weights[5];
@@ -86,7 +104,7 @@ namespace NeuralAudio
 					out[2] = a2;
 				}
 			}
-			else if constexpr ((InChannels == 3) && (OutChannels == 1))
+			else if constexpr (IsKernel(3, 1))
 			{
 				const float w0 = weights[0], w1 = weights[1], w2 = weights[2];
 
@@ -101,13 +119,46 @@ namespace NeuralAudio
 					outData[frame] = a0;
 				}
 			}
+			else if constexpr (IsKernel(1, 3))
+			{
+				const float w0 = weights[0], w1 = weights[1], w2 = weights[2];
+
+				for (size_t frame = 0; frame < numFrames; frame++)
+				{
+					const size_t offset = frame * 3;
+					float* out = &outData[offset];
+
+					const float in = inData[frame];
+					const float init = initData[0];
+
+					out[0] = init + (w0 * in);
+					out[1] = init + (w1 * in);
+					out[2] = init + (w2 * in);
+				}
+			}
+			else if constexpr (IsKernel(1, 3))
+			{
+				const float w0 = weights[0], w1 = weights[1], w2 = weights[2];
+
+				for (size_t frame = 0; frame < numFrames; frame++)
+				{
+					const size_t offset = frame * 3;
+					float* out = &outData[offset];
+
+					const float in = inData[frame];
+
+					out[0] += w0 * in;
+					out[1] += w1 * in;
+					out[2] += w2 * in;
+				}
+			}
 		}
 
 		static inline void MultiplyAccumlulate(const float* inData, float* outData, const float* weights, size_t numFrames)
 		{
 			static_assert(HasKernel(), "Multiplication not implemented for InChannel/OutChannel combination");
 
-			if constexpr ((InChannels == 3) && (OutChannels == 3))
+			if constexpr (IsKernel(3, 3))
 			{
 				const float w00 = weights[0], w10 = weights[1], w20 = weights[2];
 				const float w01 = weights[3], w11 = weights[4], w21 = weights[5];
@@ -133,7 +184,7 @@ namespace NeuralAudio
 					out[2] = a2;
 				}		
 			}
-			else if constexpr ((InChannels == 3) && (OutChannels == 1))
+			else if constexpr (IsKernel(3, 1))
 			{
 				const float w0 = weights[0], w1 = weights[1], w2 = weights[2];
 

@@ -197,7 +197,7 @@ namespace NeuralAudio
 				const T* srcPtr = srcSpan.GetDataConst();
 				T* destPtr = GetData();
 
-				memmove(destPtr, srcPtr, Channels * numCols);
+				memmove(destPtr, srcPtr, Channels * numCols * sizeof(T));
 			}
 
 			void AddData(const ChannelRowSpan<T, Channels>& srcSpan) const

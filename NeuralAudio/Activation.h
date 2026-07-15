@@ -63,12 +63,8 @@ namespace NeuralAudio
 
 	struct FastMath
 	{
-		template <typename Matrix>
-		static void Tanh(Matrix *x)
+		static void Tanh(float* data, size_t size)
 		{			
-			float* data = x->data();
-			size_t size = x->rows() * x->cols();
-
 			for (size_t pos = 0; pos < size; pos++)
 			{
 				data[pos] = Tanh(data[pos]);
