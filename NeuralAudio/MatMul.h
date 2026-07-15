@@ -7,7 +7,7 @@ namespace NeuralAudio
 	{
 		#define IsKernel(In, Out) ((InChannels == In) && (OutChannels == Out))
 
-		static constexpr bool HasKernel() { return (IsKernel(3, 3) || IsKernel(3, 1) || IsKernel(1, 3)); }
+		static constexpr bool HasKernel() { return (IsKernel(3, 3) || IsKernel(8, 1) || IsKernel(3, 1) || IsKernel(1, 3)); }
 
 		// 3x3 implementation inspired by @jfsantos NAM Core a2fast - https://github.com/sdatkinson/NeuralAmpModelerCore/blob/main/NAM/wavenet/a2_fast.cpp
 
@@ -39,6 +39,27 @@ namespace NeuralAudio
 					out[0] = a0;
 					out[1] = a1;
 					out[2] = a2;
+				}
+			}
+			else if constexpr (IsKernel(8, 1))
+			{
+				const float w0 = weights[0], w1 = weights[1], w2 = weights[2], w3 = weights[3];
+				const float w4 = weights[4], w5 = weights[5], w6 = weights[6], w7 = weights[7];
+
+				for (size_t frame = 0; frame < numFrames; frame++)
+				{
+					const size_t offset = frame * InChannels;
+					const float* in = &inData[offset];
+
+					float a0 = w0 * in[0];
+					a0 += w1 * in[1];
+					a0 += w2 * in[2];
+					a0 += w3 * in[3];
+					a0 += w4 * in[4];
+					a0 += w5 * in[5];
+					a0 += w6 * in[6];
+					a0 += w7 * in[7];
+					outData[frame] = a0;
 				}
 			}
 			else if constexpr (IsKernel(3, 1))
@@ -104,6 +125,29 @@ namespace NeuralAudio
 					out[2] = a2;
 				}
 			}
+			else if constexpr (IsKernel(8, 1))
+			{
+				const float w0 = weights[0], w1 = weights[1], w2 = weights[2], w3 = weights[3];
+				const float w4 = weights[4], w5 = weights[5], w6 = weights[6], w7 = weights[7];
+
+				const float init = initData[0];
+
+				for (size_t frame = 0; frame < numFrames; frame++)
+				{
+					const size_t offset = frame * InChannels;
+					const float* in = &inData[offset];
+
+					float a0 = init + w0 * in[0];
+					a0 += w1 * in[1];
+					a0 += w2 * in[2];
+					a0 += w3 * in[3];
+					a0 += w4 * in[4];
+					a0 += w5 * in[5];
+					a0 += w6 * in[6];
+					a0 += w7 * in[7];
+					outData[frame] = a0;
+				}
+			}
 			else if constexpr (IsKernel(3, 1))
 			{
 				const float w0 = weights[0], w1 = weights[1], w2 = weights[2];
@@ -167,6 +211,27 @@ namespace NeuralAudio
 					out[1] = a1;
 					out[2] = a2;
 				}		
+			}
+			else if constexpr (IsKernel(8, 1))
+			{
+				const float w0 = weights[0], w1 = weights[1], w2 = weights[2], w3 = weights[3];
+				const float w4 = weights[4], w5 = weights[5], w6 = weights[6], w7 = weights[7];
+
+				for (size_t frame = 0; frame < numFrames; frame++)
+				{
+					const size_t offset = frame * InChannels;
+					const float* in = &inData[offset];
+
+					float a0 = outData[frame] + w0 * in[0];
+					a0 += w1 * in[1];
+					a0 += w2 * in[2];
+					a0 += w3 * in[3];
+					a0 += w4 * in[4];
+					a0 += w5 * in[5];
+					a0 += w6 * in[6];
+					a0 += w7 * in[7];
+					outData[frame] = a0;
+				}
 			}
 			else if constexpr (IsKernel(3, 1))
 			{
