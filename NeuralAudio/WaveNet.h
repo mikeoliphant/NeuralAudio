@@ -124,7 +124,7 @@ namespace NeuralAudio
 		inline void Process(const ChannelRowSpan<float, OutChannels>& output)
 		{
 			const size_t numFrames = output.GetNumCols();
-			float* outputPtr = output.GetData();
+			float* __restrict outputPtr = output.GetData();
 
 #if ENABLE_MULTIFRAME_8X8_CONVOLUTION
 			if constexpr ((InChannels == 8) && (OutChannels == 8) && DoBias)
@@ -136,17 +136,17 @@ namespace NeuralAudio
 
 				for (size_t f = 0; f < nF4; f += tileSize)
 				{
-					float a[tileSize][InChannels]{};
+					alignas(32) float a[tileSize][InChannels]{};
 
 					for (size_t k = 0; k < KernelSize; k++)
 					{
-						const float* W = weightPtrs[k];
+						const float* __restrict W = weightPtrs[k];
 						const auto offset = Dilation * (k + 1 - KernelSize);
-						const float* hb = channelBuffer.buffer.GetDataConst(channelBuffer.bufferStart + offset + f);
+						const float* __restrict hb = channelBuffer.buffer.GetDataConst(channelBuffer.bufferStart + offset + f);
 
 						for (size_t cp = 0; cp < InChannels; cp++)
 						{
-							const float* Wcol = W + cp * InChannels;
+							const float* __restrict Wcol = W + cp * InChannels;
 							const float h0 = hb[cp], h1 = hb[InChannels + cp], h2 = hb[2 * InChannels + cp], h3 = hb[3 * InChannels + cp];
 
 							for (size_t o = 0; o < InChannels; o++)
