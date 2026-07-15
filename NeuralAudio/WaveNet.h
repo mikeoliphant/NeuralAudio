@@ -110,6 +110,12 @@ namespace NeuralAudio
 			}
 		}
 
+		Conv1DT()
+		{
+			for (int k = 0; k < KernelSize; k++)
+				weightPtrs[k] = weights[k].GetData();
+		}
+
 		auto GetInputBuffer(size_t numFrames)
 		{
 			return channelBuffer.buffer.Slice(channelBuffer.bufferStart, numFrames);
@@ -134,7 +140,7 @@ namespace NeuralAudio
 
 					for (size_t k = 0; k < KernelSize; k++)
 					{
-						const float* W = this->weights[k].GetData();
+						const float* W = weightPtrs[k];
 						const auto offset = Dilation * (k + 1 - KernelSize);
 						const float* hb = channelBuffer.buffer.GetDataConst(channelBuffer.bufferStart + offset + f);
 
@@ -167,7 +173,7 @@ namespace NeuralAudio
 
 					for (size_t k = 0; k < KernelSize; k++)
 					{
-						const float* W = this->weights[k].GetData();
+						const float* W = weightPtrs[k];
 						const auto offset = Dilation * (k + 1 - KernelSize);
 						const float* h = channelBuffer.buffer.GetDataConst(channelBuffer.bufferStart + offset + f);
 
@@ -235,7 +241,8 @@ namespace NeuralAudio
 		}
 
 	private:
-		alignas(32) std::array<ChannelBuffer<float, OutChannels, InChannels>, KernelSize> weights;
+		alignas(32) std::array<ChannelBuffer<float, OutChannels, InChannels>, KernelSize> weights;	// consider making this a contiguous block of data instead of block of ChannelBuffers
+		std::array<float *, KernelSize> weightPtrs;
 
 		// Avoid allocation for unused bias
 		using BiasType = typename std::conditional<DoBias,
