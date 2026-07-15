@@ -103,7 +103,7 @@ namespace NeuralAudio
 			}
 
 		private:
-			std::array<std::array<T, Channels>, Cols> data;
+			alignas(32) std::array<std::array<T, Channels>, Cols> data;
 	};
 
 	template<typename T, int Channels>

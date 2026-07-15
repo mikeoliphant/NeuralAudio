@@ -235,7 +235,7 @@ namespace NeuralAudio
 		}
 
 	private:
-		std::array<ChannelBuffer<float, OutChannels, InChannels>, KernelSize> weights;
+		alignas(32) std::array<ChannelBuffer<float, OutChannels, InChannels>, KernelSize> weights;
 
 		// Avoid allocation for unused bias
 		using BiasType = typename std::conditional<DoBias,
@@ -395,15 +395,15 @@ namespace NeuralAudio
 				WAVENET_MATH::LeakyReLU(block.GetData(), block.GetNumChannels() * block.GetNumCols());
 			}
 
-			//headInput.GetEigenMap().noalias() += block.GetEigenMapConst();
+			headInput.GetEigenMap().noalias() += block.GetEigenMapConst();
 
-			headInput.AddData(block);
+			//headInput.AddData(block);
 
 			oneByOne.Process(block, output);
 
-			//output.GetEigenMap().noalias() += conv1D.GetInputBuffer(numFrames).GetEigenMapConst();
+			output.GetEigenMap().noalias() += conv1D.GetInputBuffer(numFrames).GetEigenMapConst();
 
-			output.AddData(conv1D.GetInputBuffer(numFrames));
+			//output.AddData(conv1D.GetInputBuffer(numFrames));
 		}
 	};
 
@@ -541,7 +541,9 @@ namespace NeuralAudio
 
 			//headRechannel.channelBuffer.buffer.middleCols(headRechannel.channelBuffer.bufferStart, numFrames).noalias() = headInputs.leftCols(numFrames);	// Should be able to avoid this copy
 
-			headRechannel.GetInputBuffer(numFrames).CopyData(headInputs);
+			//headRechannel.GetInputBuffer(numFrames).CopyData(headInputs);
+
+			headRechannel.GetInputBuffer(numFrames).GetEigenMap().noalias() = headInputs.GetEigenMapConst();
 			headRechannel.Process(headOutputs.Slice(numFrames));
 			headRechannel.channelBuffer.AdvanceFrames(numFrames);
 		}

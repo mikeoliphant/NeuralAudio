@@ -122,23 +122,7 @@ namespace NeuralAudio
 			else if constexpr (IsKernel(1, 3))
 			{
 				const float w0 = weights[0], w1 = weights[1], w2 = weights[2];
-
-				for (size_t frame = 0; frame < numFrames; frame++)
-				{
-					const size_t offset = frame * 3;
-					float* out = &outData[offset];
-
-					const float in = inData[frame];
-					const float init = initData[0];
-
-					out[0] = init + (w0 * in);
-					out[1] = init + (w1 * in);
-					out[2] = init + (w2 * in);
-				}
-			}
-			else if constexpr (IsKernel(1, 3))
-			{
-				const float w0 = weights[0], w1 = weights[1], w2 = weights[2];
+				const float init0 = inData[0], init1 = inData[1], init2 = inData[2];
 
 				for (size_t frame = 0; frame < numFrames; frame++)
 				{
@@ -147,9 +131,9 @@ namespace NeuralAudio
 
 					const float in = inData[frame];
 
-					out[0] += w0 * in;
-					out[1] += w1 * in;
-					out[2] += w2 * in;
+					out[0] = init0 + (w0 * in);
+					out[1] = init1 + (w1 * in);
+					out[2] = init2 + (w2 * in);
 				}
 			}
 		}
@@ -197,6 +181,22 @@ namespace NeuralAudio
 					a0 += w1 * in[1];
 					a0 += w2 * in[2];
 					outData[frame] = a0;
+				}
+			}
+			else if constexpr (IsKernel(1, 3))
+			{
+				const float w0 = weights[0], w1 = weights[1], w2 = weights[2];
+
+				for (size_t frame = 0; frame < numFrames; frame++)
+				{
+					const size_t offset = frame * 3;
+					float* out = &outData[offset];
+
+					const float in = inData[frame];
+
+					out[0] += w0 * in;
+					out[1] += w1 * in;
+					out[2] += w2 * in;
 				}
 			}
 		}
