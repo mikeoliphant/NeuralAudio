@@ -42,15 +42,15 @@ jobs:
       with:
         submodules: recursive
 
-    - name: Setup GCC 15
-      uses: egor-tensin/setup-gcc@v2
+    - name: Setup Clang 21
+      uses: egor-tensin/ssetup-clang@v2
       with:
-        version: '15'
+        version: '21'
     
     - name: Build
       working-directory: ${{github.workspace}}/build
       env:
-        CXX: g++-15
+        CXX: clang++
         CXXFLAGS: "-Wall -O3 -march=${{ matrix.native_arch }} -static-libstdc++ -static-libgcc"      
       run: |
         cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_UTILS=ON -DBUILD_NAMCORE=ON -DBUILD_INTERNAL_STATIC_WAVENET=ON -DBUILD_INTERNAL_STATIC_LSTM=ON -DENABLE_MULTIFRAME_8X8_CONVOLUTION=ON
