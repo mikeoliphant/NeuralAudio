@@ -43,7 +43,7 @@ jobs:
         submodules: recursive
 
     - name: Setup Clang 21
-      uses: egor-tensin/ssetup-clang@v2
+      uses: egor-tensin/setup-clang@v2
       with:
         version: '21'
     
