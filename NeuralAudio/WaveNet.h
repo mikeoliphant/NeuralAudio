@@ -151,7 +151,7 @@ namespace NeuralAudio
 
 							for (size_t o = 0; o < InChannels; o++)
 							{
-								const float wo = Wcol[0];
+								const float wo = Wcol[o];
 								a[0][o] += wo * h0;
 								a[1][o] += wo * h1;
 								a[2][o] += wo * h2;
