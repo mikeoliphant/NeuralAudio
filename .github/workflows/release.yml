@@ -45,7 +45,7 @@ jobs:
     - name: Setup Clang 21
       uses: egor-tensin/setup-clang@v2
       with:
-        version: '21'
+        version: '22'
     
     - name: Build
       working-directory: ${{github.workspace}}/build
@@ -82,7 +82,7 @@ jobs:
         native_arch: [rpi4, rpi5]
     runs-on: ubuntu-latest
     container: 
-      image: ghcr.io/tttapa/docker-arm-cross-toolchain:aarch64-rpi3-linux-gnu-gcc15
+      image: ghcr.io/tttapa/docker-arm-cross-toolchain:aarch64-rpi3-linux-gnu-gcc16
     env:
       ARCHIVE_NAME: ModelTest_${{ matrix.native_arch }}.tgz
     steps:
