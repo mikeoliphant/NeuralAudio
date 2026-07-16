@@ -42,18 +42,18 @@ jobs:
       with:
         submodules: recursive
 
-    - name: Setup GCC 15
-      uses: egor-tensin/setup-gcc@v2
+    - name: Setup Clang 21
+      uses: egor-tensin/setup-clang@v2
       with:
-        version: '15'
+        version: '22'
     
     - name: Build
       working-directory: ${{github.workspace}}/build
       env:
-        CXX: g++-15
-        CXXFLAGS: "-Wall -O3 -ffast-math -march=${{ matrix.native_arch }} -static-libstdc++ -static-libgcc"      
+        CXX: clang++
+        CXXFLAGS: "-Wall -O3 -march=${{ matrix.native_arch }} -static-libstdc++ -static-libgcc"      
       run: |
-        cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_UTILS=ON -DBUILD_NAMCORE=ON -DBUILD_INTERNAL_STATIC_WAVENET=ON -DBUILD_INTERNAL_STATIC_LSTM=ON -DENABLE_MULTIFRAME_8X8_CONVOLUTION=ON
+        cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_UTILS=ON -DBUILD_NAMCORE=ON -DBUILD_INTERNAL_STATIC_WAVENET=ON -DBUILD_INTERNAL_STATIC_LSTM=ON -DENABLE_MULTIFRAME_8X8_CONVOLUTION=${{ matrix.native_arch == 'x86-64-v3' && 'ON' || 'OFF' }}
         cmake --build . --config $BUILD_TYPE -j4
 
     - name: Add Archive
@@ -82,7 +82,7 @@ jobs:
         native_arch: [rpi4, rpi5]
     runs-on: ubuntu-latest
     container: 
-      image: ghcr.io/tttapa/docker-arm-cross-toolchain:aarch64-rpi3-linux-gnu-gcc15
+      image: ghcr.io/tttapa/docker-arm-cross-toolchain:aarch64-rpi3-linux-gnu-gcc16
     env:
       ARCHIVE_NAME: ModelTest_${{ matrix.native_arch }}.tgz
     steps:
@@ -93,7 +93,7 @@ jobs:
     - name: Build
       working-directory: ${{github.workspace}}/build
       env:
-        CXXFLAGS: "-Wall -O3 -ffast-math -static-libstdc++ -static-libgcc"
+        CXXFLAGS: "-Wall -O3 -static-libstdc++ -static-libgcc"
       run: |
         cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_UTILS=ON -DBUILD_NAMCORE=ON -DBUILD_INTERNAL_STATIC_WAVENET=ON -DBUILD_INTERNAL_STATIC_LSTM=ON -DENABLE_MULTIFRAME_8X8_CONVOLUTION=ON -DCMAKE_TOOLCHAIN_FILE=/home/develop/opt/x-tools/aarch64-rpi3-linux-gnu/aarch64-${{ matrix.native_arch }}-linux-gnu.toolchain.cmake
         cmake --build . --config $BUILD_TYPE -j4
@@ -135,7 +135,7 @@ jobs:
       env:
         CXXFLAGS: "/O2 -march=${{ matrix.native_arch }}"
       run: |
-        cmake.exe -G "Visual Studio 18 2026" -A x64  -T ClangCL -DBUILD_UTILS=ON -DBUILD_NAMCORE=ON -DBUILD_INTERNAL_STATIC_WAVENET=ON -DBUILD_INTERNAL_STATIC_LSTM=ON -DENABLE_MULTIFRAME_8X8_CONVOLUTION=ON ..
+        cmake.exe -G "Visual Studio 18 2026" -A x64  -T ClangCL -DBUILD_UTILS=ON -DBUILD_NAMCORE=ON -DBUILD_INTERNAL_STATIC_WAVENET=ON -DBUILD_INTERNAL_STATIC_LSTM=ON -DENABLE_MULTIFRAME_8X8_CONVOLUTION=${{ matrix.native_arch == 'x86-64-v3' && 'ON' || 'OFF' }} ..
         cmake --build . --config=release -j4
 
     - name: Add Archive

@@ -151,10 +151,11 @@ namespace NeuralAudio
 
 							for (size_t o = 0; o < InChannels; o++)
 							{
-								a[0][o] += Wcol[o] * h0;
-								a[1][o] += Wcol[o] * h1;
-								a[2][o] += Wcol[o] * h2;
-								a[3][o] += Wcol[o] * h3;
+								const float wo = Wcol[o];
+								a[0][o] += wo * h0;
+								a[1][o] += wo * h1;
+								a[2][o] += wo * h2;
+								a[3][o] += wo * h3;
 							}
 						}
 					}
