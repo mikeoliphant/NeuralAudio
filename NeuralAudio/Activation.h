@@ -3,6 +3,7 @@
 #include <cmath>
 #include <Eigen/Core>
 #include <math_approx/math_approx.hpp>
+#include <NeuralAudio/ChannelBuffer.h>
 
 namespace NeuralAudio
 {
@@ -16,11 +17,11 @@ namespace NeuralAudio
 
 	struct StdMath
 	{
-		template <typename Matrix>
-		static void Tanh(Matrix *x)
+		template<typename Buffer>
+		static void Tanh(Buffer& channelBuffer)
 		{
-			float* data = x->data();
-			size_t size = x->rows() * x->cols();
+			float* data = channelBuffer.GetData();
+			size_t size = channelBuffer.GetSize();
 
 			for (size_t pos = 0; pos < size; pos++)
 			{
@@ -38,11 +39,11 @@ namespace NeuralAudio
 			return 1.0f / (1.0f + std::exp(-x));
 		}
 
-		template <typename Matrix>
-		static void LeakyReLU(Matrix* x)
+		template<typename Buffer>
+		static void LeakyReLU(Buffer& channelBuffer)
 		{
-			float* data = x->data();
-			size_t size = x->rows() * x->cols();
+			float* data = channelBuffer.GetData();
+			size_t size = channelBuffer.GetSize();
 
 			for (size_t pos = 0; pos < size; pos++)
 			{
@@ -63,8 +64,12 @@ namespace NeuralAudio
 
 	struct FastMath
 	{
-		static void Tanh(float* data, size_t size)
-		{			
+		template<typename Buffer>
+		static void Tanh(Buffer& channelBuffer)
+		{
+			float* data = channelBuffer.GetData();
+			size_t size = channelBuffer.GetSize();
+
 			for (size_t pos = 0; pos < size; pos++)
 			{
 				data[pos] = Tanh(data[pos]);
@@ -73,10 +78,6 @@ namespace NeuralAudio
 
 		static inline float Tanh(const float x)
 		{
-			//return std::tanh(x);
-
-			//return math_approx::tanh<5>(x);
-
 			const float ax = fabsf(x);
 
 			const float x2 = x * x;
@@ -87,18 +88,14 @@ namespace NeuralAudio
 
 		static inline float Sigmoid(float x)
 		{
-			//return math_approx::sigmoid_exp<5>(x);
-
-			//return 1.0f / (1.0f + std::exp(-x));
 			return  0.5f * (Tanh(x * 0.5f) + 1);
 		}
 
-		static void LeakyReLU(float *data, size_t size)
+		template<typename Buffer>
+		static void LeakyReLU(Buffer& channelBuffer)
 		{
-			//*x = (x->array() < 0.0f).select(x->array() * 0.01f, x->array());
-
-			//float* data = channelData.GetData();
-			//size_t size = Channels * channelData.NumCols();
+			float* data = channelBuffer.GetData();
+			size_t size = channelBuffer.GetSize();
 
 			for (size_t pos = 0; pos < size; pos++)
 			{
@@ -119,10 +116,12 @@ namespace NeuralAudio
 
 	struct EigenMath
 	{
-		template <typename Matrix>
-		static void Tanh(Matrix* x)
+		template<typename Buffer>
+		static void Tanh(Buffer& channelBuffer)
 		{
-			*x = x->array().tanh();
+			auto map = channelBuffer.GetEigenMap();
+
+			map = map.array().tanh();
 		}
 
 		static inline float Tanh(const float x)
@@ -130,10 +129,12 @@ namespace NeuralAudio
 			return Eigen::numext::tanh(x);
 		}
 
-		template <typename Matrix>
-		static void LeakyReLU(Matrix* x)
+		template<typename Buffer>
+		static void LeakyReLU(Buffer& channelBuffer)
 		{
-			*x = (x->array() < 0.0f).select(x->array() * 0.01f, x->array());
+			auto map = channelBuffer.GetEigenMap();
+
+			map = (map.array() < 0.0f).select(map.array() * 0.01f, map.array());
 		}
 
 		static inline float Sigmoid(float x)

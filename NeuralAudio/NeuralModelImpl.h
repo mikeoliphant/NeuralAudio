@@ -12,7 +12,8 @@ namespace NeuralAudio
 			void SetModelLoader(NeuralModelLoader* modelLoader)
 			{
 				this->loader = modelLoader;
-				audioInputLevelDBu = modelLoader->GetAudioInputLevelDBu();
+
+				SetAudioInputLevelDBu(modelLoader->GetAudioInputLevelDBu());
 			}
 
 			bool HadInitialPrewarm()

@@ -74,6 +74,16 @@ namespace NeuralAudio
 			(void)maxSize;
 		}
 
+		virtual void SetAudioInputLevelDBu(float audioDBu)
+		{
+			audioInputLevelDBu = audioDBu;
+		}
+
+		virtual float GetAudioInputLevelDBu()
+		{
+			return audioInputLevelDBu;
+		}
+
 		virtual float GetRecommendedInputDBAdjustment()
 		{
 			return audioInputLevelDBu - modelInputLevelDBu;
@@ -126,7 +136,7 @@ namespace NeuralAudio
 		}
 
 	protected:
-		float audioInputLevelDBu = 12;
+		float audioInputLevelDBu = (float)DEFAULT_INPUT_DBU;
 		float modelInputLevelDBu = 12;
 		float modelOutputLevelDBu = 12;
 		float modelLoudnessDB = -18;

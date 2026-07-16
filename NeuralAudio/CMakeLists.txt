@@ -168,6 +168,8 @@ target_include_directories(NeuralAudio SYSTEM PRIVATE ../deps/RTNeural/modules/j
 
 set_property(TARGET NeuralAudio PROPERTY POSITION_INDEPENDENT_CODE ON)
 
+set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "" FORCE)
+
 add_subdirectory(../deps/RTNeural RTNeural)
 add_subdirectory(../deps/math_approx math_approx)
 target_link_libraries(NeuralAudio LINK_PUBLIC RTNeural math_approx)

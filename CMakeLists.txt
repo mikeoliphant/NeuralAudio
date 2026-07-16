@@ -1,6 +1,6 @@
-﻿cmake_minimum_required(VERSION 3.5)
+﻿cmake_minimum_required(VERSION 3.10)
 
-project(NeuralAudio VERSION 0.0.1)
+project(NeuralAudio VERSION 0.1.3)
 
 add_subdirectory(NeuralAudio)
 add_subdirectory(NeuralAudioCAPI)

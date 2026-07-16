@@ -396,11 +396,11 @@ namespace NeuralAudio
 
 			if constexpr (Activation == EActivationType::Tanh)
 			{
-				WAVENET_MATH::Tanh(block.GetData(), block.GetNumChannels() * block.GetNumCols());
+				WAVENET_MATH::Tanh(block);
 			}
 			else if constexpr (Activation == EActivationType::LeakyReLU)
 			{
-				WAVENET_MATH::LeakyReLU(block.GetData(), block.GetNumChannels() * block.GetNumCols());
+				WAVENET_MATH::LeakyReLU(block);
 			}
 
 			headInput.GetEigenMap().noalias() += block.GetEigenMapConst();

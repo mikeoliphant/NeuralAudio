@@ -13,6 +13,7 @@ namespace NeuralAudio
 	class ChannelBufferBase
 	{
 		public:
+			virtual size_t GetSize() const { return 0; }
 			virtual size_t GetNumCols() const { return 0; }
 			size_t GetNumChannels() const { return Channels; }
 			virtual T* GetData() { return nullptr; }
@@ -40,6 +41,11 @@ namespace NeuralAudio
 			{
 			}
 			
+			size_t GetSize() const override
+			{
+				return (size_t)(Channels * Cols);
+			}
+
 			size_t GetNumCols() const override
 			{
 				return Cols;
@@ -150,6 +156,11 @@ namespace NeuralAudio
 			const ChannelRowSpan<T, Channels> Slice(size_t numCols) const
 			{
 				return ChannelRowSpan<T, Channels>(buffer, this->startCol, numCols);
+			}
+
+			size_t GetSize() const
+			{
+				return GetNumChannels() * GetNumCols();
 			}
 
 			size_t GetNumCols() const
