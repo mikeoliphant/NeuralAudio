@@ -53,7 +53,7 @@ jobs:
         CXX: clang++
         CXXFLAGS: "-Wall -O3 -march=${{ matrix.native_arch }} -static-libstdc++ -static-libgcc"      
       run: |
-        cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_UTILS=ON -DBUILD_NAMCORE=ON -DBUILD_INTERNAL_STATIC_WAVENET=ON -DBUILD_INTERNAL_STATIC_LSTM=ON -DENABLE_MULTIFRAME_8X8_CONVOLUTION=ON
+        cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_UTILS=ON -DBUILD_NAMCORE=ON -DBUILD_INTERNAL_STATIC_WAVENET=ON -DBUILD_INTERNAL_STATIC_LSTM=ON -DENABLE_MULTIFRAME_8X8_CONVOLUTION=${{ matrix.native_arch == 'x86-64-v3' && 'ON' || 'OFF' }}
         cmake --build . --config $BUILD_TYPE -j4
 
     - name: Add Archive
@@ -135,7 +135,7 @@ jobs:
       env:
         CXXFLAGS: "/O2 -march=${{ matrix.native_arch }}"
       run: |
-        cmake.exe -G "Visual Studio 18 2026" -A x64  -T ClangCL -DBUILD_UTILS=ON -DBUILD_NAMCORE=ON -DBUILD_INTERNAL_STATIC_WAVENET=ON -DBUILD_INTERNAL_STATIC_LSTM=ON -DENABLE_MULTIFRAME_8X8_CONVOLUTION=ON ..
+        cmake.exe -G "Visual Studio 18 2026" -A x64  -T ClangCL -DBUILD_UTILS=ON -DBUILD_NAMCORE=ON -DBUILD_INTERNAL_STATIC_WAVENET=ON -DBUILD_INTERNAL_STATIC_LSTM=ON -DENABLE_MULTIFRAME_8X8_CONVOLUTION=${{ matrix.native_arch == 'x86-64-v3' && 'ON' || 'OFF' }} ..
         cmake --build . --config=release -j4
 
     - name: Add Archive
