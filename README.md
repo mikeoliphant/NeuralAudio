@@ -230,7 +230,7 @@ Note - you'll have to change the Visual Studio version if you are using a differ
 
 ```-DBUILD_STATIC_INTERNAL_NAMA2=ON|OFF```: Build internal static A2 implementation.
 
-```-DENABLE_MULTIFRAME_8X8_CONVOLUTION=ON|OFF```: Use optimized multiframe 8x8 convolution. Much faster on very modern compilers. Much slower on older compilers.
+```-DMULTIFRAME_8X8_CONVOLUTION="0"|"4"||"8"```: Use optimized multiframe 8x8 convolution. Much faster on very modern compilers. Much slower on older compilers. Be sure to use quotes around value. Defaults to "0" (disabled).
 
 ```-DDEFAULT_QUALITY_SCALE="X.X"```: Default model quality scale factor (0.0 to 1.0). Be sure to use quotes around value. Defaults to "1.0".
 
