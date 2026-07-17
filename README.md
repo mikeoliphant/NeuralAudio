@@ -224,7 +224,7 @@ The CMake setup for the library *does not* specify any optimization compiler fla
 and making sure that the compiler is targeting your CPU properly (ie: "-march=native" for GCC/Clang, "/arch:AVX2" for MSVC).
 
 One more specific note - the ```MULTIFRAME_8X8_CONVOLUTION``` option described in the next section enables very impactful performance increases when set to "4" or "8" ("0" is the default) on appropriate hardware and compilers.
-It also significantly *slows* performance if the optimizations are not properly supported. The best way to know which is the case in your scenario is to test it. The CMake config for this library does its best to default to the correct setting
+It also significantly *slows* performance if the optimizations are not properly supported. In general, assuming you have a very recent compiler you should be able to set it to "4" for systems with 128bit intrinsics (ie: Raspberry Pi 4) and "8" for systems with 256bit intrinsics (ie: Raspberry Pi 5, most x64 PCs). The best way to know what works in your scenario is to test it. The CMake config for this library does its best to default to the correct setting
 based on architecture and compiler.
 
 The "ModelTest" application binaries provided in the [Releases section](https://github.com/mikeoliphant/NeuralAudio/releases) have been optimized for various specific platforms and can be used as a basis for comparison.
