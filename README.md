@@ -214,6 +214,19 @@ cmake --build . --config=release -j4
 
 Note - you'll have to change the Visual Studio version if you are using a different one.
 
+## Performance considerations
+
+Optimization for this library is highly dependent on the details of the compiler you are using and the architecture of the system you intend to run on. In particular, getting the best performance relies on critical paths in the code being vectorized efficiently by the compiler for the target CPU.
+
+The CMake setup for the library *does not* specify any optimization compiler flags - you are responsible for doing that yourself. Specifically, that means doing the highest possible compiler optimization (ie: "-O3")
+and making sure that the compiler is targeting your CPU properly (ie: "-march=native" for GCC/Clang, "/arch:AVX2" for MSVC).
+
+One more specific note - the ```MULTIFRAME_8X8_CONVOLUTION``` option described in the next section enables very impactful performance increases when set to "4" or "8" ("0" is the default) on appropriate hardware and compilers.
+It also significantly *slows* performance if the optimizations are not properly supported. The best way to know which is the case in your scenario is to test it. The CMake config for this library does its best to default to the correct setting
+based on architecture and compiler.
+
+The "ModelTest" application binaries provided in the [Releases section](https://github.com/mikeoliphant/NeuralAudio/releases) have been optimized for various specific platforms and can be used as a basis for comparison.
+
 ## CMake Options
 
 ```-DBUILD_NAMCORE=ON|OFF```: Support loading models using the NAM Core implemenations.

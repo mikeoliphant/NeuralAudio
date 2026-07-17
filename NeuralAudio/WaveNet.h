@@ -126,15 +126,15 @@ namespace NeuralAudio
 			const size_t numFrames = output.GetNumCols();
 			float* __restrict outputPtr = output.GetData();
 
-#if ENABLE_MULTIFRAME_8X8_CONVOLUTION
+#if MULTIFRAME_8X8_CONVOLUTION != 0
 			if constexpr ((InChannels == 8) && (OutChannels == 8) && DoBias)
 			{
 				// Based on @jfsantos NAM Core implementation - https://github.com/sdatkinson/NeuralAmpModelerCore/pull/277
 
-				constexpr size_t tileSize = 4;
-				const size_t nF4 = (numFrames / tileSize) * tileSize;
+				constexpr size_t tileSize = MULTIFRAME_8X8_CONVOLUTION;
+				const size_t nFTile = (numFrames / tileSize) * tileSize;
 
-				for (size_t f = 0; f < nF4; f += tileSize)
+				for (size_t f = 0; f < nFTile; f += tileSize)
 				{
 					alignas(32) float a[tileSize][InChannels]{};
 
@@ -149,6 +149,10 @@ namespace NeuralAudio
 							const float* __restrict Wcol = W + cp * InChannels;
 							const float h0 = hb[cp], h1 = hb[InChannels + cp], h2 = hb[2 * InChannels + cp], h3 = hb[3 * InChannels + cp];
 
+#if MULTIFRAME_8X8_CONVOLUTION == 8
+							const float h4 = hb[4 * InChannels + cp], h5 = hb[5 * InChannels + cp], h6 = hb[6 * InChannels + cp], h7 = hb[7 * InChannels + cp];
+#endif
+
 							for (size_t o = 0; o < InChannels; o++)
 							{
 								const float wo = Wcol[o];
@@ -156,6 +160,12 @@ namespace NeuralAudio
 								a[1][o] += wo * h1;
 								a[2][o] += wo * h2;
 								a[3][o] += wo * h3;
+#if MULTIFRAME_8X8_CONVOLUTION == 8
+								a[4][o] += wo * h4;
+								a[5][o] += wo * h5;
+								a[6][o] += wo * h6;
+								a[7][o] += wo * h7;
+#endif
 							}
 						}
 					}
@@ -165,7 +175,7 @@ namespace NeuralAudio
 				}
 
 				// Scalar tail for any frames past the tile-aligned boundary.
-				for (size_t f = nF4; f < numFrames; f++)
+				for (size_t f = nFTile; f < numFrames; f++)
 				{
 					float* zf = outputPtr + static_cast<size_t>(f) * InChannels;
 
