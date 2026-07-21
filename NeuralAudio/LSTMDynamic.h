@@ -100,11 +100,11 @@ namespace NeuralAudio
 			gates = (inputHiddenWeights * state) + bias;
 
 			for (size_t i = 0; i < hiddenSize; i++)
-				cellState[i] = (LSTM_MATH::Sigmoid(gates[i + fOffset]) * cellState[i]) + (LSTM_MATH::Sigmoid(gates[i + iOffset]) *
-					LSTM_MATH::Tanh(gates[i + gOffset]));
+				cellState[i] = (LSTM_MATH<float>::Sigmoid(gates[i + fOffset]) * cellState[i]) + (LSTM_MATH<float>::Sigmoid(gates[i + iOffset]) *
+					LSTM_MATH<float>::Tanh(gates[i + gOffset]));
 
 			for (size_t i = 0; i < hiddenSize; i++)
-				state[i + hOffset] = LSTM_MATH::Sigmoid(gates[i + oOffset]) * LSTM_MATH::Tanh(cellState[i]);
+				state[i + hOffset] = LSTM_MATH<float>::Sigmoid(gates[i + oOffset]) * LSTM_MATH<float>::Tanh(cellState[i]);
 		}
 	};
 

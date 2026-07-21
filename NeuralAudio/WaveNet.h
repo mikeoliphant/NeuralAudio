@@ -406,11 +406,11 @@ namespace NeuralAudio
 
 			if constexpr (Activation == EActivationType::Tanh)
 			{
-				WAVENET_MATH::Tanh(block);
+				WAVENET_MATH<float>::Tanh<Channels>(block);
 			}
 			else if constexpr (Activation == EActivationType::LeakyReLU)
 			{
-				WAVENET_MATH::LeakyReLU(block);
+				WAVENET_MATH<float>::LeakyReLU<Channels>(block);
 			}
 
 			headInput.GetEigenMap().noalias() += block.GetEigenMapConst();
