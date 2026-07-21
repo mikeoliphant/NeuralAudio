@@ -127,11 +127,11 @@ namespace NeuralAudio
 			T* __restrict outputPtr = output.GetData();
 
 #if MULTIFRAME_8X8_CONVOLUTION != 0
-			if constexpr ((InChannels == 8) && (OutChannels == 8) && DoBias)
+			if constexpr ((((InChannels == 8) && (OutChannels == 8)) || ((InChannels == 16) && (OutChannels == 16))) && DoBias)
 			{
 				// Based on @jfsantos NAM Core implementation - https://github.com/sdatkinson/NeuralAmpModelerCore/pull/277
 
-				constexpr size_t tileSize = MULTIFRAME_8X8_CONVOLUTION;
+				constexpr size_t tileSize = (InChannels == 16) ? 4 : MULTIFRAME_8X8_CONVOLUTION;
 				const size_t nFTile = (numFrames / tileSize) * tileSize;
 
 				for (size_t f = 0; f < nFTile; f += tileSize)
@@ -147,25 +147,37 @@ namespace NeuralAudio
 						for (size_t cp = 0; cp < InChannels; cp++)
 						{
 							const T* __restrict Wcol = W + cp * InChannels;
-							const T h0 = hb[cp], h1 = hb[InChannels + cp], h2 = hb[2 * InChannels + cp], h3 = hb[3 * InChannels + cp];
 
-#if MULTIFRAME_8X8_CONVOLUTION == 8
-							const T h4 = hb[4 * InChannels + cp], h5 = hb[5 * InChannels + cp], h6 = hb[6 * InChannels + cp], h7 = hb[7 * InChannels + cp];
-#endif
-
-							for (size_t o = 0; o < InChannels; o++)
+							if constexpr (tileSize == 4)
 							{
-								const T wo = Wcol[o];
-								a[0][o] += wo * h0;
-								a[1][o] += wo * h1;
-								a[2][o] += wo * h2;
-								a[3][o] += wo * h3;
-#if MULTIFRAME_8X8_CONVOLUTION == 8
-								a[4][o] += wo * h4;
-								a[5][o] += wo * h5;
-								a[6][o] += wo * h6;
-								a[7][o] += wo * h7;
-#endif
+								const T h0 = hb[cp], h1 = hb[InChannels + cp], h2 = hb[2 * InChannels + cp], h3 = hb[3 * InChannels + cp];
+
+								for (size_t o = 0; o < InChannels; o++)
+								{
+									const T wo = Wcol[o];
+									a[0][o] += wo * h0;
+									a[1][o] += wo * h1;
+									a[2][o] += wo * h2;
+									a[3][o] += wo * h3;
+								}
+							}
+							else // tileSize == 8
+							{
+								const T h0 = hb[cp], h1 = hb[InChannels + cp], h2 = hb[2 * InChannels + cp], h3 = hb[3 * InChannels + cp];
+								const T h4 = hb[4 * InChannels + cp], h5 = hb[5 * InChannels + cp], h6 = hb[6 * InChannels + cp], h7 = hb[7 * InChannels + cp];
+
+								for (size_t o = 0; o < InChannels; o++)
+								{
+									const T wo = Wcol[o];
+									a[0][o] += wo * h0;
+									a[1][o] += wo * h1;
+									a[2][o] += wo * h2;
+									a[3][o] += wo * h3;
+									a[4][o] += wo * h4;
+									a[5][o] += wo * h5;
+									a[6][o] += wo * h6;
+									a[7][o] += wo * h7;
+								}
 							}
 						}
 					}
