@@ -98,14 +98,14 @@ namespace NeuralAudio
 				return ChannelRowSpan<T, Channels>(this, numCols);
 			}
 
-			const Eigen::Map<Eigen::Matrix<float, Channels, Cols>> GetEigenMap()
+			const Eigen::Map<Eigen::Matrix<T, Channels, Cols>> GetEigenMap()
 			{
-				return Eigen::Map<Eigen::Matrix<float, Channels, Cols>>(GetData(), Channels, GetNumCols());
+				return Eigen::Map<Eigen::Matrix<T, Channels, Cols>>(GetData(), Channels, GetNumCols());
 			}
 
-			const Eigen::Map<const Eigen::Matrix<float, Channels, Cols>> GetEigenMapConst() const
+			const Eigen::Map<const Eigen::Matrix<T, Channels, Cols>> GetEigenMapConst() const
 			{
-				return Eigen::Map<const Eigen::Matrix<float, Channels, Cols>>(GetDataConst(), Channels, GetNumCols());
+				return Eigen::Map<const Eigen::Matrix<T, Channels, Cols>>(GetDataConst(), Channels, GetNumCols());
 			}
 
 		private:
@@ -193,14 +193,14 @@ namespace NeuralAudio
 				return buffer->GetDataConst(this->startCol + startCol);
 			}
 
-			Eigen::Map<Eigen::Matrix<float, Channels, Eigen::Dynamic>> GetEigenMap() const
+			Eigen::Map<Eigen::Matrix<T, Channels, Eigen::Dynamic>> GetEigenMap() const
 			{
-				return Eigen::Map<Eigen::Matrix<float, Channels, Eigen::Dynamic>>(GetData(), Channels, numCols);
+				return Eigen::Map<Eigen::Matrix<T, Channels, Eigen::Dynamic>>(GetData(), Channels, numCols);
 			}
 
-			const Eigen::Map<const Eigen::Matrix<float, Channels, Eigen::Dynamic>> GetEigenMapConst() const
+			const Eigen::Map<const Eigen::Matrix<T, Channels, Eigen::Dynamic>> GetEigenMapConst() const
 			{
-				return Eigen::Map<const Eigen::Matrix<float, Channels, Eigen::Dynamic>>(GetDataConst(), Channels, numCols);
+				return Eigen::Map<const Eigen::Matrix<T, Channels, Eigen::Dynamic>>(GetDataConst(), Channels, numCols);
 			}
 
 			void CopyData(const ChannelRowSpan<T, Channels>& srcSpan) const

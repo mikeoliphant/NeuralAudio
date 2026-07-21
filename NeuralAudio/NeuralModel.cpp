@@ -395,7 +395,7 @@ namespace NeuralAudio
 						{
 							if (layerConfig.at("channels") == 3)
 							{
-								auto model = new InternalWaveNetModelT<NeuralAudio::WaveNetModelT<NeuralAudio::WaveNetLayerArrayT<1, 1, 1, 16, 1, 3, A2KernelSizes, A2Dilations, true, EActivationType::LeakyReLU>>>();
+								auto model = new InternalWaveNetModelT<NeuralAudio::WaveNetModelT<float, NeuralAudio::WaveNetLayerArrayT<float, 1, 1, 1, 16, 1, 3, A2KernelSizes, A2Dilations, true, EActivationType::LeakyReLU>>>();
 
 								if (model != nullptr)
 								{
@@ -407,7 +407,7 @@ namespace NeuralAudio
 							}
 							else if (layerConfig.at("channels") == 8)
 							{
-								auto model = new InternalWaveNetModelT <NeuralAudio::WaveNetModelT<NeuralAudio::WaveNetLayerArrayT<1, 1, 1, 16, 1, 8, A2KernelSizes, A2Dilations, true, EActivationType::LeakyReLU>>>();
+								auto model = new InternalWaveNetModelT <NeuralAudio::WaveNetModelT<float, NeuralAudio::WaveNetLayerArrayT<float, 1, 1, 1, 16, 1, 8, A2KernelSizes, A2Dilations, true, EActivationType::LeakyReLU>>>();
 
 								if (model != nullptr)
 								{
