@@ -92,7 +92,7 @@ namespace NeuralAudio
 
 		static inline T Sigmoid(T x)
 		{
-			return  TCONST(0.5) * (Tanh(x * TCONST(0.5) + TCONST(1)));
+			return  TCONST(0.5) * (Tanh(x * TCONST(0.5)) + TCONST(1));
 		}
 
 		template<size_t Channels>
