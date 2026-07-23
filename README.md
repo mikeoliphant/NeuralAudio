@@ -245,11 +245,11 @@ The "ModelTest" application binaries provided in the [Releases section](https://
 
 ```-DBUILD_STATIC_INTERNAL_NAMA2=ON|OFF```: Build internal static A2 implementation.
 
-```-DMULTIFRAME_8X8_CONVOLUTION="0"|"4"||"8"```: Use optimized multiframe 8x8 convolution. Much faster on very modern compilers. Much slower on older compilers. Be sure to use quotes around value. Defaults to "0" (disabled).
+```-DMULTIFRAME_8X8_CONVOLUTION=0|4|8```: Use optimized multiframe 8x8 convolution. Much faster on very modern compilers. Much slower on older compilers. Defaults to "0" (disabled).
 
 ```-DDEFAULT_QUALITY_SCALE="X.X"```: Default model quality scale factor (0.0 to 1.0). Be sure to use quotes around value. Defaults to "1.0".
 
-```-DDEFAULT_INPUT_DBU="XX"```: Default dBu level for model input calibration.
+```-DDEFAULT_INPUT_DBU="XX"```: Default dBu level for model input calibration. Be sure to use quotes around floating point values. Defaults to "12.0".
 
 ```-DWAVENET_FRAMES=XXX```: Sample buffer size for the internal WaveNet implementation. Defaults to **64**. If you know you are going to be using a fixed sample buffer smaller or larger than this, use that instead. Note that the model will still be able to process any buffer size - it is just optimized for this size.
 
