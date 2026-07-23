@@ -388,6 +388,8 @@ namespace NeuralAudio
 
 	public:
 		static constexpr auto ReceptiveFieldSize = (KernelSize - 1) * Dilation;
+		static constexpr auto KernelSizeP = KernelSize;
+		static constexpr auto DilationP = Dilation;
 
 		WaveNetLayerT()
 		{
@@ -504,12 +506,11 @@ namespace NeuralAudio
 		DenseLayerT<T, InputSize, Channels, false> rechannel;
 		Conv1DT<T, Channels, HeadSize, HeadKernelSize, HasHeadBias, HeadDilation> headRechannel;
 
-		static constexpr auto numLayers = std::tuple_size_v<decltype (layers)>;
-		static constexpr auto lastLayer = numLayers - 1;
-
 	public:
 		static constexpr auto NumChannelsP = Channels;
 		static constexpr auto HeadSizeP = HeadSize;
+		static constexpr auto NumLayers = std::tuple_size_v<decltype (layers)>;
+		static constexpr auto LastLayer = NumLayers - 1;
 
 		ChannelBuffer<T, Channels, WAVENET_MAX_NUM_FRAMES> arrayOutputs;
 		ChannelBuffer<T, HeadSize, WAVENET_MAX_NUM_FRAMES> headOutputs;
@@ -517,7 +518,7 @@ namespace NeuralAudio
 
 		WaveNetLayerArrayT()
 		{
-			ForEachIndex<numLayers>([&](auto layerIndex)
+			ForEachIndex<NumLayers>([&](auto layerIndex)
 				{
 					ReceptiveFieldSize += std::get<layerIndex>(layers).ReceptiveFieldSize;
 				});
@@ -527,7 +528,7 @@ namespace NeuralAudio
 
 		int AllocBuffers(int allocNum)
 		{
-			ForEachIndex<numLayers>([&](auto layerIndex)
+			ForEachIndex<NumLayers>([&](auto layerIndex)
 				{
 					std::get<layerIndex>(layers).AllocBuffer(allocNum++);
 				});
@@ -541,7 +542,7 @@ namespace NeuralAudio
 		{
 			size_t numWeights = rechannel.GetNumWeights();
 
-			ForEachIndex<numLayers>([&](auto layerIndex)
+			ForEachIndex<NumLayers>([&](auto layerIndex)
 				{
 					numWeights += std::get<layerIndex>(layers).GetNumWeights();
 				});
@@ -555,7 +556,7 @@ namespace NeuralAudio
 		{
 			rechannel.SetWeights(weights);
 
-			ForEachIndex<numLayers>([&](auto layerIndex)
+			ForEachIndex<NumLayers>([&](auto layerIndex)
 				{
 					std::get<layerIndex>(layers).SetWeights(weights);
 				});
@@ -592,11 +593,11 @@ namespace NeuralAudio
 		{
 			rechannel.Process(layerInputs, std::get<0>(layers).GetInputBuffer(1));
 
-			ForEachIndex<numLayers>([&](auto layerIndex)
+			ForEachIndex<NumLayers>([&](auto layerIndex)
 				{
 					std::get<layerIndex>(layers).CopyBuffer();
 
-					if constexpr (layerIndex == lastLayer)
+					if constexpr (layerIndex == LastLayer)
 					{
 						std::get<layerIndex>(layers).Process(condition, headInputs, arrayOutputs.Slice(1));
 					}
@@ -619,9 +620,9 @@ namespace NeuralAudio
 
 			rechannel.Process(layerInputs, std::get<0>(layers).GetInputBuffer(numFrames));
 
-			ForEachIndex<numLayers>([&](auto layerIndex)
+			ForEachIndex<NumLayers>([&](auto layerIndex)
 				{
-					if constexpr (layerIndex == lastLayer)
+					if constexpr (layerIndex == LastLayer)
 					{
 						std::get<layerIndex>(layers).Process(condition, headInputs, arrayOutputs.Slice(numFrames));
 					}
@@ -719,7 +720,7 @@ namespace NeuralAudio
 			return headArray;
 		}
 
-		T& GetHeadScale()
+		T GetHeadScale()
 		{
 			return headScale;
 		}
