@@ -110,6 +110,21 @@ namespace NeuralAudio
 			}
 		}
 
+		std::array<ChannelBuffer<T, OutChannels, InChannels>, KernelSize>& GetWeights()
+		{
+			return weights;
+		}
+
+		// Avoid allocation for unused bias
+		using BiasType = typename std::conditional<DoBias,
+			Eigen::Vector<T, OutChannels>,
+			Empty>::type;
+
+		BiasType& GetBias()
+		{
+			return bias;
+		}
+
 		Conv1DT()
 		{
 			for (int k = 0; k < KernelSize; k++)
@@ -267,11 +282,6 @@ namespace NeuralAudio
 		alignas(32) std::array<ChannelBuffer<T, OutChannels, InChannels>, KernelSize> weights;	// consider making this a contiguous block of data instead of block of ChannelBuffers
 		std::array<T *, KernelSize> weightPtrs;
 
-		// Avoid allocation for unused bias
-		using BiasType = typename std::conditional<DoBias,
-			Eigen::Vector<T, OutChannels>,
-			Empty>::type;
-
 		BiasType bias;
 	};
 
@@ -295,6 +305,21 @@ namespace NeuralAudio
 				for (size_t i = 0; i < OutSize; i++)
 					bias(i) = *(inWeights++);
 			}
+		}
+
+		ChannelBuffer<T, OutSize, InSize>& GetWeights()
+		{
+			return weights;
+		}
+
+		// Avoid allocation for unused bias
+		using BiasType = typename std::conditional<DoBias,
+			Eigen::Vector<T, OutSize>,
+			Empty>::type;
+
+		BiasType& GetBias()
+		{
+			return bias;
 		}
 
 		void Process(const ChannelRowSpan<T, InSize>& input, const ChannelRowSpan<T, OutSize>& output) const
@@ -348,11 +373,6 @@ namespace NeuralAudio
 
 	private:
 		ChannelBuffer<T, OutSize, InSize> weights;
-
-		// Avoid allocation for unused bias
-		using BiasType = typename std::conditional<DoBias,
-			Eigen::Vector<T, OutSize>,
-			Empty>::type;
 		
 		BiasType bias;
 	};
@@ -379,14 +399,21 @@ namespace NeuralAudio
 			conv1D.channelBuffer.AllocBuffer(allocNum);
 		}
 
-		void AdvanceFrames(const size_t numFrames)
-		{
-			conv1D.channelBuffer.AdvanceFrames(numFrames);
-		}
-
 		size_t GetNumWeights()
 		{
 			return conv1D.GetNumWeights() + inputMixin.GetNumWeights() + oneByOne.GetNumWeights();
+		}
+
+		void SetWeights(std::vector<float>::iterator& weights)
+		{
+			conv1D.SetWeights(weights);
+			inputMixin.SetWeights(weights);
+			oneByOne.SetWeights(weights);
+		}
+
+		void AdvanceFrames(const size_t numFrames)
+		{
+			conv1D.channelBuffer.AdvanceFrames(numFrames);
 		}
 
 		auto GetInputBuffer(size_t numFrames)
@@ -397,13 +424,6 @@ namespace NeuralAudio
 		void CopyBuffer()
 		{
 			conv1D.channelBuffer.CopyBuffer();
-		}
-
-		void SetWeights(std::vector<float>::iterator& weights)
-		{
-			conv1D.SetWeights(weights);
-			inputMixin.SetWeights(weights);
-			oneByOne.SetWeights(weights);
 		}
 
 		void Process(const ChannelRowSpan<T, ConditionSize>& condition, const ChannelRowSpan<T, Channels>& headInput, const ChannelRowSpan<T, Channels>& output)
