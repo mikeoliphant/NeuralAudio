@@ -411,6 +411,26 @@ namespace NeuralAudio
 			oneByOne.SetWeights(weights);
 		}
 
+		Conv1DT<T, Channels, Channels, KernelSize, true, Dilation>& GetConv1D()
+		{
+			return conv1D;
+		}
+
+		DenseLayerT<T, ConditionSize, Channels, false>& GetInputMixin()
+		{
+			return inputMixin;
+		}
+
+		DenseLayerT<T, Channels, Channels, true>& GetOneByOne()
+		{
+			return oneByOne;
+		}
+
+		ChannelBuffer<T, Channels, WAVENET_MAX_NUM_FRAMES>& GetState()
+		{
+			return state;
+		}
+
 		void AdvanceFrames(const size_t numFrames)
 		{
 			conv1D.channelBuffer.AdvanceFrames(numFrames);
@@ -543,6 +563,31 @@ namespace NeuralAudio
 			headRechannel.SetWeights(weights);
 		}
 
+		Layers& GetLayers()
+		{
+			return layers;
+		}
+
+		DenseLayerT<T, InputSize, Channels, false>& GetRechannel()
+		{
+			return rechannel;
+		}
+
+		Conv1DT<T, Channels, HeadSize, HeadKernelSize, HasHeadBias, HeadDilation>& GetHeadRechannel()
+		{
+			return headRechannel;
+		}
+
+		ChannelBuffer<T, Channels, WAVENET_MAX_NUM_FRAMES>& GetArrayOutputs()
+		{
+			return arrayOutputs;
+		}
+
+		ChannelBuffer<T, HeadSize, WAVENET_MAX_NUM_FRAMES>& GetHeadOutputs()
+		{
+			return headOutputs;
+		}
+
 		void Prewarm(const ChannelRowSpan<T, InputSize>& layerInputs, const ChannelRowSpan<T, ConditionSize>& condition, const ChannelRowSpan<T, Channels>& headInputs)
 		{
 			rechannel.Process(layerInputs, std::get<0>(layers).GetInputBuffer(1));
@@ -605,6 +650,8 @@ namespace NeuralAudio
 	public:
 		int ReceptiveFieldSize = 0;	// This should be a static constexpr, but I haven't sorted out the right template magic
 
+		static constexpr auto headLayerChannels = std::tuple_element_t<0, std::tuple<LayerArrays...>>::NumChannelsP;
+
 		WaveNetModelT()
 		{
 			int allocNum = 0;
@@ -655,6 +702,26 @@ namespace NeuralAudio
 		size_t GetMaxFrames()
 		{
 			return WAVENET_MAX_NUM_FRAMES;
+		}
+
+		auto& GetLayerArrays()
+		{
+			return layerArrays;
+		}
+
+		ChannelBuffer<T, 1, WAVENET_MAX_NUM_FRAMES>& GetCondition()
+		{
+			return condition;
+		}
+
+		ChannelBuffer<T, headLayerChannels, WAVENET_MAX_NUM_FRAMES>& GetHeadArray()
+		{
+			return headArray;
+		}
+
+		T& GetHeadScale()
+		{
+			return headScale;
 		}
 
 		void Prewarm()
@@ -709,8 +776,6 @@ namespace NeuralAudio
 		}
 
 	private:
-		static constexpr auto headLayerChannels = std::tuple_element_t<0, std::tuple<LayerArrays...>>::NumChannelsP;
-
 		std::tuple<LayerArrays...> layerArrays;
 		ChannelBuffer<T, 1, WAVENET_MAX_NUM_FRAMES> condition;
 		ChannelBuffer<T, headLayerChannels, WAVENET_MAX_NUM_FRAMES> headArray;
