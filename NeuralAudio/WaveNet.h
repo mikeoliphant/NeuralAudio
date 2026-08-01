@@ -163,7 +163,18 @@ namespace NeuralAudio
 						{
 							const T* __restrict Wcol = W + cp * InChannels;
 
-							if constexpr (tileSize == 4)
+							if constexpr (tileSize == 2)
+							{
+								const T h0 = hb[cp], h1 = hb[InChannels + cp];
+
+								for (size_t o = 0; o < InChannels; o++)
+								{
+									const T wo = Wcol[o];
+									a[0][o] += wo * h0;
+									a[1][o] += wo * h1;
+								}
+							}
+							else if constexpr (tileSize == 4)
 							{
 								const T h0 = hb[cp], h1 = hb[InChannels + cp], h2 = hb[2 * InChannels + cp], h3 = hb[3 * InChannels + cp];
 
