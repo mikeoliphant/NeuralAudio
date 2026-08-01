@@ -448,6 +448,7 @@ namespace NeuralAudio
 			conv1D.channelBuffer.CopyBuffer();
 		}
 
+		template <bool NeedOutput = true>
 		void Process(const ChannelRowSpan<T, ConditionSize>& condition, const ChannelRowSpan<T, Channels>& headInput, const ChannelRowSpan<T, Channels>& output)
 		{
 			size_t numFrames = output.GetNumCols();
@@ -471,9 +472,12 @@ namespace NeuralAudio
 
 			//headInput.AddData(block);
 
-			oneByOne.Process(block, output);
+			if constexpr (NeedOutput)
+			{
+				oneByOne.Process(block, output);
 
-			output.GetEigenMap().noalias() += conv1D.GetInputBuffer(numFrames).GetEigenMapConst();
+				output.GetEigenMap().noalias() += conv1D.GetInputBuffer(numFrames).GetEigenMapConst();
+			}
 
 			//output.AddData(conv1D.GetInputBuffer(numFrames));
 		}
@@ -614,6 +618,7 @@ namespace NeuralAudio
 			headRechannel.Process(headOutputs.Slice(1));
 		}
 
+		template <bool NeedOutput = true>
 		void Process(const ChannelRowSpan<T, InputSize>& layerInputs, const ChannelRowSpan<T, ConditionSize>& condition, const ChannelRowSpan<T, Channels>& headInputs)
 		{
 			size_t numFrames = condition.GetNumCols();
@@ -624,7 +629,7 @@ namespace NeuralAudio
 				{
 					if constexpr (layerIndex == LastLayer)
 					{
-						std::get<layerIndex>(layers).Process(condition, headInputs, arrayOutputs.Slice(numFrames));
+						std::get<layerIndex>(layers).template Process<NeedOutput>(condition, headInputs, arrayOutputs.Slice(numFrames));
 					}
 					else
 					{
@@ -652,6 +657,8 @@ namespace NeuralAudio
 		int ReceptiveFieldSize = 0;	// This should be a static constexpr, but I haven't sorted out the right template magic
 
 		static constexpr auto headLayerChannels = std::tuple_element_t<0, std::tuple<LayerArrays...>>::NumChannelsP;
+		static constexpr auto NumLayerArrays = std::tuple_size_v<std::tuple<LayerArrays...>>;
+		static constexpr auto LastLayerArray = NumLayerArrays - 1;
 
 		WaveNetModelT()
 		{
@@ -761,6 +768,10 @@ namespace NeuralAudio
 					if constexpr (layerIndex == 0)
 					{
 						std::get<layerIndex>(layerArrays).Process(conditionSpan, conditionSpan, headArraySpan);
+					}
+					else if constexpr (layerIndex == LastLayerArray)
+					{
+						std::get<layerIndex>(layerArrays).template Process<false>(std::get<layerIndex - 1>(layerArrays).arrayOutputs.Slice(numFrames), conditionSpan, std::get<layerIndex - 1>(layerArrays).headOutputs.Slice(numFrames));
 					}
 					else
 					{
