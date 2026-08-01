@@ -146,7 +146,7 @@ namespace NeuralAudio
 			{
 				// Based on @jfsantos NAM Core implementation - https://github.com/sdatkinson/NeuralAmpModelerCore/pull/277
 
-				constexpr size_t tileSize = (InChannels == 16) ? 4 : MULTIFRAME_8X8_CONVOLUTION;
+				constexpr size_t tileSize = (InChannels == 16) ? (MULTIFRAME_8X8_CONVOLUTION / 2) : MULTIFRAME_8X8_CONVOLUTION;
 				const size_t nFTile = (numFrames / tileSize) * tileSize;
 
 				for (size_t f = 0; f < nFTile; f += tileSize)
