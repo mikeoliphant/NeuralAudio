@@ -1,6 +1,3 @@
-[submodule]
-	active = .
-	active = :(exclude)deps/NeuralAmpModelerCore/Dependencies/*
 [submodule "deps/NeuralAmpModelerCore"]
 	path = deps/NeuralAmpModelerCore
 	url = https://github.com/mikeoliphant/NeuralAmpModelerCore
