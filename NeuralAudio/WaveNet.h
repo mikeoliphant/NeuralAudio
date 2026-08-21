@@ -142,7 +142,7 @@ namespace NeuralAudio
 			T* __restrict outputPtr = output.GetData();
 
 #if MULTIFRAME_8X8_CONVOLUTION != 0
-			if constexpr ((((InChannels == 8) && (OutChannels == 8)) || ((InChannels == 16) && (OutChannels == 16))) && DoBias)
+			if constexpr ((((InChannels == 8) && (OutChannels == 8)) || ((InChannels == 16) && (OutChannels == 16)) || ((InChannels == 4) && (OutChannels == 4)) || ((InChannels == 2) && (OutChannels == 2))) && DoBias)
 			{
 				// Based on @jfsantos NAM Core implementation - https://github.com/sdatkinson/NeuralAmpModelerCore/pull/277
 
