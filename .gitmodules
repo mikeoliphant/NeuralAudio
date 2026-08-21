@@ -1,6 +1,12 @@
 [submodule "deps/NeuralAmpModelerCore"]
 	path = deps/NeuralAmpModelerCore
 	url = https://github.com/mikeoliphant/NeuralAmpModelerCore
+[submodule "deps/NeuralAmpModelerCore/Dependencies/eigen"]
+	path = deps/NeuralAmpModelerCore/Dependencies/eigen
+	update = none
+[submodule "deps/NeuralAmpModelerCore/Dependencies/AudioDSPTools"]
+	path = deps/NeuralAmpModelerCore/Dependencies/AudioDSPTools
+	update = none
 [submodule "deps/RTNeural"]
 	path = deps/RTNeural
 	url = https://github.com/mikeoliphant/RTNeural
