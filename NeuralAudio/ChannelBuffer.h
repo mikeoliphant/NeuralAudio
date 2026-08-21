@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <array>
 #include <Eigen/Dense>
 #include <Eigen/Core>
@@ -31,6 +32,9 @@ namespace NeuralAudio
 				return nullptr;
 			}
 			virtual void SetZero() {}
+			virtual T& operator()(size_t row, size_t col) = 0;
+
+			virtual const T& operator()(size_t row, size_t col) const = 0;
 	};
 
 	template<typename T, int Channels, int Cols>
@@ -78,12 +82,12 @@ namespace NeuralAudio
 				}
 			}
 
-			T& operator()(size_t row, size_t col)
+			T& operator()(size_t row, size_t col) override
 			{
 				return data[col][row];
 			}
 
-			const T& operator()(size_t row, size_t col) const
+			const T& operator()(size_t row, size_t col) const override
 			{
 				return data[col][row];
 			}
@@ -121,7 +125,6 @@ namespace NeuralAudio
 				startCol(0),
 				numCols(baseBuffer.GetNumCols())
 			{
-				
 			}
 
 			ChannelRowSpan(ChannelBufferBase<T, Channels>* baseBuffer) :
@@ -137,7 +140,8 @@ namespace NeuralAudio
 				startCol(startCol),
 				numCols(numCols)
 			{
-
+				assert(startCol >= 0);
+				assert(numCols <= (baseBuffer->GetNumCols() - startCol));
 			}
 
 			ChannelRowSpan(ChannelBufferBase<T, Channels>* baseBuffer, size_t numCols) :
@@ -145,6 +149,7 @@ namespace NeuralAudio
 				startCol(0),
 				numCols(numCols)
 			{
+				assert(numCols <= baseBuffer->GetNumCols());
 
 			}
 
@@ -171,6 +176,16 @@ namespace NeuralAudio
 			size_t GetNumChannels() const
 			{
 				return Channels;
+			}
+
+			T& operator()(size_t row, size_t col)
+			{
+				return (*buffer)(row, startCol + col);
+			}
+
+			const T& operator()(size_t row, size_t col) const
+			{
+				return (*buffer)(row, startCol + col);
 			}
 
 			T* GetData() const

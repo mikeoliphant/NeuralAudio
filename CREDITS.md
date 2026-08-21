@@ -6,8 +6,6 @@ https://github.com/sdatkinson/NeuralAmpModelerCore
 
 https://github.com/jatinchowdhury18/RTNeural
 
-https://github.com/jatinchowdhury18/RTNeural-NAM
-
 https://gitlab.com/libeigen/eigen
 
 https://github.com/nlohmann/json
