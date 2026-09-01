@@ -32,6 +32,7 @@ namespace NeuralAudio
 				return nullptr;
 			}
 			virtual void SetZero() {}
+			virtual void SetZero(size_t startCol, size_t numCols) {}
 			virtual T& operator()(size_t row, size_t col) = 0;
 
 			virtual const T& operator()(size_t row, size_t col) const = 0;
@@ -80,6 +81,12 @@ namespace NeuralAudio
 				for (auto& col : data) {
 					col.fill(0);
 				}
+			}
+
+			void SetZero(size_t startCol, size_t numCols) override
+			{
+				for (size_t col = 0; col < numCols; col++)
+					data[startCol + col].fill(0);
 			}
 
 			T& operator()(size_t row, size_t col) override
@@ -170,6 +177,11 @@ namespace NeuralAudio
 		void SetZero() override
 		{
 			std::fill(data, data + GetSize(), 0);
+		}
+
+		void SetZero(size_t startCol, size_t numCols) override
+		{
+			std::fill(data + (startCol * this->numCols), data + ((startCol + numCols) * this->numCols), 0);
 		}
 
 		T& operator()(size_t row, size_t col) override
@@ -277,6 +289,11 @@ namespace NeuralAudio
 			size_t GetNumChannels() const
 			{
 				return Channels;
+			}
+
+			void SetZero() const
+			{
+				buffer->SetZero(startCol, numCols);
 			}
 
 			T& operator()(size_t row, size_t col)
