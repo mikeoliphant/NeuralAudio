@@ -32,7 +32,7 @@ namespace NeuralAudio
 				return nullptr;
 			}
 			virtual void SetZero() {}
-			virtual void SetZero(size_t startCol, size_t numCols) {}
+			virtual void SetZero(size_t startCol, size_t numCols) = 0;
 			virtual T& operator()(size_t row, size_t col) = 0;
 
 			virtual const T& operator()(size_t row, size_t col) const = 0;
@@ -138,6 +138,12 @@ namespace NeuralAudio
 	class ChannelBufferDynamic : public ChannelBufferBase<T, Channels>
 	{
 	public:
+		ChannelBufferDynamic()
+		{
+			numCols = 0;
+			data = nullptr;
+		}
+
 		ChannelBufferDynamic(T* data, size_t numCols) :
 			data(data),
 			numCols(numCols)
@@ -181,7 +187,7 @@ namespace NeuralAudio
 
 		void SetZero(size_t startCol, size_t numCols) override
 		{
-			std::fill(data + (startCol * this->numCols), data + ((startCol + numCols) * this->numCols), 0);
+			std::fill(data + (startCol * Channels), data + ((startCol + numCols) * Channels), 0);
 		}
 
 		T& operator()(size_t row, size_t col) override
@@ -263,7 +269,6 @@ namespace NeuralAudio
 				numCols(numCols)
 			{
 				assert(numCols <= baseBuffer->GetNumCols());
-
 			}
 
 			const ChannelRowSpan<T, Channels> Slice(size_t startCol, size_t numCols) const
