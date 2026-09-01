@@ -237,6 +237,11 @@ The "ModelTest" application binaries provided in the [Releases section](https://
 
 ```-DNAM_ENABLE_A2_FAST=ON|OFF```: Enable use of A2 fast path wavenet in NAM Core.
 
+```-DNAM_A2_RING_MODE=0|1```: Ring-buffer strategy for A2 FAST. Defaults to "1"
+
+  - ```0```: linear memmove-rewind (variable worst-case latency, sporadic spikes)
+  - ```1```(the default): pow2 + tail mirror (constant per-block work, branchless reads)
+
 ```-DBUILD_STATIC_RTNEURAL=ON|OFF```: Build static RTNeural model architectures (slower compile, larger size - only use if you plan on forcing RTNeural model loading).
 
 ```-DBUILD_INTERNAL_STATIC_WAVENET=ON|OFF```: Build internal static WaveNet model architectures (faster internal WaveNet, but slower compile, larger size).
