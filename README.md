@@ -231,19 +231,6 @@ The "ModelTest" application binaries provided in the [Releases section](https://
 
 ## CMake Options
 
-```-DBUILD_NAMCORE=ON|OFF```: Support loading models using the NAM Core implemenations.
-
-```-DNAM_USE_INLINE_GEMM=ON|OFF```: Enable use of inline matrix multiplication in NAM Core.
-
-```-DNAM_ENABLE_A2_FAST=ON|OFF```: Enable use of A2 fast path wavenet in NAM Core.
-
-```-DNAM_A2_RING_MODE=0|1```: Ring-buffer strategy for A2 FAST. Defaults to "1"
-
-  - ```0```: linear memmove-rewind (variable worst-case latency, sporadic spikes)
-  - ```1```(the default): pow2 + tail mirror (constant per-block work, branchless reads)
-
-```-DBUILD_STATIC_RTNEURAL=ON|OFF```: Build static RTNeural model architectures (slower compile, larger size - only use if you plan on forcing RTNeural model loading).
-
 ```-DBUILD_INTERNAL_STATIC_WAVENET=ON|OFF```: Build internal static WaveNet model architectures (faster internal WaveNet, but slower compile, larger size).
 
 ```-DBUILD_INTERNAL_STATIC_LSTM=ON|OFF```: Build internal static LSTM model architectures (faster internal LSTM, but slower compile, larger size).
@@ -268,6 +255,19 @@ The "ModelTest" application binaries provided in the [Releases section](https://
   - ```StdMath```: Use standard math functions. No approxmation used - much slower.
 
 ```-DBUILD_UTILS=ON|OFF```: Build performance/accuracy testing tools (located in the "Utils" folder).
+
+```-DBUILD_NAMCORE=ON|OFF```: Support loading models using the NAM Core implemenations.
+
+```-DNAM_USE_INLINE_GEMM=ON|OFF```: Enable use of inline matrix multiplication in NAM Core.
+
+```-DNAM_ENABLE_A2_FAST=ON|OFF```: Enable use of A2 fast path wavenet in NAM Core.
+
+```-DNAM_A2_RING_MODE=0|1```: Ring-buffer strategy for A2 FAST. Defaults to "1"
+
+  - ```0```: linear memmove-rewind (variable worst-case latency, sporadic spikes)
+  - ```1```(the default): pow2 + tail mirror (constant per-block work, branchless reads)
+
+```-DBUILD_STATIC_RTNEURAL=ON|OFF```: Build static RTNeural model architectures (slower compile, larger size - only use if you plan on forcing RTNeural model loading).
 
 # Software/Hardware Using NeuralAudio
 
