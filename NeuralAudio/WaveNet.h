@@ -395,7 +395,6 @@ namespace NeuralAudio
 		Conv1DT<T, Channels, Channels, KernelSize, true, Dilation> conv1D;
 		DenseLayerT<T, ConditionSize, Channels, false> inputMixin;
 		DenseLayerT<T, Channels, Channels, true> oneByOne;
-		ChannelBuffer<T, Channels, WAVENET_MAX_NUM_FRAMES> state;
 
 	public:
 		static constexpr auto ReceptiveFieldSize = (KernelSize - 1) * Dilation;
@@ -404,7 +403,6 @@ namespace NeuralAudio
 
 		WaveNetLayerT()
 		{
-			state.SetZero();
 		}
 
 		void AllocBuffer(int allocNum)
@@ -439,11 +437,6 @@ namespace NeuralAudio
 			return oneByOne;
 		}
 
-		ChannelBuffer<T, Channels, WAVENET_MAX_NUM_FRAMES>& GetState()
-		{
-			return state;
-		}
-
 		void AdvanceFrames(const size_t numFrames)
 		{
 			conv1D.channelBuffer.AdvanceFrames(numFrames);
@@ -462,6 +455,8 @@ namespace NeuralAudio
 		template <bool NeedOutput = true>
 		void Process(const ChannelRowSpan<T, ConditionSize>& condition, const ChannelRowSpan<T, Channels>& headInput, const ChannelRowSpan<T, Channels>& output)
 		{
+			ChannelBuffer<T, Channels, WAVENET_MAX_NUM_FRAMES> state;
+
 			size_t numFrames = output.GetNumCols();
 
 			auto block = state.Slice(numFrames);
