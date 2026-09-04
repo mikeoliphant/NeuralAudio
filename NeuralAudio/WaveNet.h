@@ -296,36 +296,36 @@ namespace NeuralAudio
 		BiasType bias;
 	};
 
-	template <typename T, int InSize, int OutSize, bool DoBias>
+	template <typename T, int InChannels, int OutChannels, bool DoBias>
 	class DenseLayerT
 	{
 	public:
 		size_t GetNumWeights()
 		{
-			return OutSize * InSize + (DoBias ? OutSize : 0);
+			return OutChannels * InChannels + (DoBias ? OutChannels : 0);
 		}
 
 		void SetWeights(std::vector<float>::iterator& inWeights)
 		{
-			for (size_t i = 0; i < OutSize; i++)
-				for (size_t j = 0; j < InSize; j++)
+			for (size_t i = 0; i < OutChannels; i++)
+				for (size_t j = 0; j < InChannels; j++)
 					weights(i, j) = *(inWeights++);
 
 			if constexpr (DoBias)
 			{
-				for (size_t i = 0; i < OutSize; i++)
+				for (size_t i = 0; i < OutChannels; i++)
 					bias(i) = *(inWeights++);
 			}
 		}
 
-		ChannelBuffer<T, OutSize, InSize>& GetWeights()
+		ChannelBuffer<T, OutChannels, InChannels>& GetWeights()
 		{
 			return weights;
 		}
 
 		// Avoid allocation for unused bias
 		using BiasType = typename std::conditional<DoBias,
-			Eigen::Vector<T, OutSize>,
+			Eigen::Vector<T, OutChannels>,
 			Empty>::type;
 
 		BiasType& GetBias()
@@ -333,19 +333,19 @@ namespace NeuralAudio
 			return bias;
 		}
 
-		void Process(const ChannelRowSpan<T, InSize>& input, const ChannelRowSpan<T, OutSize>& output) const
+		void Process(const ChannelRowSpan<T, InChannels>& input, const ChannelRowSpan<T, OutChannels>& output) const
 		{
 			size_t numFrames = output.GetNumCols();
 
-			if constexpr (MatMul<T, InSize, OutSize>::HasKernel())
+			if constexpr (MatMul<T, InChannels, OutChannels>::HasKernel())
 			{
 				if constexpr (DoBias)
 				{
-					MatMul<T, InSize, OutSize>::MultiplyInitColwise(input.GetDataConst(), output.GetData(), weights.GetDataConst(), bias.data(), numFrames);
+					MatMul<T, InChannels, OutChannels>::MultiplyInitColwise(input.GetDataConst(), output.GetData(), weights.GetDataConst(), bias.data(), numFrames);
 				}
 				else
 				{
-					MatMul<T, InSize, OutSize>::MultiplyInitZero(input.GetDataConst(), output.GetData(), weights.GetDataConst(), numFrames);
+					MatMul<T, InChannels, OutChannels>::MultiplyInitZero(input.GetDataConst(), output.GetData(), weights.GetDataConst(), numFrames);
 				}
 			}
 			else
@@ -361,13 +361,13 @@ namespace NeuralAudio
 			}
 		}
 
-		void ProcessAcc(const ChannelRowSpan<T, InSize>& input, const ChannelRowSpan<T, OutSize>& output) const
+		void ProcessAcc(const ChannelRowSpan<T, InChannels>& input, const ChannelRowSpan<T, OutChannels>& output) const
 		{
 			size_t numFrames = output.GetNumCols();
 
-			if constexpr (!DoBias && MatMul<T, InSize, OutSize>::HasKernel())
+			if constexpr (!DoBias && MatMul<T, InChannels, OutChannels>::HasKernel())
 			{
-				MatMul<T, InSize, OutSize>::MultiplyAccumlulate(input.GetDataConst(), output.GetData(), weights.GetDataConst(), numFrames);
+				MatMul<T, InChannels, OutChannels>::MultiplyAccumlulate(input.GetDataConst(), output.GetData(), weights.GetDataConst(), numFrames);
 			}
 			else
 			{
@@ -383,7 +383,7 @@ namespace NeuralAudio
 		}
 
 	private:
-		ChannelBuffer<T, OutSize, InSize> weights;
+		ChannelBuffer<T, OutChannels, InChannels> weights;
 		
 		BiasType bias;
 	};
