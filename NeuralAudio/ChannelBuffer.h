@@ -5,6 +5,8 @@
 #include <Eigen/Dense>
 #include <Eigen/Core>
 
+constexpr size_t CHANNEL_BUFFER_ALIGN = 32;
+
 namespace NeuralAudio
 {
 	template<typename T, int Channels>
@@ -130,7 +132,7 @@ namespace NeuralAudio
 			}
 
 	private:
-			alignas(32) std::array<std::array<T, Channels>, Cols> data;
+			alignas(CHANNEL_BUFFER_ALIGN) std::array<std::array<T, Channels>, Cols> data;
 	};
 
 

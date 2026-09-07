@@ -151,7 +151,7 @@ namespace NeuralAudio
 
 				for (size_t f = 0; f < nFTile; f += tileSize)
 				{
-					alignas(32) T a[tileSize][InChannels]{};
+					alignas(CHANNEL_BUFFER_ALIGN) T a[tileSize][InChannels]{};
 
 					for (size_t k = 0; k < KernelSize; k++)
 					{
@@ -290,7 +290,7 @@ namespace NeuralAudio
 		}
 
 	private:
-		alignas(32) std::array<ChannelBuffer<T, OutChannels, InChannels>, KernelSize> weights;	// consider making this a contiguous block of data instead of block of ChannelBuffers
+		alignas(CHANNEL_BUFFER_ALIGN) std::array<ChannelBuffer<T, OutChannels, InChannels>, KernelSize> weights;	// consider making this a contiguous block of data instead of block of ChannelBuffers
 		std::array<T *, KernelSize> weightPtrs;
 
 		BiasType bias;
