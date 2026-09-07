@@ -395,7 +395,6 @@ namespace NeuralAudio
 		Conv1DT<T, Channels, Channels, KernelSize, true, Dilation> conv1D;
 		DenseLayerT<T, ConditionSize, Channels, false> inputMixin;
 		DenseLayerT<T, Channels, Channels, true> oneByOne;
-		ChannelBuffer<T, Channels, WAVENET_MAX_NUM_FRAMES> state;
 
 	public:
 		static constexpr auto ReceptiveFieldSize = (KernelSize - 1) * Dilation;
@@ -404,7 +403,6 @@ namespace NeuralAudio
 
 		WaveNetLayerT()
 		{
-			state.SetZero();
 		}
 
 		void AllocBuffer(int allocNum)
@@ -439,11 +437,6 @@ namespace NeuralAudio
 			return oneByOne;
 		}
 
-		ChannelBuffer<T, Channels, WAVENET_MAX_NUM_FRAMES>& GetState()
-		{
-			return state;
-		}
-
 		void AdvanceFrames(const size_t numFrames)
 		{
 			conv1D.channelBuffer.AdvanceFrames(numFrames);
@@ -462,6 +455,8 @@ namespace NeuralAudio
 		template <bool NeedOutput = true>
 		void Process(const ChannelRowSpan<T, ConditionSize>& condition, const ChannelRowSpan<T, Channels>& headInput, const ChannelRowSpan<T, Channels>& output)
 		{
+			ChannelBuffer<T, Channels, WAVENET_MAX_NUM_FRAMES> state;
+
 			size_t numFrames = output.GetNumCols();
 
 			auto block = state.Slice(numFrames);
@@ -594,16 +589,6 @@ namespace NeuralAudio
 			return headRechannel;
 		}
 
-		ChannelBuffer<T, Channels, WAVENET_MAX_NUM_FRAMES>& GetArrayOutputs()
-		{
-			return arrayOutputs;
-		}
-
-		ChannelBuffer<T, HeadSize, WAVENET_MAX_NUM_FRAMES>& GetHeadOutputs()
-		{
-			return headOutputs;
-		}
-
 		void Prewarm(const ChannelRowSpan<T, InputSize>& layerInputs, const ChannelRowSpan<T, ConditionSize>& condition, const ChannelRowSpan<T, Channels>& headInputs)
 		{
 			rechannel.Process(layerInputs, std::get<0>(layers).GetInputBuffer(1));
@@ -728,16 +713,6 @@ namespace NeuralAudio
 			return layerArrays;
 		}
 
-		ChannelBuffer<T, 1, WAVENET_MAX_NUM_FRAMES>& GetCondition()
-		{
-			return condition;
-		}
-
-		ChannelBuffer<T, headLayerChannels, WAVENET_MAX_NUM_FRAMES>& GetHeadArray()
-		{
-			return headArray;
-		}
-
 		T GetHeadScale()
 		{
 			return headScale;
@@ -745,30 +720,31 @@ namespace NeuralAudio
 
 		void Prewarm()
 		{
+			ChannelBuffer<T, 1, 1> condition;
 			condition.GetData()[0] = 0;
 
+			ChannelBuffer<T, headLayerChannels, 1> headArray;
 			headArray.SetZero();
-
-			auto conditionSpan = condition.Slice(1);
-			auto headArraySpan = headArray.Slice(1);
 
 			ForEachIndex<sizeof...(LayerArrays)>([&](auto layerIndex)
 				{
 					if constexpr (layerIndex == 0)
 					{
-						std::get<layerIndex>(layerArrays).Prewarm(conditionSpan, conditionSpan, headArraySpan);
+						std::get<layerIndex>(layerArrays).Prewarm(condition, condition, headArray);
 					}
 					else
 					{
-						std::get<layerIndex>(layerArrays).Prewarm(std::get<layerIndex - 1>(layerArrays).arrayOutputs.Slice(1), conditionSpan, std::get<layerIndex - 1>(layerArrays).headOutputs.Slice(1));
+						std::get<layerIndex>(layerArrays).Prewarm(std::get<layerIndex - 1>(layerArrays).arrayOutputs.Slice(1), condition, std::get<layerIndex - 1>(layerArrays).headOutputs.Slice(1));
 					}
 				});
 		}
 
 		void Process(const T* input, T* output, const size_t numFrames)
 		{
+			ChannelBuffer<T, 1, WAVENET_MAX_NUM_FRAMES> condition;
 			std::memcpy(condition.GetData(), input, numFrames * sizeof(T));
 
+			ChannelBuffer<T, headLayerChannels, WAVENET_MAX_NUM_FRAMES> headArray;
 			headArray.SetZero();
 
 			auto conditionSpan = condition.Slice(numFrames);
@@ -800,8 +776,6 @@ namespace NeuralAudio
 
 	private:
 		std::tuple<LayerArrays...> layerArrays;
-		ChannelBuffer<T, 1, WAVENET_MAX_NUM_FRAMES> condition;
-		ChannelBuffer<T, headLayerChannels, WAVENET_MAX_NUM_FRAMES> headArray;
 		T headScale;
 	};
 }
