@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef BUILD_RTNEURAL
+
 #include "NeuralModel.h"
 #include "NeuralModelImpl.h"
 #include <RTNeural/RTNeural.h>
@@ -432,3 +434,4 @@ namespace NeuralAudio
 		std::unique_ptr<RTNeural::Model<float>> model;
 	};
 }
+#endif

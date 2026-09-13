@@ -3,10 +3,12 @@
 #ifdef BUILD_NAMCORE
 #include "NAMModel.h"
 #endif
+#ifdef BUILD_RTNEURAL
 #ifdef BUILD_STATIC_RTNEURAL
 #include "RTNeuralLoader.h"
 #endif
 #include "RTNeuralModel.h"
+#endif
 #include "InternalModel.h"
 #include "CompositeModel.h"
 
@@ -562,6 +564,7 @@ namespace NeuralAudio
 				}
 			}
 	
+#ifdef BUILD_RTNEURAL
 			if (newModel == nullptr)
 			{
 				// Use a dynamic model for other model types
@@ -570,6 +573,7 @@ namespace NeuralAudio
 
 				newModel = model;
 			}
+#endif
 		}
 
 		if ((newModel != nullptr) && doPrewarm)
