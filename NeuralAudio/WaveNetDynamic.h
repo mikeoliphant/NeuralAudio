@@ -260,7 +260,7 @@ namespace NeuralAudio
 		size_t channels;
 		std::vector<WaveNetLayer> layers;
 		DenseLayer rechannel;
-		DenseLayer headRechannel;
+		DenseLayer oneByOne;
 		size_t lastLayer;
 		Eigen::MatrixXf arrayOutputs;
 		Eigen::MatrixXf headOutputs;
@@ -270,7 +270,7 @@ namespace NeuralAudio
 		WaveNetLayerArray(size_t inputSize, size_t conditionSize, size_t HeadSize, size_t channels, size_t kernelSize, bool hasHeadBias, std::vector<size_t> dilations) :
 			channels(channels),
 			rechannel(inputSize, channels, false),
-			headRechannel(channels, HeadSize, hasHeadBias),
+			oneByOne(channels, HeadSize, hasHeadBias),
 			arrayOutputs(channels, WAVENET_MAX_NUM_FRAMES),
 			headOutputs(HeadSize, WAVENET_MAX_NUM_FRAMES)
 		{
@@ -324,7 +324,7 @@ namespace NeuralAudio
 				layer.SetWeights(weights);
 			}
 
-			headRechannel.SetWeights(weights);
+			oneByOne.SetWeights(weights);
 		}
 
 		void Prewarm(const Eigen::MatrixXf& layerInputs, const Eigen::MatrixXf& condition, Eigen::Ref<Eigen::MatrixXf> const& headInputs)
@@ -345,7 +345,7 @@ namespace NeuralAudio
 				}
 			}
 
-			headRechannel.Process(headInputs, headOutputs.leftCols(1));
+			oneByOne.Process(headInputs, headOutputs.leftCols(1));
 		}
 
 		void Process(const Eigen::MatrixXf& layerInputs, const Eigen::MatrixXf& condition, Eigen::Ref<Eigen::MatrixXf> headInputs, const size_t numFrames)
@@ -364,7 +364,7 @@ namespace NeuralAudio
 				}
 			}
 
-			headRechannel.Process(headInputs, headOutputs.leftCols(numFrames));
+			oneByOne.Process(headInputs, headOutputs.leftCols(numFrames));
 		}
 	};
 
