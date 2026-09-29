@@ -514,7 +514,7 @@ namespace NeuralAudio
 	private:
 		Layers layers;
 		DenseLayerT<T, InputSize, Channels, false> rechannel;
-		Conv1DT<T, Channels, HeadSize, HeadKernelSize, HasHeadBias, HeadDilation> headRechannel;
+		Conv1DT<T, Channels, HeadSize, HeadKernelSize, HasHeadBias, HeadDilation> oneByOne;
 
 	public:
 		static constexpr auto NumChannelsP = Channels;
@@ -533,7 +533,7 @@ namespace NeuralAudio
 					ReceptiveFieldSize += std::get<layerIndex>(layers).ReceptiveFieldSize;
 				});
 
-			ReceptiveFieldSize += headRechannel.ReceptiveFieldSize;
+			ReceptiveFieldSize += oneByOne.ReceptiveFieldSize;
 		}
 
 		int AllocBuffers(int allocNum)
@@ -543,7 +543,7 @@ namespace NeuralAudio
 					std::get<layerIndex>(layers).AllocBuffer(allocNum++);
 				});
 
-			headRechannel.channelBuffer.AllocBuffer(allocNum++);
+			oneByOne.channelBuffer.AllocBuffer(allocNum++);
 
 			return allocNum;
 		}
@@ -557,7 +557,7 @@ namespace NeuralAudio
 					numWeights += std::get<layerIndex>(layers).GetNumWeights();
 				});
 
-			numWeights += headRechannel.GetNumWeights();
+			numWeights += oneByOne.GetNumWeights();
 
 			return numWeights;
 		}
@@ -571,7 +571,7 @@ namespace NeuralAudio
 					std::get<layerIndex>(layers).SetWeights(weights);
 				});
 
-			headRechannel.SetWeights(weights);
+			oneByOne.SetWeights(weights);
 		}
 
 		Layers& GetLayers()
@@ -586,7 +586,7 @@ namespace NeuralAudio
 
 		Conv1DT<T, Channels, HeadSize, HeadKernelSize, HasHeadBias, HeadDilation>& GetHeadRechannel()
 		{
-			return headRechannel;
+			return oneByOne;
 		}
 
 		void Prewarm(const ChannelRowSpan<T, InputSize>& layerInputs, const ChannelRowSpan<T, ConditionSize>& condition, const ChannelRowSpan<T, Channels>& headInputs)
@@ -609,9 +609,9 @@ namespace NeuralAudio
 
 			//headRechannel.channelBuffer.buffer.middleCols(headRechannel.channelBuffer.bufferStart, 1).noalias() = headInputs.leftCols(1);	// Should be able to avoid this copy
 
-			headRechannel.GetInputBuffer(1).CopyData(headInputs.Slice(1));
-			headRechannel.channelBuffer.CopyBuffer();
-			headRechannel.Process(headOutputs.Slice(1));
+			oneByOne.GetInputBuffer(1).CopyData(headInputs.Slice(1));
+			oneByOne.channelBuffer.CopyBuffer();
+			oneByOne.Process(headOutputs.Slice(1));
 		}
 
 		template <bool NeedOutput = true>
@@ -640,9 +640,9 @@ namespace NeuralAudio
 
 			//headRechannel.GetInputBuffer(numFrames).CopyData(headInputs);
 
-			headRechannel.GetInputBuffer(numFrames).GetEigenMap().noalias() = headInputs.GetEigenMapConst();
-			headRechannel.Process(headOutputs.Slice(numFrames));
-			headRechannel.channelBuffer.AdvanceFrames(numFrames);
+			oneByOne.GetInputBuffer(numFrames).GetEigenMap().noalias() = headInputs.GetEigenMapConst();
+			oneByOne.Process(headOutputs.Slice(numFrames));
+			oneByOne.channelBuffer.AdvanceFrames(numFrames);
 		}
 	};
 

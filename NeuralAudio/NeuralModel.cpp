@@ -1,4 +1,5 @@
 #include <list>
+#include <fstream>
 #include "NeuralModel.h"
 #ifdef BUILD_NAMCORE
 #include "NAMModel.h"
