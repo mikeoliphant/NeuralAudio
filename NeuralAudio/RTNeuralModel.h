@@ -211,7 +211,7 @@ namespace NeuralAudio
 			return true;
 		}
 
-		void Process(float* input, float* output, size_t numSamples) override
+		void Process(const float* input, float* output, size_t numSamples) override
 		{
 			for (size_t i = 0; i < numSamples; i++)
 				output[i] = model->forward(input + i);
