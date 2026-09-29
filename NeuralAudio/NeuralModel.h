@@ -124,7 +124,7 @@ namespace NeuralAudio
 			return "";
 		}
 
-		virtual void Process(float* input, float* output, size_t numSamples)
+		virtual void Process(const float* input, float* output, size_t numSamples)
 		{
 			(void)input;
 			(void)output;

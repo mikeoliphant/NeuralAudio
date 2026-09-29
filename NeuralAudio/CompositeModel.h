@@ -91,7 +91,7 @@ namespace NeuralAudio
 				}
 			}
 
-			void Process(float* input, float* output, size_t numSamples) override
+			void Process(const float* input, float* output, size_t numSamples) override
 			{
 				if (currentModelIndex == -1)
 					return;

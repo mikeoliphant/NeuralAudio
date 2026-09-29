@@ -101,7 +101,7 @@ namespace NeuralAudio
 			return model->ReceptiveFieldSize;
 		}
 
-		void Process(float* input, float* output, size_t numSamples) override
+		void Process(const float* input, float* output, size_t numSamples) override
 		{
 			size_t offset = 0;
 
@@ -223,7 +223,7 @@ namespace NeuralAudio
 			model->SetMaxFrames(maxSize);
 		}
 
-		void Process(float* input, float* output, size_t numSamples) override
+		void Process(const float* input, float* output, size_t numSamples) override
 		{
 			size_t offset = 0;
 
@@ -360,7 +360,7 @@ namespace NeuralAudio
 			(void)maxSize;
 		}
 
-		void Process(float* input, float* output, size_t numSamples) override
+		void Process(const float* input, float* output, size_t numSamples) override
 		{
 			model->Process(input, output, numSamples);
 		}
@@ -523,7 +523,7 @@ namespace NeuralAudio
 			(void)maxSize;
 		}
 
-		void Process(float* input, float* output, size_t numSamples) override
+		void Process(const float* input, float* output, size_t numSamples) override
 		{
 			model->Process(input, output, numSamples);
 		}

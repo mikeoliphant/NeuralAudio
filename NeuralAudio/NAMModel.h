@@ -98,9 +98,9 @@ namespace NeuralAudio
 			}
 		}
 
-		void Process(float* input, float* output, size_t numSamples) override
+		void Process(const float* input, float* output, size_t numSamples) override
 		{
-			namModel->process(&input, &output, (int)numSamples);
+			namModel->process(const_cast<float**>(&input), &output, (int)numSamples);
 		}
 
 		void Prewarm() override
