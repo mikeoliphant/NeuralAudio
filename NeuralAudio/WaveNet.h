@@ -31,7 +31,7 @@ namespace NeuralAudio
 	class ChannelHistoryBuffer
 	{
 	public:
-		static constexpr auto BufferSize = ReceptiveFieldSize + ((LAYER_ARRAY_BUFFER_PADDING + 1) * WAVENET_MAX_NUM_FRAMES);
+		static constexpr auto BufferSize = (ReceptiveFieldSize == 0) ? WAVENET_MAX_NUM_FRAMES : ReceptiveFieldSize + ((LAYER_ARRAY_BUFFER_PADDING + 1) * WAVENET_MAX_NUM_FRAMES);
 
 		ChannelBuffer<T, Channels, BufferSize> buffer;
 		size_t bufferStart;
@@ -52,16 +52,22 @@ namespace NeuralAudio
 #if (LAYER_ARRAY_BUFFER_PADDING == 0)
 			bufferStart = ReceptiveFieldSize;
 #else
-			bufferStart = BufferSize - (WAVENET_MAX_NUM_FRAMES * ((allocNum % LAYER_ARRAY_BUFFER_PADDING) + 1));	// Do the modulo to handle cases where LAYER_ARRAY_BUFFER_PADDING is not big enough to handle offset
+			if constexpr (ReceptiveFieldSize == 0)
+				bufferStart = 0;
+			else
+				bufferStart = BufferSize - (WAVENET_MAX_NUM_FRAMES * ((allocNum % LAYER_ARRAY_BUFFER_PADDING) + 1));	// Do the modulo to handle cases where LAYER_ARRAY_BUFFER_PADDING is not big enough to handle offset
 #endif
 		}
 
 		void AdvanceFrames(const size_t numFrames)
 		{
-			bufferStart += numFrames;
+			if constexpr (ReceptiveFieldSize > 0)
+			{
+				bufferStart += numFrames;
 
-			if ((bufferStart + WAVENET_MAX_NUM_FRAMES) > (size_t)buffer.GetNumCols())
-				RewindBuffer();
+				if ((bufferStart + WAVENET_MAX_NUM_FRAMES) > (size_t)buffer.GetNumCols())
+					RewindBuffer();
+			}
 		}
 
 		void RewindBuffer()
@@ -514,7 +520,7 @@ namespace NeuralAudio
 	private:
 		Layers layers;
 		DenseLayerT<T, InputSize, Channels, false> rechannel;
-		Conv1DT<T, Channels, HeadSize, HeadKernelSize, HasHeadBias, HeadDilation> oneByOne;
+		Conv1DT<T, Channels, HeadSize, HeadKernelSize, HasHeadBias, HeadDilation> headRechannel;
 
 	public:
 		static constexpr auto NumChannelsP = Channels;
@@ -533,7 +539,7 @@ namespace NeuralAudio
 					ReceptiveFieldSize += std::get<layerIndex>(layers).ReceptiveFieldSize;
 				});
 
-			ReceptiveFieldSize += oneByOne.ReceptiveFieldSize;
+			ReceptiveFieldSize += headRechannel.ReceptiveFieldSize;
 		}
 
 		int AllocBuffers(int allocNum)
@@ -543,7 +549,7 @@ namespace NeuralAudio
 					std::get<layerIndex>(layers).AllocBuffer(allocNum++);
 				});
 
-			oneByOne.channelBuffer.AllocBuffer(allocNum++);
+			headRechannel.channelBuffer.AllocBuffer(allocNum++);
 
 			return allocNum;
 		}
@@ -557,7 +563,7 @@ namespace NeuralAudio
 					numWeights += std::get<layerIndex>(layers).GetNumWeights();
 				});
 
-			numWeights += oneByOne.GetNumWeights();
+			numWeights += headRechannel.GetNumWeights();
 
 			return numWeights;
 		}
@@ -571,7 +577,7 @@ namespace NeuralAudio
 					std::get<layerIndex>(layers).SetWeights(weights);
 				});
 
-			oneByOne.SetWeights(weights);
+			headRechannel.SetWeights(weights);
 		}
 
 		Layers& GetLayers()
@@ -586,7 +592,7 @@ namespace NeuralAudio
 
 		Conv1DT<T, Channels, HeadSize, HeadKernelSize, HasHeadBias, HeadDilation>& GetHeadRechannel()
 		{
-			return oneByOne;
+			return headRechannel;
 		}
 
 		void Prewarm(const ChannelRowSpan<T, InputSize>& layerInputs, const ChannelRowSpan<T, ConditionSize>& condition, const ChannelRowSpan<T, Channels>& headInputs)
@@ -609,9 +615,9 @@ namespace NeuralAudio
 
 			//headRechannel.channelBuffer.buffer.middleCols(headRechannel.channelBuffer.bufferStart, 1).noalias() = headInputs.leftCols(1);	// Should be able to avoid this copy
 
-			oneByOne.GetInputBuffer(1).CopyData(headInputs.Slice(1));
-			oneByOne.channelBuffer.CopyBuffer();
-			oneByOne.Process(headOutputs.Slice(1));
+			headRechannel.GetInputBuffer(1).CopyData(headInputs.Slice(1));
+			headRechannel.channelBuffer.CopyBuffer();
+			headRechannel.Process(headOutputs.Slice(1));
 		}
 
 		template <bool NeedOutput = true>
@@ -640,9 +646,9 @@ namespace NeuralAudio
 
 			//headRechannel.GetInputBuffer(numFrames).CopyData(headInputs);
 
-			oneByOne.GetInputBuffer(numFrames).GetEigenMap().noalias() = headInputs.GetEigenMapConst();
-			oneByOne.Process(headOutputs.Slice(numFrames));
-			oneByOne.channelBuffer.AdvanceFrames(numFrames);
+			headRechannel.GetInputBuffer(numFrames).GetEigenMap().noalias() = headInputs.GetEigenMapConst();
+			headRechannel.Process(headOutputs.Slice(numFrames));
+			headRechannel.channelBuffer.AdvanceFrames(numFrames);
 		}
 	};
 
