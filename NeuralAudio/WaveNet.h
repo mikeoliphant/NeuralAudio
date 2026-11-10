@@ -358,7 +358,12 @@ namespace NeuralAudio
 			{
 				if constexpr (DoBias)
 				{
-					output.GetEigenMap().noalias() = (weights.GetEigenMapConst() * input.GetEigenMapConst()).colwise() + bias;
+					// The product straight into the output, then the bias: a sum
+					// around the product would evaluate it into a temporary (an
+					// allocation on the audio thread).
+					auto out = output.GetEigenMap();
+					out.noalias() = weights.GetEigenMapConst() * input.GetEigenMapConst();
+					out.colwise() += bias;
 				}
 				else
 				{
@@ -379,7 +384,9 @@ namespace NeuralAudio
 			{
 				if constexpr (DoBias)
 				{
-					output.GetEigenMap().noalias() += (weights.GetEigenMapConst() * input.GetEigenMapConst()) + bias;
+					auto out = output.GetEigenMap();
+					out.noalias() += weights.GetEigenMapConst() * input.GetEigenMapConst();
+					out.colwise() += bias;
 				}
 				else
 				{
