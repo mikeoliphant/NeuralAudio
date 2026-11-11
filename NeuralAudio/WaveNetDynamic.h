@@ -122,7 +122,10 @@ namespace NeuralAudio
 		{
 			if (doBias)
 			{
-				output.noalias() = (weights * input).colwise() + bias;
+				// Product first, then the bias: a sum around the product would
+				// evaluate it into a temporary (an allocation per block).
+				output.noalias() = weights * input;
+				output.colwise() += bias;
 			}
 			else
 			{
@@ -134,7 +137,8 @@ namespace NeuralAudio
 		{
 			if (doBias)
 			{
-				output.noalias() += (weights * input).colwise() + bias;
+				output.noalias() += weights * input;
+				output.colwise() += bias;
 			}
 			else
 			{
@@ -327,7 +331,9 @@ namespace NeuralAudio
 			oneByOne.SetWeights(weights);
 		}
 
-		void Prewarm(const Eigen::MatrixXf& layerInputs, const Eigen::MatrixXf& condition, Eigen::Ref<Eigen::MatrixXf> const& headInputs)
+		// Ref, not const MatrixXf&: the callers pass maps and column blocks,
+		// which a const MatrixXf& copies into a new matrix at every call.
+		void Prewarm(const Eigen::Ref<const Eigen::MatrixXf>& layerInputs, const Eigen::Ref<const Eigen::MatrixXf>& condition, Eigen::Ref<Eigen::MatrixXf> const& headInputs)
 		{
 			rechannel.Process(layerInputs, layers[0].GetLayerBuffer().middleCols(layers[0].bufferStart, 1));
 
@@ -348,7 +354,7 @@ namespace NeuralAudio
 			oneByOne.Process(headInputs, headOutputs.leftCols(1));
 		}
 
-		void Process(const Eigen::MatrixXf& layerInputs, const Eigen::MatrixXf& condition, Eigen::Ref<Eigen::MatrixXf> headInputs, const size_t numFrames)
+		void Process(const Eigen::Ref<const Eigen::MatrixXf>& layerInputs, const Eigen::Ref<const Eigen::MatrixXf>& condition, Eigen::Ref<Eigen::MatrixXf> headInputs, const size_t numFrames)
 		{
 			rechannel.Process(layerInputs,layers[0].GetLayerBuffer().middleCols(layers[0].bufferStart, numFrames));
 
