@@ -97,7 +97,8 @@ namespace NeuralAudio
 			for (size_t i = 0; i < inputSize; i++)
 				state(i) = input[i];
 
-			gates = (inputHiddenWeights * state) + bias;
+			gates.noalias() = inputHiddenWeights * state;	// then the bias: no temporary
+			gates += bias;
 
 			for (size_t i = 0; i < hiddenSize; i++)
 				cellState[i] = (LSTM_MATH<float>::Sigmoid(gates[i + fOffset]) * cellState[i]) + (LSTM_MATH<float>::Sigmoid(gates[i + iOffset]) *
