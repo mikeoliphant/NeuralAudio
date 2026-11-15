@@ -100,7 +100,19 @@ namespace NeuralAudio
 
 		void Process(const float* input, float* output, size_t numSamples) override
 		{
-			namModel->process(const_cast<float**>(&input), &output, (int)numSamples);
+			while (numSamples > 0)
+			{
+				size_t chunkSize = std::min(numSamples, (size_t)currentMaxSize);
+
+				float* inputPtr = const_cast<float*>(input);
+				float* outputPtr = output;
+
+				namModel->process(&inputPtr, &outputPtr, static_cast<int>(chunkSize));
+
+				input += chunkSize;
+				output += chunkSize;
+				numSamples -= chunkSize;
+			}
 		}
 
 		void Prewarm() override
