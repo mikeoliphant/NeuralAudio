@@ -166,7 +166,7 @@ namespace NeuralAudio
 			else if constexpr (IsKernel(1, 3))
 			{
 				const T w0 = weights[0], w1 = weights[1], w2 = weights[2];
-				const T init0 = inData[0], init1 = inData[1], init2 = inData[2];
+				const T init0 = initData[0], init1 = initData[1], init2 = initData[2];
 
 				for (size_t frame = 0; frame < numFrames; frame++)
 				{
