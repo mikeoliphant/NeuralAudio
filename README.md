@@ -15,7 +15,7 @@ NeuralAudio currently supports the following model types:
 - [Neural Amp Modeler](https://github.com/sdatkinson/neural-amp-modeler) (NAM) WaveNet and LSTM models, A1 and A2 support
 - [RTNeural](https://github.com/jatinchowdhury18/RTNeural) keras models (LSTM, GRU)
 
-For WaveNet, the internal implmeentation supports optimized static implemenationas the offical NAM A1 and A2 network architectures:  A1 "Standard", "Lite", "Feather", "Nano" and A2 "Lite" and "Full".
+For WaveNet, the internal implementation supports optimized static implementations the official NAM A1 and A2 network architectures:  A1 "Standard", "Lite", "Feather", "Nano" and A2 "Lite" and "Full".
 
 For LSTM, the internal implementation supports optimized static models architectures for 1x8, 1x12, 1x16, 1x24, 2x8, 2x12, and 2x16 models.
 
@@ -23,7 +23,7 @@ All A1 NAM files with WaveNet and LSTM architectures not supported statically wi
 
 All non-standard A2 models currently use the NAM Core implementation (and consequently require building with NAM Core enabled).
 
-All keras models not supported internally will fall back to the RTNeural implmentation.
+All keras models not supported internally will fall back to the RTNeural implementation.
 
 # API overview
 
@@ -245,18 +245,18 @@ The "ModelTest" application binaries provided in the [Releases section](https://
 
 ```-DWAVENET_FRAMES=XXX```: Sample buffer size for the internal WaveNet implementation. Defaults to **64**. If you know you are going to be using a fixed sample buffer smaller or larger than this, use that instead. Note that the model will still be able to process any buffer size - it is just optimized for this size.
 
-```-DBUFFER_PADDING=XXX```: Amount of padding to convolution layer buffers. This allows ring buffer resets to be staggered accross layers to improve performance. It also uses a significant amount of memory. It is set to **24** by default. It can be set all the way down to 0 to reduce memory usage.
+```-DBUFFER_PADDING=XXX```: Amount of padding to convolution layer buffers. This allows ring buffer resets to be staggered across layers to improve performance. It also uses a significant amount of memory. It is set to **24** by default. It can be set all the way down to 0 to reduce memory usage.
 
 ```-DWAVENET_MATH=XXX```
 ```-DLSTM_MATH=XXX```: Which math approximations (tanh and sigmoid) to use for WaveNet and LSTM models. Options are:
 
   - ```FastMath``` (the default): Use the same approximations as NAM Core.
   - ```EigenMath```: Use Eigen's builtin tanh approximation. Somewhat slower, but more accurate.
-  - ```StdMath```: Use standard math functions. No approxmation used - much slower.
+  - ```StdMath```: Use standard math functions. No approximation used - much slower.
 
 ```-DBUILD_UTILS=ON|OFF```: Build performance/accuracy testing tools (located in the "Utils" folder).
 
-```-DBUILD_NAMCORE=ON|OFF```: Support loading models using the NAM Core implemenations.
+```-DBUILD_NAMCORE=ON|OFF```: Support loading models using the NAM Core implementations.
 
 ```-DNAM_USE_INLINE_GEMM=ON|OFF```: Enable use of inline matrix multiplication in NAM Core.
 
