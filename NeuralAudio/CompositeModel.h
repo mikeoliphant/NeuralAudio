@@ -197,6 +197,8 @@ namespace NeuralAudio
 			std::atomic<float> currentQualityLevel = 1.0f;
 			std::vector<std::tuple<float, int>> qualityLevels;
 
+			// Like NAM Core's ContainerModel: each model covers quality settings up to, but not including, its level.
+			// Settings at or above the highest level use the last model.
 			int GetModelIndexFromQualityScale(float qualityScale)
 			{
 				int modelIndex = 0;
@@ -205,7 +207,7 @@ namespace NeuralAudio
 				{
 					modelIndex = std::get<1>(level);
 
-					if (qualityScale <= std::get<0>(level))
+					if (qualityScale < std::get<0>(level))
 						break;
 				}
 
