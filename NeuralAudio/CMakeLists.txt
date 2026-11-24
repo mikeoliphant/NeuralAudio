@@ -201,6 +201,6 @@ endif()
 add_subdirectory(../deps/math_approx math_approx)
 target_link_libraries(NeuralAudio LINK_PUBLIC math_approx)
 
-source_group(NeuralAudio ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES})
-source_group(NAM ${CMAKE_CURRENT_SOURCE_DIR} FILES ${NAM_SOURCES})
+source_group(NeuralAudio FILES ${SOURCES})
+source_group(NAM FILES ${NAM_SOURCES})
 

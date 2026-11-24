@@ -8,4 +8,4 @@ include_directories(NeuralAudioCAPI ../NeuralAudio)
 
 target_link_libraries(NeuralAudioCAPI PRIVATE NeuralAudio)
 
-source_group(NeuralAudioCAPI ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES})
+source_group(NeuralAudioCAPI FILES ${SOURCES})
